@@ -89,12 +89,10 @@
   width: 200px;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
-  /* Distribute space equally between buttons */
 }
 
 .command-container button {
   padding: 5px;
-  margin-bottom: 5px;
-  /* Adjust margin as needed */
+  margin-top: 2px;
+  margin-bottom: 2px;
 }
