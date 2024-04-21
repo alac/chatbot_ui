@@ -32,7 +32,36 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  /* Ensure app takes full viewport height */
+}
+
+.top-container {
+  display: flex;
+  flex-grow: 1;
+  /* Top container fills remaining space */
+}
+
+.sidebar-container {
+  background-color: lightgray;
+}
+
+.messages-container {
+  background-color: white;
+  flex-grow: 1;
+  /* Messages container fills remaining space next to sidebar */
+}
+
+.bottom-container {
+  background-color: #f0f0f0;
+  min-height: 200px;
 }

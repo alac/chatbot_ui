@@ -1,24 +1,27 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
 
 function App() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app-container">
+      <div className="top-container">
+        <div className="messages-container">
+          {/* Messages content */}
+        </div>
+        <div className="sidebar-container" style={{ width: sidebarCollapsed ? 'auto' : '200px' }}>
+          {/* Sidebar content */}
+          <button onClick={toggleSidebar}>{sidebarCollapsed ? '<<' : '>>'}</button>
+        </div>
+      </div>
+      <div className="bottom-container">
+        {/* Bottom container content */}
+      </div>
     </div>
   );
 }
