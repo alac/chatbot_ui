@@ -70,19 +70,16 @@
 
 .input-area {
   flex-grow: 1;
-  /* Input area fills remaining space */
   display: flex;
   margin: 5px;
-  /* Adjust margin as needed */
 }
 
 .text-field {
   flex-grow: 1;
-  /* Text field fills available space horizontally */
   padding: 10px;
-  /* Adjust padding as needed */
   border: 1px solid #ccc;
   border-radius: 5px;
+  resize: none;
 }
 
 .command-container {
