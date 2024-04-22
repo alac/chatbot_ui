@@ -58,14 +58,12 @@
 .messages-container {
   background-color: white;
   flex-grow: 1;
-  /* Messages container fills remaining space next to sidebar */
 }
 
 .bottom-container {
   background-color: #f0f0f0;
-  min-height: 200px;
   display: flex;
-  /* Enable flexbox for bottom container */
+  flex-direction: column;
 }
 
 .input-area {
