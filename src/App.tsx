@@ -12,18 +12,24 @@ function App() {
 
   const bottomContainerRef = useRef<HTMLDivElement>(null);
   const [maxHeight, setMaxHeight] = useState(window.innerHeight);
-  const updateMaxHeight = () => {
-    if (bottomContainerRef.current) {
-      setMaxHeight(window.innerHeight - bottomContainerRef.current.offsetHeight);
-      console.log("bottomContainerRef size")
-      console.log(bottomContainerRef.current.offsetHeight)
-    }
-  };
 
   useEffect(() => {
-    updateMaxHeight();
-    window.addEventListener('resize', updateMaxHeight);
-    return () => window.removeEventListener('resize', updateMaxHeight);
+    const updateMaxHeight = () => {
+      if (bottomContainerRef.current) {
+        setMaxHeight(window.innerHeight - bottomContainerRef.current.offsetHeight);
+      }
+    };
+
+    // Observe bottomContainer size changes
+    const resizeObserver = new ResizeObserver(updateMaxHeight);
+    if (bottomContainerRef.current) {
+      resizeObserver.observe(bottomContainerRef.current);
+    }
+
+    // Clean up observer on unmount
+    return () => {
+      resizeObserver.disconnect();
+    };
   }, []);
 
 
@@ -118,11 +124,11 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
             Send
           </button>
 
-          {/* <button>Send Choice</button>
+          <button>Send Choice</button>
           <button>Send Question</button>
           <button>Continue</button>
           <button>Continue Input</button>
-          <button>Show Context</button> */}
+          <button>Show Context</button>
         </div>
       </div>
     </div>
