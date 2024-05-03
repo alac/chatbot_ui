@@ -43,11 +43,11 @@ function App() {
   return (
     <div className="app-container">
       <div className="top-container">
-        <div className="messages-container">
+        <div className="messages-container" style={{ height: chatLogHeight }} >
           <VirtuosoMessageListLicense licenseKey="">
             <VirtuosoMessageList<Message, null>
               ref={virtuosoChatbox}
-              style={{ height: chatLogHeight }}
+              style={{ maxHeight: chatLogHeight }}
               computeItemKey={(data: Message) => data.key}
               initialLocation={{ index: 'LAST', align: 'end' }}
               shortSizeAlign="bottom-smooth"
@@ -86,8 +86,8 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
   }, [inputValue]);
 
 
-  const sendChatMesage = () => {
-    const myMessage = { user: 'me' as 'me', key: `${idCounter++}`, text: "ahfad ksfhasklhf aslkdfha lskdjhfal" }
+  const sendChatMessage = () => {
+    const myMessage = { user: 'me' as 'me', key: `${idCounter++}`, text: inputValue }
     virtuosoChatbox.current?.data.append([myMessage], ({ scrollInProgress, atBottom }: { scrollInProgress: boolean; atBottom: boolean }) => {
       return {
         index: 'LAST',
@@ -95,7 +95,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
         behavior: atBottom || scrollInProgress ? 'smooth' : 'auto',
       }
     })
-
+    setInputValue("")
 
     setTimeout(() => {
       const botMessage = { user: 'other' as 'other', key: `${idCounter++}`, text: "ahfad ksfhasklhf aslkdfha lskdjhfal" }
@@ -126,7 +126,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
           onChange={handleInputChange}
         />
         <div className="command-container">
-          <button onClick={sendChatMesage}>
+          <button onClick={sendChatMessage}>
             Send
           </button>
 
@@ -139,10 +139,8 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
 });
 
 
-const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = (data: Message) => {
+const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ data }: { data: Message }) => {
   const ownMessage = data.user === 'me'
-  console.log(data.user)
-  console.log(ownMessage)
 
   return (
     <div style={{ paddingBottom: '2rem', display: 'flex' }}>
@@ -157,7 +155,7 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = (dat
           padding: '1rem',
         }}
       >
-        {data.text} apples
+        {data.text}
       </div>
     </div>
   )
