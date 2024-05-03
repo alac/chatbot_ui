@@ -1,47 +1,49 @@
-import React, { useState, useRef, useEffect, forwardRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { VirtuosoMessageListProps, VirtuosoMessageListMethods, VirtuosoMessageList, VirtuosoMessageListLicense } from '@virtuoso.dev/message-list';
 import './App.css';
 
 function App() {
-  const virtuoso = React.useRef<VirtuosoMessageListMethods<Message>>(null)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const virtuosoChatbox = React.useRef<VirtuosoMessageListMethods<Message>>(null)
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  const bottomContainerRef = useRef<HTMLDivElement>(null);
-  const [maxHeight, setMaxHeight] = useState(window.innerHeight);
-
+  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
   useEffect(() => {
-    const updateMaxHeight = () => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const bottomContainerRef = useRef<HTMLDivElement>(null);
+  const [chatLogHeight, setChatLogHeight] = useState(window.innerHeight);
+  useEffect(() => {
+    const updateChatLogHeight = () => {
       if (bottomContainerRef.current) {
-        setMaxHeight(window.innerHeight - bottomContainerRef.current.offsetHeight);
+        setChatLogHeight(windowHeight - bottomContainerRef.current.offsetHeight);
       }
     };
-
-    // Observe bottomContainer size changes
-    const resizeObserver = new ResizeObserver(updateMaxHeight);
+    const resizeObserver = new ResizeObserver(updateChatLogHeight);
     if (bottomContainerRef.current) {
       resizeObserver.observe(bottomContainerRef.current);
     }
-
-    // Clean up observer on unmount
     return () => {
       resizeObserver.disconnect();
     };
-  }, []);
-
+  }, [windowHeight]);
 
   return (
     <div className="app-container">
       <div className="top-container">
         <div className="messages-container">
-          {/* Messages content */}
           <VirtuosoMessageListLicense licenseKey="">
             <VirtuosoMessageList<Message, null>
-              ref={virtuoso}
-              style={{ height: maxHeight }}
+              ref={virtuosoChatbox}
+              style={{ height: chatLogHeight }}
               computeItemKey={(data: Message) => data.key}
               initialLocation={{ index: 'LAST', align: 'end' }}
               shortSizeAlign="bottom-smooth"
@@ -49,25 +51,23 @@ function App() {
             />
           </VirtuosoMessageListLicense>
         </div>
-        <div className="sidebar-container" style={{ width: sidebarCollapsed ? 'auto' : '200px' }}>
-          {/* Sidebar content */}
+        <div className="sidebar-container" style={{ width: sidebarCollapsed ? 'auto' : '200px', height: chatLogHeight }}>
           <button onClick={toggleSidebar}>{sidebarCollapsed ? '<<' : '>>'}</button>
         </div>
       </div>
-      <BottomContainer ref={bottomContainerRef} virtuoso={virtuoso} />
+      <BottomContainer ref={bottomContainerRef} virtuosoChatbox={virtuosoChatbox} />
     </div>
   );
 }
 
 
 interface BottomContainerProps {
-  virtuoso: React.RefObject<VirtuosoMessageListMethods<Message, any>>;
+  virtuosoChatbox: React.RefObject<VirtuosoMessageListMethods<Message, any>>;
 }
 
 
-const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>(({ virtuoso }, ref) => {
+const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>(({ virtuosoChatbox }, ref) => {
   const [inputValue, setInputValue] = useState('');
-
   const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(event.target.value);
   };
@@ -78,8 +78,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
       textareaRef.current.style.height = "auto"; // Allow textarea to resize naturally based on content
       textareaRef.current.style.height = textareaRef.current.scrollHeight + "px"; // Set height based on scrollHeight
     }
-  }, [inputValue]); // Update height whenever inputValue changes
-
+  }, [inputValue]);
 
   return (
     <div className="bottom-container" ref={ref}>
@@ -95,7 +94,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
           <button
             onClick={() => {
               const myMessage = randomMessage('me')
-              virtuoso.current?.data.append([myMessage], ({ scrollInProgress, atBottom }: { scrollInProgress: boolean; atBottom: boolean }) => {
+              virtuosoChatbox.current?.data.append([myMessage], ({ scrollInProgress, atBottom }: { scrollInProgress: boolean; atBottom: boolean }) => {
                 return {
                   index: 'LAST',
                   align: 'end',
@@ -105,14 +104,14 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
 
               setTimeout(() => {
                 const botMessage = randomMessage('other')
-                virtuoso.current?.data.append([botMessage])
+                virtuosoChatbox.current?.data.append([botMessage])
 
                 let counter = 0
                 const interval = setInterval(() => {
                   if (counter++ > 20) {
                     clearInterval(interval)
                   }
-                  virtuoso.current?.data.map((message: Message) => {
+                  virtuosoChatbox.current?.data.map((message: Message) => {
                     return message.key === botMessage.key ? { ...message, text: message.text + ' ' + "asdfasdf" } : message
                   },
                     'smooth'
