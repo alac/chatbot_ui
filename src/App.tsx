@@ -5,10 +5,12 @@ import './App.css';
 function App() {
   const virtuosoChatbox = React.useRef<VirtuosoMessageListMethods<Message>>(null)
 
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
+
 
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
   useEffect(() => {
@@ -18,6 +20,7 @@ function App() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
 
   const bottomContainerRef = useRef<HTMLDivElement>(null);
   const [chatLogHeight, setChatLogHeight] = useState(window.innerHeight);
@@ -35,6 +38,7 @@ function App() {
       resizeObserver.disconnect();
     };
   }, [windowHeight]);
+
 
   return (
     <div className="app-container">
@@ -72,6 +76,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
     setInputValue(event.target.value);
   };
 
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     if (textareaRef.current) {
@@ -79,6 +84,36 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
       textareaRef.current.style.height = textareaRef.current.scrollHeight + "px"; // Set height based on scrollHeight
     }
   }, [inputValue]);
+
+
+  const sendChatMesage = () => {
+    const myMessage = { user: 'me' as 'me', key: `${idCounter++}`, text: "ahfad ksfhasklhf aslkdfha lskdjhfal" }
+    virtuosoChatbox.current?.data.append([myMessage], ({ scrollInProgress, atBottom }: { scrollInProgress: boolean; atBottom: boolean }) => {
+      return {
+        index: 'LAST',
+        align: 'end',
+        behavior: atBottom || scrollInProgress ? 'smooth' : 'auto',
+      }
+    })
+
+
+    setTimeout(() => {
+      const botMessage = { user: 'other' as 'other', key: `${idCounter++}`, text: "ahfad ksfhasklhf aslkdfha lskdjhfal" }
+      virtuosoChatbox.current?.data.append([botMessage])
+
+      let counter = 0
+      const interval = setInterval(() => {
+        if (counter++ > 20) {
+          clearInterval(interval)
+        }
+        virtuosoChatbox.current?.data.map((message: Message) => {
+          return message.key === botMessage.key ? { ...message } : message
+        },
+          'smooth'
+        )
+      }, 150)
+    }, 1000)
+  }
 
   return (
     <div className="bottom-container" ref={ref}>
@@ -91,43 +126,12 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
           onChange={handleInputChange}
         />
         <div className="command-container">
-          <button
-            onClick={() => {
-              const myMessage = randomMessage('me')
-              virtuosoChatbox.current?.data.append([myMessage], ({ scrollInProgress, atBottom }: { scrollInProgress: boolean; atBottom: boolean }) => {
-                return {
-                  index: 'LAST',
-                  align: 'end',
-                  behavior: atBottom || scrollInProgress ? 'smooth' : 'auto',
-                }
-              })
-
-              setTimeout(() => {
-                const botMessage = randomMessage('other')
-                virtuosoChatbox.current?.data.append([botMessage])
-
-                let counter = 0
-                const interval = setInterval(() => {
-                  if (counter++ > 20) {
-                    clearInterval(interval)
-                  }
-                  virtuosoChatbox.current?.data.map((message: Message) => {
-                    return message.key === botMessage.key ? { ...message, text: message.text + ' ' + "asdfasdf" } : message
-                  },
-                    'smooth'
-                  )
-                }, 150)
-              }, 1000)
-            }}
-          >
+          <button onClick={sendChatMesage}>
             Send
           </button>
 
-          <button>Send Choice</button>
-          <button>Send Question</button>
-          <button>Continue</button>
-          <button>Continue Input</button>
-          <button>Show Context</button>
+          <button>Send#1</button>
+          <button>Send#2</button>
         </div>
       </div>
     </div>
@@ -137,6 +141,9 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
 
 const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = (data: Message) => {
   const ownMessage = data.user === 'me'
+  console.log(data.user)
+  console.log(ownMessage)
+
   return (
     <div style={{ paddingBottom: '2rem', display: 'flex' }}>
       <div
@@ -150,7 +157,7 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = (dat
           padding: '1rem',
         }}
       >
-        {data.text}
+        {data.text} apples
       </div>
     </div>
   )
@@ -164,9 +171,5 @@ interface Message {
 }
 
 let idCounter = 0
-
-function randomMessage(user: Message['user']): Message {
-  return { user, key: `${idCounter++}`, text: "ahfad ksfhasklhf aslkdfha lskdjhfal" }
-}
 
 export default App;
