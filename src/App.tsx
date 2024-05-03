@@ -65,6 +65,39 @@ function App() {
 }
 
 
+interface Message {
+  key: string
+  text: string
+  user: 'me' | 'other'
+}
+
+
+let idCounter = 0
+
+
+const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ data }: { data: Message }) => {
+  const ownMessage = data.user === 'me'
+
+  return (
+    <div style={{ paddingBottom: '2rem', display: 'flex' }}>
+      <div
+        style={{
+          maxWidth: '80%',
+          marginLeft: data.user === 'me' ? 'auto' : undefined,
+
+          background: ownMessage ? '#0253B3' : '#F0F0F3',
+          color: ownMessage ? 'white' : 'black',
+          borderRadius: '1rem',
+          padding: '1rem',
+        }}
+      >
+        {data.text}
+      </div>
+    </div>
+  )
+}
+
+
 interface BottomContainerProps {
   virtuosoChatbox: React.RefObject<VirtuosoMessageListMethods<Message, any>>;
 }
@@ -138,36 +171,5 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
   );
 });
 
-
-const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ data }: { data: Message }) => {
-  const ownMessage = data.user === 'me'
-
-  return (
-    <div style={{ paddingBottom: '2rem', display: 'flex' }}>
-      <div
-        style={{
-          maxWidth: '80%',
-          marginLeft: data.user === 'me' ? 'auto' : undefined,
-
-          background: ownMessage ? '#0253B3' : '#F0F0F3',
-          color: ownMessage ? 'white' : 'black',
-          borderRadius: '1rem',
-          padding: '1rem',
-        }}
-      >
-        {data.text}
-      </div>
-    </div>
-  )
-}
-
-
-interface Message {
-  key: string
-  text: string
-  user: 'me' | 'other'
-}
-
-let idCounter = 0
 
 export default App;
