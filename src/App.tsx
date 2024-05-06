@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { VirtuosoMessageListProps, VirtuosoMessageListMethods, VirtuosoMessageList, VirtuosoMessageListLicense } from '@virtuoso.dev/message-list';
 import './App.css';
 
+import { generate, settingsManager } from './generate';
+
+
 function App() {
   const virtuosoChatbox = React.useRef<VirtuosoMessageListMethods<Message>>(null)
 
@@ -43,11 +46,11 @@ function App() {
   return (
     <div className="app-container">
       <div className="top-container">
-        <div className="messages-container" style={{ height: chatLogHeight }} >
+        <div className="messages-container"  >
           <VirtuosoMessageListLicense licenseKey="">
             <VirtuosoMessageList<Message, null>
               ref={virtuosoChatbox}
-              style={{ maxHeight: chatLogHeight }}
+              style={{ maxHeight: chatLogHeight, minHeight: chatLogHeight }}
               computeItemKey={(data: Message) => data.key}
               initialLocation={{ index: 'LAST', align: 'end' }}
               shortSizeAlign="bottom-smooth"
@@ -72,9 +75,6 @@ interface Message {
 }
 
 
-let idCounter = 0
-
-
 const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ data }: { data: Message }) => {
   const ownMessage = data.user === 'me'
 
@@ -89,6 +89,8 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
           color: ownMessage ? 'white' : 'black',
           borderRadius: '1rem',
           padding: '1rem',
+          whiteSpace: 'pre',
+          textWrap: 'wrap',
         }}
       >
         {data.text}
@@ -119,8 +121,11 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
   }, [inputValue]);
 
 
+  const [messageId, setMessageId] = useState(0);
   const sendChatMessage = () => {
-    const myMessage = { user: 'me' as 'me', key: `${idCounter++}`, text: inputValue }
+    setMessageId(messageId + 2)
+
+    const myMessage = { user: 'me' as 'me', key: `${messageId}`, text: inputValue }
     virtuosoChatbox.current?.data.append([myMessage], ({ scrollInProgress, atBottom }: { scrollInProgress: boolean; atBottom: boolean }) => {
       return {
         index: 'LAST',
@@ -131,20 +136,21 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
     setInputValue("")
 
     setTimeout(() => {
-      const botMessage = { user: 'other' as 'other', key: `${idCounter++}`, text: "ahfad ksfhasklhf aslkdfha lskdjhfal" }
+      const botMessage = { user: 'other' as 'other', key: `${messageId + 1}`, text: "" }
       virtuosoChatbox.current?.data.append([botMessage])
 
-      let counter = 0
-      const interval = setInterval(() => {
-        if (counter++ > 20) {
-          clearInterval(interval)
-        }
+      const responseWriter = (token: string, done: boolean) => {
         virtuosoChatbox.current?.data.map((message: Message) => {
-          return message.key === botMessage.key ? { ...message } : message
+          if (message.key != botMessage.key) {
+            return message;
+          }
+          // console.log("updated message, ", message.text + token)
+          return { ...message, "text": message.text + token }
         },
           'smooth'
         )
-      }, 150)
+      }
+      generate(inputValue, settingsManager.getDefaultSettings(), responseWriter)
     }, 1000)
   }
 

@@ -1,3 +1,5 @@
+import { write } from "fs";
+
 interface NamedSettings {
     name: string
     values: object
@@ -41,9 +43,7 @@ class DefaultSettingsManager implements SettingsManager {
         return {
             "name": "default",
             "values": {
-                "max_new_tokens": 708,
-                "max_tokens": 708,
-                "n_predict": 708,
+                "max_tokens": 50,
                 "truncation_length": 8192,
                 "temperature": 2.5,
                 "min_p": 0.058,
@@ -83,16 +83,23 @@ class DefaultSettingsManager implements SettingsManager {
 type ResponseWriter = (token: string, done: boolean) => void;
 var interruptFlag = false;
 
-// how do i configure BUILDING a prompt
-// how do i manage the message history?
-// 
+type TextCompletionChunk = {
+    id: string;
+    object: "text_completion.chunk";
+    created: number;
+    model: string;
+    choices: TextCompletionChoice[];
+};
 
-// permanent settings + "overrides"
-// connection settings
-// do I need a lock around interruptFlag?
-// how the hell do i stream the response? callback?
+type TextCompletionChoice = {
+    index: number;
+    finish_reason: string | null;
+    text: string;
+    logprobs: {
+        top_logprobs: any[]; // Assuming the structure of top_logprobs is unknown
+    };
+};
 
-// how do i _persist_ settings?
 async function generate(prompt: string, settings: NamedSettings, writeStream: ResponseWriter) {
     const url = "http://127.0.0.1:5000/v1/completions"
 
@@ -104,18 +111,23 @@ async function generate(prompt: string, settings: NamedSettings, writeStream: Re
             "Content-Type": "application/json",
             "Accept": "text/event-stream",
         },
-        body: JSON.stringify(settings.values),
+        body: JSON.stringify({ ...settings.values, prompt }),
     });
 
     const reader = response?.body?.getReader();
     while (reader) {
         const { value, done } = await reader.read();
         if (done || interruptFlag) break;
-
-        console.log('get.message', new TextDecoder().decode(value));
+        const responseStr = new TextDecoder().decode(value);
+        const responseChunk: TextCompletionChunk = JSON.parse(responseStr.substring(6))
+        if (responseChunk.choices && responseChunk.choices.length != 0) {
+            writeStream(responseChunk.choices[0].text, false)
+        }
     }
     writeStream("", true)
 }
 
 
 const settingsManager = new DefaultSettingsManager();
+
+export { generate, settingsManager }
