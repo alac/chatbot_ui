@@ -142,18 +142,34 @@ async function generate(prompt: string, connectionSettings: ConnectionSettings, 
         writeStream("", true)
     } else if (connectionSettings.type === 'dummy') {
         let i = 0;
+        const inputString = `type TextCompletionChunk = {
+    id: string;
+    object: "text_completion.chunk";
+    created: number;
+    model: string;
+    choices: TextCompletionChoice[];
+};`
+        const dummyResponse = breakStringIntoSubstrings(inputString);
         const intervalId = setInterval(() => {
-            writeStream("apples ", false)
-            writeStream("cow ", false)
+            writeStream(dummyResponse[i], false)
             i++;
-            if (i === 20) {
+            if (i === dummyResponse.length) {
                 clearInterval(intervalId);
             }
-        }, 1000);
+        }, 50);
         writeStream("", true)
     } else {
         console.log("Invalid connection type: ", connectionSettings.type)
     }
+}
+
+function breakStringIntoSubstrings(str: string): string[] {
+    const result: string[] = [];
+    for (let i = 0; i < str.length; i += 2) {
+        const substring = str.substring(i, i + 2);
+        result.push(substring);
+    }
+    return result;
 }
 
 
