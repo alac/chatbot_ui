@@ -5,7 +5,7 @@ interface GenerateParameters {
 
 interface ConnectionSettings {
     name: string
-    type: 'oobabooga' // future use: 'oobabooga', 'openai', etc
+    type: 'oobabooga' | 'dummy' // future use: 'oobabooga', 'openai', etc
     baseUrl: string // http://... should include port, but not '/api/v1...'
     // api_key: string
     // model: string
@@ -116,29 +116,44 @@ type TextCompletionChoice = {
 };
 
 async function generate(prompt: string, connectionSettings: ConnectionSettings, generateParameters: GenerateParameters, writeStream: ResponseWriter) {
-    const url = connectionSettings.baseUrl + "/v1/completions"
-    const response = await fetch(url, {
-        method: "POST",
-        cache: "no-cache",
-        keepalive: true,
-        headers: {
-            "Content-Type": "application/json",
-            "Accept": "text/event-stream",
-        },
-        body: JSON.stringify({ ...generateParameters.values, prompt }),
-    });
+    if (connectionSettings.type === 'oobabooga') {
+        const url = connectionSettings.baseUrl + "/v1/completions"
+        const response = await fetch(url, {
+            method: "POST",
+            cache: "no-cache",
+            keepalive: true,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/event-stream",
+            },
+            body: JSON.stringify({ ...generateParameters.values, prompt }),
+        });
 
-    const reader = response?.body?.getReader();
-    while (reader) {
-        const { value, done } = await reader.read();
-        if (done || interruptFlag) break;
-        const responseStr = new TextDecoder().decode(value);
-        const responseChunk: TextCompletionChunk = JSON.parse(responseStr.substring(6))
-        if (responseChunk.choices && responseChunk.choices.length != 0) {
-            writeStream(responseChunk.choices[0].text, false)
+        const reader = response?.body?.getReader();
+        while (reader) {
+            const { value, done } = await reader.read();
+            if (done || interruptFlag) break;
+            const responseStr = new TextDecoder().decode(value);
+            const responseChunk: TextCompletionChunk = JSON.parse(responseStr.substring(6))
+            if (responseChunk.choices && responseChunk.choices.length != 0) {
+                writeStream(responseChunk.choices[0].text, false)
+            }
         }
+        writeStream("", true)
+    } else if (connectionSettings.type === 'dummy') {
+        let i = 0;
+        const intervalId = setInterval(() => {
+            writeStream("apples ", false)
+            writeStream("cow ", false)
+            i++;
+            if (i === 20) {
+                clearInterval(intervalId);
+            }
+        }, 1000);
+        writeStream("", true)
+    } else {
+        console.log("Invalid connection type: ", connectionSettings.type)
     }
-    writeStream("", true)
 }
 
 
