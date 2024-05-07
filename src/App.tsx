@@ -149,7 +149,12 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
           'smooth'
         )
       }
-      generate(inputValue, settingsManager.getDefaultSettings(), responseWriter)
+      generate(
+        inputValue,
+        settingsManager.getDefaultConnectionSettings(),
+        settingsManager.getDefaultGenerateParameters(),
+        responseWriter
+      )
     }, 1000)
   }
 

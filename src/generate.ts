@@ -1,17 +1,24 @@
-import { write } from "fs";
-
 interface GenerateParameters {
     name: string
     values: object
 }
 
+interface ConnectionSettings {
+    name: string
+    type: 'oobabooga' // future use: 'oobabooga', 'openai', etc
+    baseUrl: string // http://... should include port, but not '/api/v1...'
+    // api_key: string
+    // model: string
+}
+
 interface SettingsManager {
     currentSetting: GenerateParameters;
     allSettings: Map<String, GenerateParameters>;
-    setCurrentSettings(config: GenerateParameters): void;
-    updateSetting(config: GenerateParameters): void;
-    getSetting(name: string): GenerateParameters;
-    getDefaultSettings(): GenerateParameters;
+    setCurrentGenerateParameterss(config: GenerateParameters): void;
+    updateGenerateParameters(config: GenerateParameters): void;
+    getGenerateParameters(name: string): GenerateParameters;
+    getDefaultGenerateParameters(): GenerateParameters;
+    getDefaultConnectionSettings(): ConnectionSettings;
 }
 
 class DefaultSettingsManager implements SettingsManager {
@@ -19,27 +26,27 @@ class DefaultSettingsManager implements SettingsManager {
     allSettings: Map<string, GenerateParameters>;
 
     constructor() {
-        this.currentSetting = this.getDefaultSettings();
+        this.currentSetting = this.getDefaultGenerateParameters();
         this.allSettings = new Map<string, GenerateParameters>;
     }
 
-    setCurrentSettings(config: GenerateParameters): void {
+    setCurrentGenerateParameterss(config: GenerateParameters): void {
         this.currentSetting = config;
     }
 
-    updateSetting(config: GenerateParameters): void {
+    updateGenerateParameters(config: GenerateParameters): void {
         this.allSettings.set(config.name, config)
     }
 
-    getSetting(name: string): GenerateParameters {
+    getGenerateParameters(name: string): GenerateParameters {
         const result = this.allSettings.get(name);
         if (result != undefined) {
             return result;
         }
-        return this.getDefaultSettings();
+        return this.getDefaultGenerateParameters();
     }
 
-    getDefaultSettings(): GenerateParameters {
+    getDefaultGenerateParameters(): GenerateParameters {
         return {
             "name": "default",
             "values": {
@@ -78,6 +85,14 @@ class DefaultSettingsManager implements SettingsManager {
             }
         }
     }
+
+    getDefaultConnectionSettings(): ConnectionSettings {
+        return {
+            'name': 'default',
+            'type': 'oobabooga',
+            'baseUrl': 'http://127.0.0.1:5000',
+        }
+    }
 }
 
 type ResponseWriter = (token: string, done: boolean) => void;
@@ -100,9 +115,8 @@ type TextCompletionChoice = {
     };
 };
 
-async function generate(prompt: string, settings: GenerateParameters, writeStream: ResponseWriter) {
-    const url = "http://127.0.0.1:5000/v1/completions"
-
+async function generate(prompt: string, connectionSettings: ConnectionSettings, generateParameters: GenerateParameters, writeStream: ResponseWriter) {
+    const url = connectionSettings.baseUrl + "/v1/completions"
     const response = await fetch(url, {
         method: "POST",
         cache: "no-cache",
@@ -111,7 +125,7 @@ async function generate(prompt: string, settings: GenerateParameters, writeStrea
             "Content-Type": "application/json",
             "Accept": "text/event-stream",
         },
-        body: JSON.stringify({ ...settings.values, prompt }),
+        body: JSON.stringify({ ...generateParameters.values, prompt }),
     });
 
     const reader = response?.body?.getReader();
