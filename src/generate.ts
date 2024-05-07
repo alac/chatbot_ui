@@ -27,7 +27,7 @@ class DefaultSettingsManager implements SettingsManager {
 
     constructor() {
         this.currentSetting = this.getDefaultGenerateParameters();
-        this.allSettings = new Map<string, GenerateParameters>;
+        this.allSettings = new Map<string, GenerateParameters>();
     }
 
     setCurrentGenerateParameterss(config: GenerateParameters): void {
@@ -40,7 +40,7 @@ class DefaultSettingsManager implements SettingsManager {
 
     getGenerateParameters(name: string): GenerateParameters {
         const result = this.allSettings.get(name);
-        if (result != undefined) {
+        if (result !== undefined) {
             return result;
         }
         return this.getDefaultGenerateParameters();
@@ -89,7 +89,7 @@ class DefaultSettingsManager implements SettingsManager {
     getDefaultConnectionSettings(): ConnectionSettings {
         return {
             'name': 'default',
-            'type': 'oobabooga',
+            'type': 'dummy',
             'baseUrl': 'http://127.0.0.1:5000',
         }
     }
@@ -135,7 +135,7 @@ async function generate(prompt: string, connectionSettings: ConnectionSettings, 
             if (done || interruptFlag) break;
             const responseStr = new TextDecoder().decode(value);
             const responseChunk: TextCompletionChunk = JSON.parse(responseStr.substring(6))
-            if (responseChunk.choices && responseChunk.choices.length != 0) {
+            if (responseChunk.choices && responseChunk.choices.length !== 0) {
                 writeStream(responseChunk.choices[0].text, false)
             }
         }

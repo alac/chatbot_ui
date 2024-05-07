@@ -141,7 +141,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
 
       const responseWriter = (token: string, done: boolean) => {
         virtuosoChatbox.current?.data.map((message: Message) => {
-          if (message.key != botMessage.key) {
+          if (message.key !== botMessage.key) {
             return message;
           }
           return { ...message, "text": message.text + token }
