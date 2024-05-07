@@ -1,37 +1,37 @@
 import { write } from "fs";
 
-interface NamedSettings {
+interface GenerateParameters {
     name: string
     values: object
 }
 
 interface SettingsManager {
-    currentSetting: NamedSettings;
-    allSettings: Map<String, NamedSettings>;
-    setCurrentSettings(config: NamedSettings): void;
-    updateSetting(config: NamedSettings): void;
-    getSetting(name: string): NamedSettings;
-    getDefaultSettings(): NamedSettings;
+    currentSetting: GenerateParameters;
+    allSettings: Map<String, GenerateParameters>;
+    setCurrentSettings(config: GenerateParameters): void;
+    updateSetting(config: GenerateParameters): void;
+    getSetting(name: string): GenerateParameters;
+    getDefaultSettings(): GenerateParameters;
 }
 
 class DefaultSettingsManager implements SettingsManager {
-    currentSetting: NamedSettings;
-    allSettings: Map<string, NamedSettings>;
+    currentSetting: GenerateParameters;
+    allSettings: Map<string, GenerateParameters>;
 
     constructor() {
         this.currentSetting = this.getDefaultSettings();
-        this.allSettings = new Map<string, NamedSettings>;
+        this.allSettings = new Map<string, GenerateParameters>;
     }
 
-    setCurrentSettings(config: NamedSettings): void {
+    setCurrentSettings(config: GenerateParameters): void {
         this.currentSetting = config;
     }
 
-    updateSetting(config: NamedSettings): void {
+    updateSetting(config: GenerateParameters): void {
         this.allSettings.set(config.name, config)
     }
 
-    getSetting(name: string): NamedSettings {
+    getSetting(name: string): GenerateParameters {
         const result = this.allSettings.get(name);
         if (result != undefined) {
             return result;
@@ -39,7 +39,7 @@ class DefaultSettingsManager implements SettingsManager {
         return this.getDefaultSettings();
     }
 
-    getDefaultSettings(): NamedSettings {
+    getDefaultSettings(): GenerateParameters {
         return {
             "name": "default",
             "values": {
@@ -100,7 +100,7 @@ type TextCompletionChoice = {
     };
 };
 
-async function generate(prompt: string, settings: NamedSettings, writeStream: ResponseWriter) {
+async function generate(prompt: string, settings: GenerateParameters, writeStream: ResponseWriter) {
     const url = "http://127.0.0.1:5000/v1/completions"
 
     const response = await fetch(url, {

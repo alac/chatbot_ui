@@ -116,7 +116,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto"; // Allow textarea to resize naturally based on content
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + "px"; // Set height based on scrollHeight
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
     }
   }, [inputValue]);
 
@@ -144,7 +144,6 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
           if (message.key != botMessage.key) {
             return message;
           }
-          // console.log("updated message, ", message.text + token)
           return { ...message, "text": message.text + token }
         },
           'smooth'
