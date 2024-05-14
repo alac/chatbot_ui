@@ -154,10 +154,10 @@ async function generate(prompt: string, connectionSettings: ConnectionSettings, 
             writeStream(dummyResponse[i], false)
             i++;
             if (i === dummyResponse.length) {
+                writeStream("", true)
                 clearInterval(intervalId);
             }
         }, 50);
-        writeStream("", true)
     } else {
         console.log("Invalid connection type: ", connectionSettings.type)
     }

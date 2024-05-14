@@ -3,6 +3,7 @@ import { VirtuosoMessageListProps, VirtuosoMessageListMethods, VirtuosoMessageLi
 import './App.css';
 
 import { generate, settingsManager } from './generate';
+import { storageManager, Message } from './storage';
 
 
 function App() {
@@ -43,6 +44,18 @@ function App() {
   }, [windowHeight]);
 
 
+  const [conversationId, setConversationId] = useState("");
+  useEffect(() => {
+    storageManager.conversationLoadedCallback = () => {
+      if (storageManager.storageState.currentConversationId) {
+        setConversationId(storageManager.storageState.currentConversationId)
+      }
+    }
+    return () => {
+      storageManager.conversationLoadedCallback = null;
+    }
+  }, [conversationId]);
+
   return (
     <div className="app-container">
       <div className="top-container">
@@ -55,6 +68,8 @@ function App() {
               initialLocation={{ index: 'LAST', align: 'end' }}
               shortSizeAlign="bottom-smooth"
               ItemContent={ItemContent}
+              key={conversationId}
+              initialData={storageManager.currentConversation.messages}
             />
           </VirtuosoMessageListLicense>
         </div>
@@ -68,22 +83,15 @@ function App() {
 }
 
 
-interface Message {
-  key: string
-  text: string
-  user: 'me' | 'other'
-}
-
-
 const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ data }: { data: Message }) => {
-  const ownMessage = data.user === 'me'
+  const ownMessage = data.userId === 'user'
 
   return (
     <div style={{ paddingBottom: '2rem', display: 'flex' }}>
       <div
         style={{
           maxWidth: '80%',
-          marginLeft: data.user === 'me' ? 'auto' : undefined,
+          marginLeft: data.userId === 'user' ? 'auto' : undefined,
 
           background: ownMessage ? '#0253B3' : '#F0F0F3',
           color: ownMessage ? 'white' : 'black',
@@ -93,7 +101,7 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
           textWrap: 'wrap',
         }}
       >
-        {data.text}
+        {data.username} : {data.text}
       </div>
     </div>
   )
@@ -121,12 +129,19 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
   }, [inputValue]);
 
 
-  const [messageId, setMessageId] = useState(0);
   const sendChatMessage = () => {
-    setMessageId(messageId + 2)
+    const userMessageId = `${storageManager.consumeMessageId()}`
+    const userMessage: Message = {
+      userId: 'user',
+      username: storageManager.currentConversation.username,
+      key: `${userMessageId}`,
+      text: inputValue,
+      tokenCount: null,
+      compressedPrompt: '',
+    }
+    storageManager.updateMessage(userMessage)
 
-    const myMessage = { user: 'me' as 'me', key: `${messageId}`, text: inputValue }
-    virtuosoChatbox.current?.data.append([myMessage], ({ scrollInProgress, atBottom }: { scrollInProgress: boolean; atBottom: boolean }) => {
+    virtuosoChatbox.current?.data.append([userMessage], ({ scrollInProgress, atBottom }: { scrollInProgress: boolean; atBottom: boolean }) => {
       return {
         index: 'LAST',
         align: 'end',
@@ -136,18 +151,39 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
     setInputValue("")
 
     setTimeout(() => {
-      const botMessage = { user: 'other' as 'other', key: `${messageId + 1}`, text: "" }
+      const botMessageId = `${storageManager.consumeMessageId()}`
+      const botMessage: Message = {
+        userId: 'bot',
+        username: storageManager.currentConversation.botname,
+        key: `${botMessageId}`,
+        text: '',
+        tokenCount: null,
+        compressedPrompt: '',
+      }
+      storageManager.updateMessage(botMessage)
       virtuosoChatbox.current?.data.append([botMessage])
 
       const responseWriter = (token: string, done: boolean) => {
+        const oldMessage = storageManager.getMessage(botMessageId)
+        if (oldMessage == null) {
+          return
+        }
+        const newMessage = { ...oldMessage, text: oldMessage?.text + token }
+        storageManager.updateMessage(newMessage)
+
         virtuosoChatbox.current?.data.map((message: Message) => {
-          if (message.key !== botMessage.key) {
-            return message;
+          const updatedMessage = storageManager.getMessage(message.key)
+          if (updatedMessage != null) {
+            return updatedMessage;
           }
-          return { ...message, "text": message.text + token }
+          return message
         },
           'smooth'
         )
+
+        if (done) {
+          storageManager.save()
+        }
       }
       generate(
         inputValue,
@@ -173,8 +209,12 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
             Send
           </button>
 
-          <button>Send#1</button>
-          <button>Send#2</button>
+          <button onClick={() => { storageManager.save(); }}>
+            Save
+          </button>
+          <button onClick={() => { storageManager.newConversation(); }}>
+            New Conversation
+          </button>
         </div>
       </div>
     </div>
