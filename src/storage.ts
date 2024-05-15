@@ -2,8 +2,9 @@ import localforage from "localforage";
 import { v4 as uuidv4 } from 'uuid';
 
 interface Conversation {
+    displayName: string;
     username: string;
-    botname: string;
+    botName: string;
     messages: Message[];
     nextMessageId: number;
     memory: string;
@@ -18,8 +19,9 @@ interface Conversation {
 
 function NewConversation(): Conversation {
     return {
+        displayName: "New Conversation",
         username: "User",
-        botname: "Bot",
+        botName: "Bot",
         messages: [],
         nextMessageId: 0,
         memory: "",
@@ -34,9 +36,11 @@ export function isConversation(obj: any): obj is Conversation {
     return (
         typeof obj === 'object' &&
         obj !== null &&
+        'displayName' in obj &&
+        typeof obj.displayName === 'string' &&
         'username' in obj &&
         typeof obj.username === 'string' &&
-        'botname' in obj &&
+        'botName' in obj &&
         typeof obj.botname === 'string' &&
         'messages' in obj &&
         Array.isArray(obj.messages) &&

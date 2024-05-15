@@ -154,7 +154,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
       const botMessageId = `${storageManager.consumeMessageId()}`
       const botMessage: Message = {
         userId: 'bot',
-        username: storageManager.currentConversation.botname,
+        username: storageManager.currentConversation.botName,
         key: `${botMessageId}`,
         text: '',
         tokenCount: null,
