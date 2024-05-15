@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { VirtuosoMessageListProps, VirtuosoMessageListMethods, VirtuosoMessageList, VirtuosoMessageListLicense } from '@virtuoso.dev/message-list';
 import './App.css';
 
-import { generate, settingsManager } from './generate';
+import { generate, buildPrompt, generateSettingsManager } from './generate';
 import { storageManager, Message } from './storage';
 
 
@@ -150,7 +150,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
     })
     setInputValue("")
 
-    setTimeout(() => {
+    setTimeout(async () => {
       const botMessageId = `${storageManager.consumeMessageId()}`
       const botMessage: Message = {
         userId: 'bot',
@@ -176,7 +176,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
           if (updatedMessage != null) {
             return updatedMessage;
           }
-          return message
+          return message; // unreachable 
         },
           'smooth'
         )
@@ -185,10 +185,15 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
           storageManager.save()
         }
       }
+      const prompt = await buildPrompt(
+        storageManager.currentConversation,
+        generateSettingsManager.currentGenerateSettings,
+        generateSettingsManager.getDefaultConnectionSettings()
+      )
       generate(
-        inputValue,
-        settingsManager.getDefaultConnectionSettings(),
-        settingsManager.getDefaultGenerateParameters(),
+        prompt,
+        generateSettingsManager.getDefaultConnectionSettings(),
+        generateSettingsManager.currentGenerateSettings,
         responseWriter
       )
     }, 1000)

@@ -1,3 +1,5 @@
+import { Message, Conversation, Lorebook, LorebookEntry } from './storage';
+
 interface GenerateParameters {
     name: string
     values: object
@@ -11,8 +13,8 @@ interface ConnectionSettings {
     // model: string
 }
 
-interface SettingsManager {
-    currentSetting: GenerateParameters;
+interface GenerateSettingsManager {
+    currentGenerateSettings: GenerateParameters;
     allSettings: Map<String, GenerateParameters>;
     setCurrentGenerateParameterss(config: GenerateParameters): void;
     updateGenerateParameters(config: GenerateParameters): void;
@@ -21,17 +23,17 @@ interface SettingsManager {
     getDefaultConnectionSettings(): ConnectionSettings;
 }
 
-class DefaultSettingsManager implements SettingsManager {
-    currentSetting: GenerateParameters;
+class DefaultGenerateSettingsManager implements GenerateSettingsManager {
+    currentGenerateSettings: GenerateParameters;
     allSettings: Map<string, GenerateParameters>;
 
     constructor() {
-        this.currentSetting = this.getDefaultGenerateParameters();
+        this.currentGenerateSettings = this.getDefaultGenerateParameters();
         this.allSettings = new Map<string, GenerateParameters>();
     }
 
     setCurrentGenerateParameterss(config: GenerateParameters): void {
-        this.currentSetting = config;
+        this.currentGenerateSettings = config;
     }
 
     updateGenerateParameters(config: GenerateParameters): void {
@@ -116,6 +118,7 @@ type TextCompletionChoice = {
 };
 
 async function generate(prompt: string, connectionSettings: ConnectionSettings, generateParameters: GenerateParameters, writeStream: ResponseWriter) {
+    console.log("Prompt: ", prompt)
     if (connectionSettings.type === 'oobabooga') {
         const url = connectionSettings.baseUrl + "/v1/completions"
         const response = await fetch(url, {
@@ -173,6 +176,90 @@ function breakStringIntoSubstrings(str: string): string[] {
 }
 
 
-const settingsManager = new DefaultSettingsManager();
+async function buildPrompt(conversation: Conversation, generateParameters: GenerateParameters, connectionSettings: ConnectionSettings): Promise<string> {
+    // the latest message should _already_ be a part of the conversation
+    // ... actually, maybe not. let's let the most recent message be _injected_ on the fly. for stuff like AGENT commands/chained prompts.
 
-export { generate, settingsManager }
+    // x v1 use previous messages
+    // v2 prompt format string - get the cost of the prompt string (removing substitutions) + the cost of each substitution
+    // v3 lorebook - as we walk back, add each lorebook entry that we find a match for
+    var maxTokens = 2048;
+    var maxResponseLength = 256;
+    if ('max_tokens' in generateParameters.values && typeof generateParameters.values.max_tokens === 'number') {
+        maxTokens = generateParameters.values.max_tokens;
+    }
+    if ('maxResponseLength' in generateParameters.values && typeof generateParameters.values.maxResponseLength === 'number') {
+        maxResponseLength = generateParameters.values.maxResponseLength;
+    }
+    const memoryLength = await cachedTokenCount(conversation.memory, connectionSettings);
+    const newlineCost = 1;
+    var remainingTokens = maxTokens - maxResponseLength - memoryLength - newlineCost;
+
+    const messageFormattingCost = 4;
+    var indexFromEnd = 0;
+    while ((conversation.messages.length - indexFromEnd - 1) > 0) {
+        const message = conversation.messages[conversation.messages.length - indexFromEnd - 1]
+        const messageCost = await cachedTokenCount(message.username, connectionSettings) + await cachedTokenCount(message.text, connectionSettings)
+        remainingTokens -= messageFormattingCost + messageCost;
+        if (indexFromEnd == conversation.authorNotePosition) {
+            remainingTokens -= newlineCost + await cachedTokenCount(conversation.authorNote, connectionSettings)
+        }
+        if (remainingTokens < 0) {
+            break;
+        }
+        indexFromEnd -= 1
+    }
+    var messages = conversation.messages.slice(-indexFromEnd).map((message: Message) => {
+        return `${message.username}: ${message.text}\n\n`
+    })
+    if (messages.length > conversation.authorNotePosition) {
+        const authorsNoteIndex = messages.length - conversation.authorNotePosition;
+        messages = [...messages.slice(0, authorsNoteIndex), conversation.authorNote, ...messages.slice(authorsNoteIndex)];
+    }
+    return conversation.memory + "\n" + messages.join("");
+}
+
+
+async function countTokens(text: string, connectionSettings: ConnectionSettings): Promise<number> {
+    if (connectionSettings.type === 'oobabooga') {
+        const resp = await fetch(`${connectionSettings.baseUrl}/v1/internal/token-count`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', },
+            body: JSON.stringify({
+                text: text
+            })
+        });
+        if (!resp.ok) {
+            throw new Error(`Error counting tokens {resp.status}`);
+        }
+        try {
+            const { length } = await resp.json();
+            return length;
+        }
+        catch (e) {
+            console.log("Exception unpacking tokenCount json", e)
+            return -1;
+        }
+    } else if (connectionSettings.type === 'dummy') {
+        return text.length / 3;
+    } else {
+        console.log("Invalid connection type: ", connectionSettings.type)
+    }
+    return text.length / 3;
+}
+
+
+async function cachedTokenCount(text: string, connectionSettings: ConnectionSettings): Promise<number> {
+    if (tokenCountCache.has(text)) {
+        return tokenCountCache.get(text) as number;
+    }
+    const newTokenCount = await countTokens(text, connectionSettings);
+    tokenCountCache.set(text, newTokenCount);
+    return newTokenCount;
+}
+
+
+const generateSettingsManager = new DefaultGenerateSettingsManager();
+const tokenCountCache = new Map<string, number>();
+
+export { generate, buildPrompt, generateSettingsManager }

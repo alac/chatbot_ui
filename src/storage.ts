@@ -322,4 +322,4 @@ class DefaultStorageManager implements StorageManager {
 const storageManager = new DefaultStorageManager();
 
 export { storageManager }
-export type { Message }
+export type { Message, Conversation, Lorebook, LorebookEntry }
