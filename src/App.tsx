@@ -84,8 +84,12 @@ function App() {
 
 
 const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ data }: { data: Message }) => {
-  const ownMessage = data.userId === 'user'
+  const updateMessageText = (updatedText: string) => {
+    storageManager.updateMessage({ ...data, text: updatedText })
+    storageManager.save()
+  }
 
+  const ownMessage = data.userId === 'user'
   return (
     <div style={{ paddingBottom: '2rem', display: 'flex' }}>
       <div
@@ -101,11 +105,69 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
           textWrap: 'wrap',
         }}
       >
-        {data.username} : {data.text}
+        {data.username}
+        <EditableText initialText={data.text} onTextChange={updateMessageText} key={data.text} />
       </div>
     </div>
   )
 }
+
+
+const EditableText = ({ initialText, onTextChange }: { initialText: string, onTextChange: (updatedText: string) => void }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [text, setText] = useState(initialText);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const spanRef = useRef<HTMLSpanElement>(null);
+
+  const handleFocus = () => {
+    setIsEditing(true);
+  };
+
+  const handleBlur = () => {
+    setIsEditing(false);
+    onTextChange(text);
+  };
+
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(event.target.value);
+  };
+
+  const [widthHeight, setWidthHeight] = useState([0, 0])
+  useEffect(() => {
+    if (spanRef.current) {
+      setWidthHeight([spanRef.current.offsetWidth, spanRef.current.offsetHeight])
+    }
+    if (textareaRef.current) {
+      const [width, height] = widthHeight;
+      textareaRef.current.style.minWidth = `${width}px`
+      textareaRef.current.style.minHeight = `${height}px`
+    }
+  }, [isEditing])
+
+  return (
+    <div
+      onClick={handleFocus}
+      onBlur={handleBlur}
+      style={{ border: '1px solid #ccc', padding: '10px', cursor: 'pointer' }}
+    >
+      {isEditing ? (
+        <textarea
+          ref={textareaRef}
+          value={text}
+          onChange={handleChange}
+          style={{ minHeight: '20px', minWidth: '100px', height: 'auto', maxHeight: 'auto' }}
+          autoFocus
+          className='message-body'
+        />
+      ) : (
+        <span
+          ref={spanRef}
+          className='message-body'
+        >{text}</span>
+      )}
+    </div>
+  );
+};
 
 
 interface BottomContainerProps {
