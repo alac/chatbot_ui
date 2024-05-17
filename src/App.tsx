@@ -145,6 +145,14 @@ const EditableText = ({ initialText, onTextChange }: { initialText: string, onTe
   }
   useEffect(setInitialTextareaSize, [isEditing])
 
+  const expandTextareaDuringEditing = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
+    }
+  }
+  useEffect(expandTextareaDuringEditing, [text]);
+
   return (
     <div
       onClick={handleFocus}
