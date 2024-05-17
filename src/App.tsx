@@ -192,6 +192,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
       )
       generate(
         prompt,
+        [`\n${storageManager.currentConversation.username}:`],
         generateSettingsManager.getDefaultConnectionSettings(),
         generateSettingsManager.currentGenerateSettings,
         responseWriter

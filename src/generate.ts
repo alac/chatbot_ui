@@ -117,7 +117,7 @@ type TextCompletionChoice = {
     };
 };
 
-async function generate(prompt: string, connectionSettings: ConnectionSettings, generateParameters: GenerateParameters, writeStream: ResponseWriter) {
+async function generate(prompt: string, terminationStrings: string[], connectionSettings: ConnectionSettings, generateParameters: GenerateParameters, writeStream: ResponseWriter) {
     console.log("Prompt: ", prompt)
     if (connectionSettings.type === 'oobabooga') {
         const url = connectionSettings.baseUrl + "/v1/completions"
@@ -129,7 +129,7 @@ async function generate(prompt: string, connectionSettings: ConnectionSettings, 
                 "Content-Type": "application/json",
                 "Accept": "text/event-stream",
             },
-            body: JSON.stringify({ ...generateParameters.values, prompt }),
+            body: JSON.stringify({ ...generateParameters.values, prompt, 'stop': terminationStrings }),
         });
 
         const reader = response?.body?.getReader();
