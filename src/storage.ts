@@ -41,7 +41,7 @@ export function isConversation(obj: any): obj is Conversation {
         'username' in obj &&
         typeof obj.username === 'string' &&
         'botName' in obj &&
-        typeof obj.botname === 'string' &&
+        typeof obj.botName === 'string' &&
         'messages' in obj &&
         Array.isArray(obj.messages) &&
         obj.messages.every((message: any) => isMessage(message)) &&
@@ -224,6 +224,8 @@ class DefaultStorageManager implements StorageManager {
                     localforage.getItem(lorebookId, (err, readValue) => {
                         if (isLorebook(readValue)) {
                             this.lorebooks.set(lorebookId, readValue);
+                        } else {
+                            console.log("lorebook typeguard failed: ", readValue)
                         }
                         if (err !== null) {
                             console.log("Error in StorageManager reading lorebooks: ", err)
