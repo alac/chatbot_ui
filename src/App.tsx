@@ -51,8 +51,20 @@ function App() {
         setConversationId(storageManager.storageState.currentConversationId)
       }
     }
+    storageManager.rerenderConversationCallback = () => {
+      virtuosoChatbox.current?.data.map((message: Message) => {
+        const updatedMessage = storageManager.getMessage(message.key)
+        if (updatedMessage != null) {
+          return updatedMessage;
+        }
+        return message; // unreachable 
+      },
+        'smooth'
+      )
+    }
     return () => {
       storageManager.conversationLoadedCallback = null;
+      storageManager.rerenderConversationCallback = null;
     }
   }, [conversationId]);
 
@@ -88,6 +100,10 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
     storageManager.updateMessage({ ...data, text: updatedText })
     storageManager.save()
   }
+  const toggleDisabled = () => {
+    storageManager.updateMessage({ ...data, isDisabled: !data.isDisabled })
+    storageManager.save()
+  }
 
   const ownMessage = data.userId === 'user'
   return (
@@ -103,12 +119,13 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
           padding: '1rem',
           whiteSpace: 'pre',
           textWrap: 'wrap',
+          opacity: `${data.isDisabled ? .5 : 1}`,
         }}
       >
-        {data.username}
+        {data.username} <span title="Hide From History" onClick={toggleDisabled}>👻</span>
         <EditableText initialText={data.text} onTextChange={updateMessageText} key={data.text} />
       </div>
-    </div>
+    </div >
   )
 }
 
@@ -209,6 +226,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
       text: inputValue,
       tokenCount: null,
       compressedPrompt: '',
+      isDisabled: false,
     }
     storageManager.updateMessage(userMessage)
 
@@ -230,6 +248,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
         text: '',
         tokenCount: null,
         compressedPrompt: '',
+        isDisabled: false,
       }
       storageManager.updateMessage(botMessage)
       virtuosoChatbox.current?.data.append([botMessage])
@@ -241,17 +260,6 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
         }
         const newMessage = { ...oldMessage, text: oldMessage?.text + token }
         storageManager.updateMessage(newMessage)
-
-        virtuosoChatbox.current?.data.map((message: Message) => {
-          const updatedMessage = storageManager.getMessage(message.key)
-          if (updatedMessage != null) {
-            return updatedMessage;
-          }
-          return message; // unreachable 
-        },
-          'smooth'
-        )
-
         if (done) {
           storageManager.save()
         }

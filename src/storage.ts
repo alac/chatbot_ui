@@ -68,6 +68,7 @@ interface Message {
     text: string;
     tokenCount: number | null;
     compressedPrompt: string;
+    isDisabled: boolean;
 }
 
 const isMessage = (obj: any): obj is Message => {
@@ -79,7 +80,9 @@ const isMessage = (obj: any): obj is Message => {
         typeof obj.key === 'string' &&
         typeof obj.text === 'string' &&
         (obj.tokenCount === null || typeof obj.tokenCount === 'number') &&
-        typeof obj.compressedPrompt === 'string'
+        typeof obj.text === 'string' &&
+        typeof obj.compressedPrompt === 'string' &&
+        typeof obj.isDisabled === 'boolean'
     );
 };
 
@@ -170,6 +173,7 @@ class DefaultStorageManager implements StorageManager {
     storageState: StorageState;
     currentConversation: Conversation;
     conversationLoadedCallback: (() => void) | null;
+    rerenderConversationCallback: (() => void) | null;
     conversations: Map<string, Conversation>;
     lorebooks: Map<string, Lorebook>;
 
@@ -183,6 +187,7 @@ class DefaultStorageManager implements StorageManager {
         this.conversations = new Map<string, Conversation>();
         this.lorebooks = new Map<string, Lorebook>();
         this.conversationLoadedCallback = null;
+        this.rerenderConversationCallback = null;
     }
 
     startup(): void {
@@ -298,6 +303,9 @@ class DefaultStorageManager implements StorageManager {
             return
         }
         this.currentConversation.messages[index] = message
+        if (this.rerenderConversationCallback) {
+            this.rerenderConversationCallback()
+        }
     }
 
     getMessage(messageId: string): Message | null {

@@ -199,8 +199,10 @@ async function buildPrompt(conversation: Conversation, generateParameters: Gener
     var indexFromEnd = 0;
     while ((conversation.messages.length - indexFromEnd - 1) > 0) {
         const message = conversation.messages[conversation.messages.length - indexFromEnd - 1]
-        const messageCost = await cachedTokenCount(message.username, connectionSettings) + await cachedTokenCount(message.text, connectionSettings)
-        remainingTokens -= messageFormattingCost + messageCost;
+        if (!message.isDisabled) {
+            const messageCost = await cachedTokenCount(message.username, connectionSettings) + await cachedTokenCount(message.text, connectionSettings)
+            remainingTokens -= messageFormattingCost + messageCost;
+        }
         if (indexFromEnd == conversation.authorNotePosition) {
             remainingTokens -= newlineCost + await cachedTokenCount(conversation.authorNote, connectionSettings)
         }
@@ -210,6 +212,9 @@ async function buildPrompt(conversation: Conversation, generateParameters: Gener
         indexFromEnd -= 1
     }
     var messages = conversation.messages.slice(-indexFromEnd).map((message: Message) => {
+        if (message.isDisabled) {
+            return ""
+        }
         return `${message.username}: ${message.text}\n\n`
     })
     if (messages.length > conversation.authorNotePosition) {
