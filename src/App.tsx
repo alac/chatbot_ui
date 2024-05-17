@@ -128,12 +128,12 @@ const EditableText = ({ initialText, onTextChange }: { initialText: string, onTe
     onTextChange(text);
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleTextEdit = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(event.target.value);
   };
 
   const [widthHeight, setWidthHeight] = useState([0, 0])
-  useEffect(() => {
+  const setInitialTextareaSize = () => {
     if (spanRef.current) {
       setWidthHeight([spanRef.current.offsetWidth, spanRef.current.offsetHeight])
     }
@@ -142,7 +142,8 @@ const EditableText = ({ initialText, onTextChange }: { initialText: string, onTe
       textareaRef.current.style.minWidth = `${width}px`
       textareaRef.current.style.minHeight = `${height}px`
     }
-  }, [isEditing])
+  }
+  useEffect(setInitialTextareaSize, [isEditing])
 
   return (
     <div
@@ -154,8 +155,7 @@ const EditableText = ({ initialText, onTextChange }: { initialText: string, onTe
         <textarea
           ref={textareaRef}
           value={text}
-          onChange={handleChange}
-          style={{ minHeight: '20px', minWidth: '100px', height: 'auto', maxHeight: 'auto' }}
+          onChange={handleTextEdit}
           autoFocus
           className='message-body'
         />
@@ -183,12 +183,13 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
 
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  useEffect(() => {
+  const expandTextareaDuringEdit = () => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = "auto"; // Allow textarea to resize naturally based on content
+      textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
     }
-  }, [inputValue]);
+  }
+  useEffect(expandTextareaDuringEdit, [inputValue]);
 
 
   const sendChatMessage = () => {
