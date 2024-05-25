@@ -203,7 +203,7 @@ async function buildPrompt(conversation: Conversation, generateParameters: Gener
             const messageCost = await cachedTokenCount(message.username, connectionSettings) + await cachedTokenCount(message.text, connectionSettings)
             remainingTokens -= messageFormattingCost + messageCost;
         }
-        if (indexFromEnd == conversation.authorNotePosition) {
+        if (indexFromEnd === conversation.authorNotePosition) {
             remainingTokens -= newlineCost + await cachedTokenCount(conversation.authorNote, connectionSettings)
         }
         if (remainingTokens < 0) {
