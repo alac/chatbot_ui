@@ -230,7 +230,7 @@ const EditableText = ({ initialText, onTextChange, isEditing, setIsEditing }: { 
           value={text}
           onChange={handleTextEdit}
           autoFocus
-          className='message-body'
+          className='message-body text-gray-700'
           style={{ width: '100%' }}
         />
       ) : (
