@@ -341,16 +341,9 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
           onChange={handleInputChange}
         />
         <div className="command-container">
-          <button onClick={sendChatMessage}>
-            Send
-          </button>
-
-          <button onClick={() => { storageManager.save(); }}>
-            Save
-          </button>
-          <button onClick={() => { storageManager.newConversation(); }}>
-            New Conversation
-          </button>
+          <Button onPress={sendChatMessage}>Send</Button>
+          <Button onPress={() => { storageManager.save(); }}>Save</Button>
+          <Button onPress={() => { storageManager.newConversation(); }}>New Conversation</Button>
         </div>
       </div>
     </div>
