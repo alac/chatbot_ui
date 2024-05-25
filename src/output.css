@@ -704,6 +704,10 @@ body {
   max-height: 100vh;
 }
 
+.max-h-\[90\%\] {
+  max-height: 90%;
+}
+
 .w-3\/4 {
   width: 75%;
 }
