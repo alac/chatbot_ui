@@ -129,7 +129,7 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
   const promptButton = (< DialogTrigger >
     <Button variant="outline" size="icon" aria-label='Show Prompt'>✉</Button>
     <DialogOverlay>
-      <DialogContent className="sm:max-w-[600px] lg:max-w-[800px]">
+      <DialogContent className="max-w-[80%] overflow-y-scroll max-h-screen" closeButton={false}>
         <DialogHeader>
           <DialogTitle>Prompt</DialogTitle>
         </DialogHeader>
