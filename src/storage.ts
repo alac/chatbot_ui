@@ -26,8 +26,8 @@ function NewConversation(): Conversation {
         messages: [],
         nextMessageId: 0,
         memory: "",
-        authorNote: "",
-        authorNotePosition: 0,
+        authorNote: "[Note: this is a conversation]\n",
+        authorNotePosition: 2,
         promptFormat: "[MEMORY]\n[MESSAGES]",
         lorebookIds: [],
     }
@@ -298,7 +298,7 @@ class DefaultStorageManager implements StorageManager {
         return this.currentConversation.nextMessageId++;
     }
 
-    updateMessage(message: Message): void {
+    updateMessage(message: Message, rerender: boolean = true): void {
         const messageId = message.key;
         const allMessageIds = this.currentConversation.messages.map((someMessage: Message) => someMessage.key)
         const index = allMessageIds.indexOf(messageId)
@@ -307,7 +307,7 @@ class DefaultStorageManager implements StorageManager {
             return
         }
         this.currentConversation.messages[index] = message
-        if (this.rerenderConversationCallback) {
+        if (this.rerenderConversationCallback && rerender) {
             this.rerenderConversationCallback()
         }
     }

@@ -113,7 +113,7 @@ function App() {
 
 const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ data }: { data: Message }) => {
   const updateMessageText = (updatedText: string) => {
-    storageManager.updateMessage({ ...data, text: updatedText })
+    storageManager.updateMessage({ ...data, text: updatedText, tokenCount: null })
     storageManager.save()
   }
   const toggleDisabled = () => {
@@ -126,7 +126,6 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
   }
   const [isEditing, setIsEditing] = useState(false);
 
-  console.log(decompressString(data.compressedPrompt))
   const promptButton = (< DialogTrigger >
     <Button variant="outline" size="icon" aria-label='Show Prompt'>✉</Button>
     <DialogOverlay>

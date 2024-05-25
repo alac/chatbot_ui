@@ -1,4 +1,4 @@
-import { Message, Conversation, Lorebook, LorebookEntry } from './storage';
+import { storageManager, Message, Conversation, Lorebook, LorebookEntry } from './storage';
 
 interface GenerateParameters {
     name: string
@@ -188,28 +188,33 @@ async function buildPrompt(conversation: Conversation, generateParameters: Gener
     if ('max_tokens' in generateParameters.values && typeof generateParameters.values.max_tokens === 'number') {
         maxTokens = generateParameters.values.max_tokens;
     }
-    if ('maxResponseLength' in generateParameters.values && typeof generateParameters.values.maxResponseLength === 'number') {
-        maxResponseLength = generateParameters.values.maxResponseLength;
+    if ('truncation_length' in generateParameters.values && typeof generateParameters.values.truncation_length === 'number') {
+        maxResponseLength = generateParameters.values.truncation_length;
     }
     const memoryLength = await cachedTokenCount(conversation.memory, connectionSettings);
     const newlineCost = 1;
-    var remainingTokens = maxTokens - maxResponseLength - memoryLength - newlineCost;
+    var remainingTokens = maxResponseLength - maxTokens - memoryLength - newlineCost;
 
     const messageFormattingCost = 4;
     var indexFromEnd = 0;
-    while ((conversation.messages.length - indexFromEnd - 1) > 0) {
+    while ((conversation.messages.length - indexFromEnd - 1) >= 0) {
         const message = conversation.messages[conversation.messages.length - indexFromEnd - 1]
         if (!message.isDisabled) {
-            const messageCost = await cachedTokenCount(message.username, connectionSettings) + await cachedTokenCount(message.text, connectionSettings)
+            if (message.tokenCount == null) {
+                message.tokenCount = await cachedTokenCount(message.text, connectionSettings)
+                storageManager.updateMessage(message, false);
+            }
+            const messageCost = await cachedTokenCount(message.username, connectionSettings) + message.tokenCount
             remainingTokens -= messageFormattingCost + messageCost;
+            console.log("token count: ", remainingTokens)
         }
         if (indexFromEnd === conversation.authorNotePosition) {
-            remainingTokens -= newlineCost + await cachedTokenCount(conversation.authorNote, connectionSettings)
+            remainingTokens -= newlineCost * 2 + await cachedTokenCount(conversation.authorNote, connectionSettings)
         }
         if (remainingTokens < 0) {
             break;
         }
-        indexFromEnd -= 1
+        indexFromEnd += 1
     }
     var messages = conversation.messages.slice(-indexFromEnd).map((message: Message) => {
         if (message.isDisabled) {
@@ -219,7 +224,7 @@ async function buildPrompt(conversation: Conversation, generateParameters: Gener
     })
     if (messages.length > conversation.authorNotePosition) {
         const authorsNoteIndex = messages.length - conversation.authorNotePosition;
-        messages = [...messages.slice(0, authorsNoteIndex), conversation.authorNote, ...messages.slice(authorsNoteIndex)];
+        messages = [...messages.slice(0, authorsNoteIndex), "\n" + conversation.authorNote + "\n", ...messages.slice(authorsNoteIndex)];
     }
     return conversation.memory + "\n" + messages.join("");
 }
