@@ -656,6 +656,10 @@ body {
   margin: 0.25rem;
 }
 
+.ml-auto {
+  margin-left: auto;
+}
+
 .flex {
   display: flex;
 }
@@ -722,6 +726,14 @@ body {
 
 .w-6 {
   width: 1.5rem;
+}
+
+.w-1\/2 {
+  width: 50%;
+}
+
+.w-11\/12 {
+  width: 91.666667%;
 }
 
 .max-w-lg {
@@ -1242,6 +1254,10 @@ body {
 }
 
 @media (min-width: 1024px) {
+  .lg\:w-11\/12 {
+    width: 91.666667%;
+  }
+
   .lg\:max-w-\[800px\] {
     max-width: 800px;
   }

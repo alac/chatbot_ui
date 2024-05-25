@@ -147,6 +147,7 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
     <div style={{ paddingBottom: '2rem', display: 'flex' }}>
       <div
         style={{
+          minWidth: '200px',
           maxWidth: '80%',
           width: isEditing ? '80%' : 'auto',
           marginLeft: data.userId === 'user' ? 'auto' : undefined,
@@ -160,10 +161,14 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
           opacity: `${data.isDisabled ? .5 : 1}`,
         }}
       >
-        {data.username}
-        <Button variant="outline" size="icon" onPress={toggleDisabled} aria-label='Hide Message'>👻</Button>
-        <Button variant="outline" size="icon" onPress={deleteMessage} aria-label='Delete Message'>🗑️</Button>
-        {data.compressedPrompt !== "" ? promptButton : null}
+        <div className="flex items-center">
+          <span className="text-lg font-medium">{data.username}</span>
+          <div className="ml-auto">
+            <Button variant="outline" size="icon" onPress={toggleDisabled} aria-label='Hide Message'>👻</Button>
+            <Button variant="outline" size="icon" onPress={deleteMessage} aria-label='Delete Message'>🗑️</Button>
+            {data.compressedPrompt !== "" ? promptButton : null}
+          </div>
+        </div>
         <EditableText initialText={data.text} onTextChange={updateMessageText} isEditing={isEditing} setIsEditing={setIsEditing} key={data.text} />
       </div>
     </div >
