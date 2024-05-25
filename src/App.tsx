@@ -1,9 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { VirtuosoMessageListProps, VirtuosoMessageListMethods, VirtuosoMessageList, VirtuosoMessageListLicense } from '@virtuoso.dev/message-list';
 import './App.css';
-
 import { generate, buildPrompt, generateSettingsManager } from './generate';
-import { storageManager, Message } from './storage';
+import { storageManager, compressString, Message, decompressString } from './storage';
+import {
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogTitle,
+  DialogTrigger,
+} from "./components/dialog"
 import {
   Button
 } from "./components/button"
@@ -119,6 +126,22 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
   }
   const [isEditing, setIsEditing] = useState(false);
 
+  console.log(decompressString(data.compressedPrompt))
+  const promptButton = (< DialogTrigger >
+    <Button variant="outline" size="icon" aria-label='Show Prompt'>✉</Button>
+    <DialogOverlay>
+      <DialogContent className="sm:max-w-[600px] lg:max-w-[800px]">
+        <DialogHeader>
+          <DialogTitle>Prompt</DialogTitle>
+        </DialogHeader>
+        <div style={{ whiteSpaceCollapse: 'preserve' }}>
+          {decompressString(data.compressedPrompt)}
+        </div>
+      </DialogContent>
+    </DialogOverlay>
+  </DialogTrigger >
+  )
+
   const ownMessage = data.userId === 'user'
   return (
     <div style={{ paddingBottom: '2rem', display: 'flex' }}>
@@ -140,6 +163,7 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
         {data.username}
         <Button variant="outline" size="icon" onPress={toggleDisabled} aria-label='Hide Message'>👻</Button>
         <Button variant="outline" size="icon" onPress={deleteMessage} aria-label='Delete Message'>🗑️</Button>
+        {data.compressedPrompt !== "" ? promptButton : null}
         <EditableText initialText={data.text} onTextChange={updateMessageText} isEditing={isEditing} setIsEditing={setIsEditing} key={data.text} />
       </div>
     </div >
@@ -260,6 +284,13 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
     setInputValue("")
 
     setTimeout(async () => {
+      const prompt = await buildPrompt(
+        storageManager.currentConversation,
+        generateSettingsManager.currentGenerateSettings,
+        generateSettingsManager.getDefaultConnectionSettings()
+      )
+      const compressedPrompt = compressString(prompt)
+
       const botMessageId = `${storageManager.consumeMessageId()}`
       const botMessage: Message = {
         userId: 'bot',
@@ -267,7 +298,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
         key: `${botMessageId}`,
         text: '',
         tokenCount: null,
-        compressedPrompt: '',
+        compressedPrompt: compressedPrompt,
         isDisabled: false,
       }
       storageManager.updateMessage(botMessage)
@@ -284,11 +315,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
           storageManager.save()
         }
       }
-      const prompt = await buildPrompt(
-        storageManager.currentConversation,
-        generateSettingsManager.currentGenerateSettings,
-        generateSettingsManager.getDefaultConnectionSettings()
-      )
+
       generate(
         prompt,
         [`\n${storageManager.currentConversation.username}:`],

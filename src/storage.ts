@@ -1,5 +1,6 @@
 import localforage from "localforage";
 import { v4 as uuidv4 } from 'uuid';
+import { deflate, inflate } from 'pako';
 
 interface Conversation {
     displayName: string;
@@ -339,8 +340,22 @@ class DefaultStorageManager implements StorageManager {
 }
 
 
+function compressString(str: string): string {
+    const compressedData = deflate(str);
+    const numbers = Array.from(compressedData);
+    return btoa(String.fromCharCode.apply(String, numbers));
+}
+
+function decompressString(compressedStr: string): string {
+    const compressedData = atob(compressedStr);
+    const decodedData = new Uint8Array(compressedData.length);
+    for (let i = 0; i < compressedData.length; i++) {
+        decodedData[i] = compressedData.charCodeAt(i);
+    }
+    return inflate(decodedData, { to: 'string' });
+}
 
 const storageManager = new DefaultStorageManager();
 
-export { storageManager }
+export { storageManager, compressString, decompressString }
 export type { Message, Conversation, Lorebook, LorebookEntry }
