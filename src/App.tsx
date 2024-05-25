@@ -104,6 +104,7 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
     storageManager.updateMessage({ ...data, isDisabled: !data.isDisabled })
     storageManager.save()
   }
+  const [isEditing, setIsEditing] = useState(false);
 
   const ownMessage = data.userId === 'user'
   return (
@@ -111,6 +112,7 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
       <div
         style={{
           maxWidth: '80%',
+          width: isEditing ? '80%' : 'auto',
           marginLeft: data.userId === 'user' ? 'auto' : undefined,
 
           background: ownMessage ? '#0253B3' : '#F0F0F3',
@@ -123,15 +125,14 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
         }}
       >
         {data.username} <span title="Hide From History" onClick={toggleDisabled}>👻</span>
-        <EditableText initialText={data.text} onTextChange={updateMessageText} key={data.text} />
+        <EditableText initialText={data.text} onTextChange={updateMessageText} isEditing={isEditing} setIsEditing={setIsEditing} key={data.text} />
       </div>
     </div >
   )
 }
 
 
-const EditableText = ({ initialText, onTextChange }: { initialText: string, onTextChange: (updatedText: string) => void }) => {
-  const [isEditing, setIsEditing] = useState(false);
+const EditableText = ({ initialText, onTextChange, isEditing, setIsEditing }: { initialText: string, onTextChange: (updatedText: string) => void, isEditing: boolean, setIsEditing: (isEditing: boolean) => void }) => {
   const [text, setText] = useState(initialText);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const spanRef = useRef<HTMLSpanElement>(null);
@@ -160,7 +161,7 @@ const EditableText = ({ initialText, onTextChange }: { initialText: string, onTe
       textareaRef.current.style.minHeight = `${height}px`
     }
   }
-  useEffect(setInitialTextareaSize, [isEditing])
+  useEffect(setInitialTextareaSize, [isEditing, widthHeight])
 
   const expandTextareaDuringEditing = () => {
     if (textareaRef.current) {
@@ -183,6 +184,7 @@ const EditableText = ({ initialText, onTextChange }: { initialText: string, onTe
           onChange={handleTextEdit}
           autoFocus
           className='message-body'
+          style={{ width: '100%' }}
         />
       ) : (
         <span
