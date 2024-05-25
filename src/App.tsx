@@ -4,6 +4,9 @@ import './App.css';
 
 import { generate, buildPrompt, generateSettingsManager } from './generate';
 import { storageManager, Message } from './storage';
+import {
+  Button
+} from "./components/button"
 
 
 function App() {
@@ -135,8 +138,8 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
         }}
       >
         {data.username}
-        <span title="Hide From History" onClick={toggleDisabled}>👻</span>
-        <span title="Delete From History" onClick={deleteMessage}>🗑️</span>
+        <Button variant="outline" size="icon" onPress={toggleDisabled} aria-label='Hide Message'>👻</Button>
+        <Button variant="outline" size="icon" onPress={deleteMessage} aria-label='Delete Message'>🗑️</Button>
         <EditableText initialText={data.text} onTextChange={updateMessageText} isEditing={isEditing} setIsEditing={setIsEditing} key={data.text} />
       </div>
     </div >
