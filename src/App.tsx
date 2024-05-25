@@ -163,10 +163,13 @@ const EditableText = ({ initialText, onTextChange, isEditing, setIsEditing }: { 
   };
 
   const [widthHeight, setWidthHeight] = useState([0, 0])
-  const setInitialTextareaSize = () => {
+  const measureSpanHeight = () => {
     if (spanRef.current) {
       setWidthHeight([spanRef.current.offsetWidth, spanRef.current.offsetHeight])
     }
+  }
+  useEffect(measureSpanHeight, [isEditing])
+  const setInitialTextareaSize = () => {
     if (textareaRef.current) {
       const [width, height] = widthHeight;
       textareaRef.current.style.minWidth = `${width}px`
