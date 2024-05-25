@@ -62,9 +62,15 @@ function App() {
         'smooth'
       )
     }
+    storageManager.deletedMessageCallback = (deleteKey: string) => {
+      virtuosoChatbox.current?.data.findAndDelete((message: Message, index: number): boolean => {
+        return message.key === deleteKey;
+      })
+    }
     return () => {
       storageManager.conversationLoadedCallback = null;
       storageManager.rerenderConversationCallback = null;
+      storageManager.deletedMessageCallback = null;
     }
   }, [conversationId]);
 
@@ -104,6 +110,10 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
     storageManager.updateMessage({ ...data, isDisabled: !data.isDisabled })
     storageManager.save()
   }
+  const deleteMessage = () => {
+    storageManager.deleteMessage(data.key)
+    storageManager.save()
+  }
   const [isEditing, setIsEditing] = useState(false);
 
   const ownMessage = data.userId === 'user'
@@ -124,7 +134,9 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
           opacity: `${data.isDisabled ? .5 : 1}`,
         }}
       >
-        {data.username} <span title="Hide From History" onClick={toggleDisabled}>👻</span>
+        {data.username}
+        <span title="Hide From History" onClick={toggleDisabled}>👻</span>
+        <span title="Delete From History" onClick={deleteMessage}>🗑️</span>
         <EditableText initialText={data.text} onTextChange={updateMessageText} isEditing={isEditing} setIsEditing={setIsEditing} key={data.text} />
       </div>
     </div >

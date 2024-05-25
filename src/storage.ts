@@ -134,6 +134,7 @@ interface StorageManager {
     consumeMessageId(): number;
     updateMessage(message: Message): void;
     getMessage(messageId: string): Message | null;
+    deleteMessage(messageId: string): void;
 
     lorebooks: Map<string, Lorebook>;
     createLorebook(lorebookId: string): void;
@@ -174,6 +175,7 @@ class DefaultStorageManager implements StorageManager {
     currentConversation: Conversation;
     conversationLoadedCallback: (() => void) | null;
     rerenderConversationCallback: (() => void) | null;
+    deletedMessageCallback: ((deleteKey: string) => void) | null;
     conversations: Map<string, Conversation>;
     lorebooks: Map<string, Lorebook>;
 
@@ -188,6 +190,7 @@ class DefaultStorageManager implements StorageManager {
         this.lorebooks = new Map<string, Lorebook>();
         this.conversationLoadedCallback = null;
         this.rerenderConversationCallback = null;
+        this.deletedMessageCallback = null;
     }
 
     startup(): void {
@@ -315,6 +318,14 @@ class DefaultStorageManager implements StorageManager {
             return null
         }
         return this.currentConversation.messages[index]
+    }
+
+    deleteMessage(messageId: string): void {
+        const newMessageList = this.currentConversation.messages.filter((someMessage: Message) => someMessage.key !== messageId)
+        this.currentConversation.messages = newMessageList
+        if (this.deletedMessageCallback) {
+            this.deletedMessageCallback(messageId)
+        }
     }
 
     createLorebook(lorebookId: string): void {
