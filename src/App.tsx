@@ -16,16 +16,11 @@ import {
 import Delete from '@spectrum-icons/workflow/Delete';
 import Deselect from '@spectrum-icons/workflow/Deselect';
 import Compare from '@spectrum-icons/workflow/Compare';
+import LorebookPanel from './components/LorebookComponents';
 
 
 function App() {
   const virtuosoChatbox = React.useRef<VirtuosoMessageListMethods<Message>>(null)
-
-
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
 
 
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
@@ -103,8 +98,8 @@ function App() {
             />
           </VirtuosoMessageListLicense>
         </div>
-        <div className="sidebar-container" style={{ width: sidebarCollapsed ? 'auto' : '200px', height: chatLogHeight }}>
-          <button onClick={toggleSidebar}>{sidebarCollapsed ? '<<' : '>>'}</button>
+        <div className="sidebar-container" style={{ width: '200px', height: chatLogHeight }}>
+          <LorebookPanel></LorebookPanel>
         </div>
       </div>
       <BottomContainer ref={bottomContainerRef} virtuosoChatbox={virtuosoChatbox} />
