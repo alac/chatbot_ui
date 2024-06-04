@@ -13,6 +13,9 @@ import {
 import {
   Button
 } from "./ui/button"
+import Delete from '@spectrum-icons/workflow/Delete';
+import Deselect from '@spectrum-icons/workflow/Deselect';
+import Compare from '@spectrum-icons/workflow/Compare';
 
 
 function App() {
@@ -126,7 +129,7 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
   const [isEditing, setIsEditing] = useState(false);
 
   const promptButton = (< DialogTrigger >
-    <Button variant="outline" size="icon" aria-label='Show Prompt'>✉</Button>
+    <span className='message-option'><Button variant="outline" size="icon" aria-label='Show Prompt'><Compare /></Button></span>
     <DialogOverlay>
       <DialogContent className="max-w-[80%] max-h-[90%] overflow-y-scroll" closeButton={false}>
         <DialogHeader>
@@ -162,8 +165,8 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
         <div className="flex items-center">
           <span className="text-lg font-medium">{data.username}</span>
           <div className="ml-auto">
-            <Button variant="outline" size="icon" onPress={toggleDisabled} aria-label='Hide Message'>👻</Button>
-            <Button variant="outline" size="icon" onPress={deleteMessage} aria-label='Delete Message'>🗑️</Button>
+            <span className='message-option'><Button variant="outline" size="icon" onPress={toggleDisabled} aria-label='Hide Message'><Deselect /></Button></span>
+            <span className='message-option'><Button variant="outline" size="icon" onPress={deleteMessage} aria-label='Delete Message'><Delete /></Button></span>
             {data.compressedPrompt !== "" ? promptButton : null}
           </div>
         </div>
