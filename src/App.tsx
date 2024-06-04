@@ -16,16 +16,11 @@ import {
 import Delete from '@spectrum-icons/workflow/Delete';
 import Deselect from '@spectrum-icons/workflow/Deselect';
 import Compare from '@spectrum-icons/workflow/Compare';
+import LorebookPanel from './components/LorebookComponents';
 
 
 function App() {
   const virtuosoChatbox = React.useRef<VirtuosoMessageListMethods<Message>>(null)
-
-
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
 
 
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
@@ -103,8 +98,8 @@ function App() {
             />
           </VirtuosoMessageListLicense>
         </div>
-        <div className="sidebar-container" style={{ width: sidebarCollapsed ? 'auto' : '200px', height: chatLogHeight }}>
-          <button onClick={toggleSidebar}>{sidebarCollapsed ? '<<' : '>>'}</button>
+        <div className="sidebar-container" style={{ width: '200px', height: chatLogHeight }}>
+          <LorebookPanel></LorebookPanel>
         </div>
       </div>
       <BottomContainer ref={bottomContainerRef} virtuosoChatbox={virtuosoChatbox} />
@@ -129,7 +124,7 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
   const [isEditing, setIsEditing] = useState(false);
 
   const promptButton = (< DialogTrigger >
-    <span className='message-option'><Button variant="outline" size="icon" aria-label='Show Prompt'><Compare /></Button></span>
+    <span className='corner-button'><Button variant="outline" size="icon" aria-label='Show Prompt'><Compare /></Button></span>
     <DialogOverlay>
       <DialogContent className="max-w-[80%] max-h-[90%] overflow-y-scroll" closeButton={false}>
         <DialogHeader>
@@ -145,7 +140,7 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
 
   const ownMessage = data.userId === 'user'
   return (
-    <div style={{ paddingBottom: '2rem', display: 'flex' }}>
+    <div style={{ paddingBottom: '1rem', display: 'flex' }}>
       <div
         style={{
           minWidth: '200px',
@@ -165,8 +160,8 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
         <div className="flex items-center">
           <span className="text-lg font-medium">{data.username}</span>
           <div className="ml-auto">
-            <span className='message-option'><Button variant="outline" size="icon" onPress={toggleDisabled} aria-label='Hide Message'><Deselect /></Button></span>
-            <span className='message-option'><Button variant="outline" size="icon" onPress={deleteMessage} aria-label='Delete Message'><Delete /></Button></span>
+            <span className='corner-button'><Button variant="outline" size="icon" onPress={toggleDisabled} aria-label='Hide Message'><Deselect /></Button></span>
+            <span className='corner-button'><Button variant="outline" size="icon" onPress={deleteMessage} aria-label='Delete Message'><Delete /></Button></span>
             {data.compressedPrompt !== "" ? promptButton : null}
           </div>
         </div>

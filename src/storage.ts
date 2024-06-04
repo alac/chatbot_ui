@@ -89,18 +89,15 @@ const isMessage = (obj: any): obj is Message => {
 
 interface Lorebook {
     lorebookId: string;
+    lorebookName: string;
     lorebookEntry: LorebookEntry[];
-    lorebookMaxInsertionCount: number;
-    lorebookScanRange: number;
 }
 
 export function isLorebook(obj: any): obj is Lorebook {
     return (
         typeof obj === "object" &&
         typeof obj.lorebookId === "string" &&
-        Array.isArray(obj.lorebookEntry) &&
-        typeof obj.lorebookMaxInsertionCount === "number" &&
-        typeof obj.lorebookScanRange === "number"
+        Array.isArray(obj.lorebookEntry)
     );
 }
 
@@ -140,6 +137,7 @@ interface StorageManager {
     lorebooks: Map<string, Lorebook>;
     createLorebook(lorebookId: string): void;
     cloneLorebook(oldConversationId: string, newConversationId: string): void;
+    updateLorebookOrder(lorebookIds: string[]): void;
 }
 
 
@@ -147,6 +145,10 @@ interface StorageState {
     currentConversationId: string | null;
 
     conversationIds: string[];
+
+    lorebookMaxInsertionCount: number;
+    lorebookMaxTokens: number;
+
     lorebookIds: string[];
     // conversationNameToId: map<string, string>
     // lorebookNameToId: map<string, string>
@@ -161,9 +163,14 @@ const isStorageState = (obj: unknown): obj is StorageState => {
         ("conversationIds" in obj &&
             Array.isArray(obj.conversationIds) &&
             obj.conversationIds.every((id) => typeof id === "string")) &&
+        ("lorebookMaxInsertionCount" in obj &&
+            (typeof obj.lorebookMaxInsertionCount === "number")) &&
+        ("lorebookMaxTokens" in obj &&
+            (typeof obj.lorebookMaxTokens === "number")) &&
         ("lorebookIds" in obj &&
             Array.isArray(obj.lorebookIds) &&
             obj.lorebookIds.every((id) => typeof id === "string"))
+
     );
 };
 
@@ -176,6 +183,7 @@ class DefaultStorageManager implements StorageManager {
     currentConversation: Conversation;
     conversationLoadedCallback: (() => void) | null;
     rerenderConversationCallback: (() => void) | null;
+    lorebookUpdatedCallback: (() => void) | null;
     deletedMessageCallback: ((deleteKey: string) => void) | null;
     conversations: Map<string, Conversation>;
     lorebooks: Map<string, Lorebook>;
@@ -184,12 +192,15 @@ class DefaultStorageManager implements StorageManager {
         this.storageState = {
             currentConversationId: this.newConversationDBKey(),
             conversationIds: [],
-            lorebookIds: []
+            lorebookIds: [],
+            lorebookMaxInsertionCount: 10,
+            lorebookMaxTokens: 1000,
         }
         this.currentConversation = NewConversation();
         this.conversations = new Map<string, Conversation>();
         this.lorebooks = new Map<string, Lorebook>();
         this.conversationLoadedCallback = null;
+        this.lorebookUpdatedCallback = null;
         this.rerenderConversationCallback = null;
         this.deletedMessageCallback = null;
     }
@@ -232,7 +243,11 @@ class DefaultStorageManager implements StorageManager {
                 this.storageState.lorebookIds.map((lorebookId: string) => {
                     localforage.getItem(lorebookId, (err, readValue) => {
                         if (isLorebook(readValue)) {
+                            console.log("loaded LB: ", lorebookId);
                             this.lorebooks.set(lorebookId, readValue);
+                            if (this.lorebookUpdatedCallback) {
+                                this.lorebookUpdatedCallback()
+                            }
                         } else {
                             console.log("lorebook typeguard failed: ", readValue)
                         }
@@ -329,15 +344,83 @@ class DefaultStorageManager implements StorageManager {
         }
     }
 
-    createLorebook(lorebookId: string): void {
-        throw new Error("Not implemented");
+    createLorebook(lorebookName: string): LorebookId {
+        const lorebookId: LorebookId = "LO_" + uuidv4();
+        const lorebook: Lorebook = {
+            lorebookId,
+            lorebookName,
+            lorebookEntry: []
+        }
+
+        localforage.setItem(lorebookId, lorebook);
+        this.lorebooks.set(lorebookId, lorebook);
+        this.storageState.lorebookIds = [... this.storageState.lorebookIds, lorebookId]
+        this.saveStorageState();
+        if (this.lorebookUpdatedCallback) {
+            this.lorebookUpdatedCallback()
+        }
+        return lorebookId;
     }
 
-    cloneLorebook(oldLorebookId: string, newLorebookId: string): void {
+    saveLorebook(lorebookId: LorebookId, lorebook: Lorebook): void {
+        localforage.setItem(lorebookId, lorebook);
+        if (this.lorebookUpdatedCallback) {
+            this.lorebookUpdatedCallback()
+        }
+    }
+
+    deleteLorebook(lorebookId: LorebookId): void {
+        this.lorebooks.delete(lorebookId);
+        this.storageState.lorebookIds = this.storageState.lorebookIds.filter((s: string) => s !== lorebookId)
+        this.saveStorageState()
+        localforage.removeItem(lorebookId);
+        if (this.lorebookUpdatedCallback) {
+            this.lorebookUpdatedCallback()
+        }
+    }
+
+    cloneLorebook(oldLorebookId: LorebookId, newLorebookId: LorebookId): void {
         // this should probably use userfacing names
         throw new Error("Not implemented");
     }
+
+    updateLorebookOrder(lorebookIds: string[]): void {
+        const validNewIds = lorebookIds.filter((s: string) => this.storageState.lorebookIds.includes(s))
+        const missingOldIds = this.storageState.lorebookIds.filter((s: string) => !lorebookIds.includes(s))
+        this.storageState.lorebookIds = [...validNewIds, ...missingOldIds];
+        this.saveStorageState()
+        if (this.lorebookUpdatedCallback) {
+            this.lorebookUpdatedCallback()
+        }
+    }
+
+    getLorebookMaxTokens(): number {
+        return this.storageState.lorebookMaxTokens;
+    }
+    setLorebookMaxTokens(value: number): void {
+        this.storageState.lorebookMaxTokens = value;
+        this.saveStorageState();
+        if (this.lorebookUpdatedCallback) {
+            this.lorebookUpdatedCallback()
+        }
+    }
+
+    getLorebookMaxInsertionCount(): number {
+        return this.storageState.lorebookMaxInsertionCount;
+    }
+
+    setLorebookMaxInsertionCount(value: number): void {
+        this.storageState.lorebookMaxInsertionCount = value;
+        this.saveStorageState();
+        if (this.lorebookUpdatedCallback) {
+            this.lorebookUpdatedCallback()
+        }
+    }
+
 }
+
+
+type LorebookId = string;
 
 
 function compressString(str: string): string {
@@ -354,6 +437,7 @@ function decompressString(compressedStr: string): string {
     }
     return inflate(decodedData, { to: 'string' });
 }
+
 
 const storageManager = new DefaultStorageManager();
 
