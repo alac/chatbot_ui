@@ -3,7 +3,7 @@
   "libraries": [
     {
       "name": "jolly-ui",
-      "directory": "./components",
+      "directory": "./ui",
       "postinstall": [],
       "transformers": []
     }

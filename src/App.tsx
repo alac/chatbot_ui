@@ -5,15 +5,14 @@ import { generate, buildPrompt, generateSettingsManager } from './generate';
 import { storageManager, compressString, Message, decompressString } from './storage';
 import {
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogOverlay,
   DialogTitle,
   DialogTrigger,
-} from "./components/dialog"
+} from "./ui/dialog"
 import {
   Button
-} from "./components/button"
+} from "./ui/button"
 
 
 function App() {
