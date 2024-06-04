@@ -140,7 +140,7 @@ const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ({ d
 
   const ownMessage = data.userId === 'user'
   return (
-    <div style={{ paddingBottom: '2rem', display: 'flex' }}>
+    <div style={{ paddingBottom: '1rem', display: 'flex' }}>
       <div
         style={{
           minWidth: '200px',

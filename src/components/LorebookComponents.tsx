@@ -5,7 +5,7 @@ const LorebookPanel = ({ }) => {
     return (
         <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
             <div className="flex items-center">
-                <h1>Lorebook</h1>
+                <span className="text-md font-medium">Lorebook</span>
                 <div className="ml-auto">
                     <span className='message-option'><Button size="icon" aria-label='Edit Lorebook'><CollectionEdit /></Button></span>
                 </div>
