@@ -1,3 +1,5 @@
+import React, { useState, useRef, useEffect } from 'react';
+
 import {
     DialogContent,
     DialogHeader,
@@ -5,8 +7,17 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "./../ui/dialog"
+import { Checkbox } from "./../ui/checkbox"
+import { TextField } from "react-aria-components"
 import { Button } from "./../ui/button"
+import { Separator } from "./../ui/separator"
+import { Input } from "../ui/input"
+import { Label } from "./../ui/label"
+import Delete from '@spectrum-icons/workflow/Delete';
 import Edit from '@spectrum-icons/workflow/Edit';
+import ChevronDown from '@spectrum-icons/workflow/ChevronDown';
+import ChevronUp from '@spectrum-icons/workflow/ChevronUp';
+
 
 const LorebookPanel = ({ }) => {
     return (
@@ -14,7 +25,7 @@ const LorebookPanel = ({ }) => {
             <div className="flex items-center">
                 <span className="text-md font-medium">Lorebook</span>
                 <div className="ml-auto">
-                    <span className='corner-button'><Button size="icon" aria-label='Edit Lorebook'><Edit /></Button></span>
+                    <span className='corner-button'><ViewLorebooksButton /></span>
                 </div>
             </div>
             <span className="text-sm">
@@ -24,6 +35,97 @@ const LorebookPanel = ({ }) => {
             </span>
         </div>
     );
+};
+
+
+const ViewLorebooksButton = ({ }) => {
+    const [newLorebookName, setNewLorebookName] = useState('');
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setNewLorebookName(event.target.value);
+    };
+
+    const dummyLorebookNames = ["HarryPotterCharacters", "HarryPotterLocations", "RealWorldLocations", "MidgarLocations"]
+
+    return (
+        < DialogTrigger >
+            <Button size="icon" aria-label='Edit Lorebook'><Edit /></Button>
+            <DialogOverlay>
+                <DialogContent className="max-w-[80%] max-h-[90%] overflow-y-scroll" closeButton={false}>
+                    <DialogHeader>
+                        <DialogTitle>Lorebooks</DialogTitle>
+                    </DialogHeader>
+
+                    <Separator />
+
+                    <div className="flex items-center">
+                        <TextField className="flex max-w-sm items-center gap-1.5 mr-2">
+                            <Label className="py-2">Max Active Lorebook Entries (default: 5): </Label>
+                            <Input placeholder="0" onInput={handleInputChange} />
+                        </TextField>
+
+                        <TextField className="flex max-w-sm items-center gap-1.5">
+                            <Label className="py-2">Max Tokens for Lorebook Entries (default: 1000): </Label>
+                            <Input placeholder="0" onInput={handleInputChange} />
+                        </TextField>
+                    </div>
+                    <div>0 in either field disables lorebook insertion <strong>entirely</strong>. -1 disables just that constraint. </div>
+
+                    <Separator />
+
+                    <TextField className="flex max-w-sm items-center gap-1.5">
+                        <Label className="py-2">Add new lorebook: </Label>
+                        <Input placeholder="Gandalf and his homies" onInput={handleInputChange} />
+                        <Button size="md" aria-label='New Lorebook' onPress={() => alert(newLorebookName)}>New Lorebook </Button>
+                    </TextField>
+
+                    {/* Import */}
+
+                    <Separator />
+
+                    <span className="text-md font-medium">Enabled lorebooks:</span>
+                    <div className='grid gap-2'>
+                        {dummyLorebookNames.map((name: string) => (
+                            <div className="flex items-center bg-white hover:bg-gray-200 transition duration-300 ease-in-out px-2">
+                                <Checkbox id="terms">{name}</Checkbox>
+                                <div className="ml-auto">
+                                    <span className='corner-button mx-2'><EditLorebookButton /></span>
+                                    {/* Export <Button size="icon" aria-label='Edit Lorebook'><Export /></Button> */}
+                                    <span className='corner-button mx-2'><Button size="icon" aria-label='Edit Lorebook'><ChevronUp /></Button></span>
+                                    <span className='corner-button mx-2'><Button size="icon" aria-label='Edit Lorebook'><ChevronDown /></Button></span>
+                                    <span className='corner-button mx-2'><Button size="icon" aria-label='Edit Lorebook'><Delete /></Button></span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </DialogContent>
+            </DialogOverlay>
+        </DialogTrigger >
+    )
+};
+
+const EditLorebookButton = ({ }) => {
+    const [newLorebookName, setNewLorebookName] = useState('');
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setNewLorebookName(event.target.value);
+    };
+
+    const dummyLorebookNames = ["HarryPotterCharacters", "HarryPotterLocations", "RealWorldLocations", "MidgarLocations"]
+
+    return (
+        < DialogTrigger >
+            <Button size="icon" aria-label='Edit Lorebook'><Edit /></Button>
+            <DialogOverlay>
+                <DialogContent className="max-w-[80%] max-h-[90%] overflow-y-scroll" closeButton={false}>
+                    <DialogHeader>
+                        <DialogTitle>Lorebooks</DialogTitle>
+                    </DialogHeader>
+
+                    <Separator />
+
+                </DialogContent>
+            </DialogOverlay>
+        </DialogTrigger >
+    )
 };
 
 
