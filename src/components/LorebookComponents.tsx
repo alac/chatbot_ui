@@ -1,5 +1,12 @@
+import {
+    DialogContent,
+    DialogHeader,
+    DialogOverlay,
+    DialogTitle,
+    DialogTrigger,
+} from "./../ui/dialog"
 import { Button } from "./../ui/button"
-import CollectionEdit from '@spectrum-icons/workflow/CollectionEdit';
+import Edit from '@spectrum-icons/workflow/Edit';
 
 const LorebookPanel = ({ }) => {
     return (
@@ -7,7 +14,7 @@ const LorebookPanel = ({ }) => {
             <div className="flex items-center">
                 <span className="text-md font-medium">Lorebook</span>
                 <div className="ml-auto">
-                    <span className='message-option'><Button size="icon" aria-label='Edit Lorebook'><CollectionEdit /></Button></span>
+                    <span className='corner-button'><Button size="icon" aria-label='Edit Lorebook'><Edit /></Button></span>
                 </div>
             </div>
             <span className="text-sm">
