@@ -98,7 +98,7 @@ const ViewLorebooksButton = ({ }) => {
                             <div className="flex items-center bg-white hover:bg-gray-200 transition duration-300 ease-in-out px-2">
                                 <Checkbox id="terms">{name}</Checkbox>
                                 <div className="ml-auto">
-                                    <span className='corner-button mx-2'><EditLorebookButton /></span>
+                                    <span className='corner-button mx-2'><EditLorebookButton lorebookId={name} /></span>
                                     {/* Export <Button size="icon" aria-label='Edit Lorebook'><Export /></Button> */}
                                     <span className='corner-button mx-2'><Button size="icon" aria-label='Edit Lorebook'><ChevronUp /></Button></span>
                                     <span className='corner-button mx-2'><Button size="icon" aria-label='Edit Lorebook'><ChevronDown /></Button></span>
@@ -113,7 +113,7 @@ const ViewLorebooksButton = ({ }) => {
     )
 };
 
-const EditLorebookButton = ({ }) => {
+const EditLorebookButton = ({ lorebookId }: { lorebookId: string }) => {
     const [newLorebookName, setNewLorebookName] = useState('');
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setNewLorebookName(event.target.value);
@@ -124,10 +124,10 @@ const EditLorebookButton = ({ }) => {
     return (
         < DialogTrigger >
             <Button size="icon" aria-label='Edit Lorebook'><Edit /></Button>
-            <DialogOverlay>
-                <DialogContent className="max-w-[80%] max-h-[90%] overflow-y-scroll" closeButton={false}>
+            <DialogOverlay isDismissable={false}>
+                <DialogContent className="max-w-[80%] max-h-[90%] overflow-y-scroll" closeButton={true}>
                     <DialogHeader>
-                        <DialogTitle>Lorebooks</DialogTitle>
+                        <DialogTitle>Editing Lorebook: '{lorebookId}'</DialogTitle>
                     </DialogHeader>
 
                     <Separator />
