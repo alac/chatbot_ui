@@ -40,8 +40,18 @@ const LorebookPanel = ({ }) => {
 
 const ViewLorebooksButton = ({ }) => {
     const [newLorebookName, setNewLorebookName] = useState('');
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleNewLorebookInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setNewLorebookName(event.target.value);
+    };
+
+    const [maxLorebookEntries, setMaxLorebookEntries] = useState('');
+    const handleMaxEntriesInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setMaxLorebookEntries(event.target.value);
+    };
+
+    const [maxLorebookTokens, setMaxLorebookTokens] = useState('');
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setMaxLorebookTokens(event.target.value);
     };
 
     const dummyLorebookNames = ["HarryPotterCharacters", "HarryPotterLocations", "RealWorldLocations", "MidgarLocations"]
@@ -60,7 +70,7 @@ const ViewLorebooksButton = ({ }) => {
                     <div className="flex items-center">
                         <TextField className="flex max-w-sm items-center gap-1.5 mr-2">
                             <Label className="py-2">Max Active Lorebook Entries (default: 5): </Label>
-                            <Input placeholder="0" onInput={handleInputChange} />
+                            <Input placeholder="0" onInput={handleMaxEntriesInputChange} />
                         </TextField>
 
                         <TextField className="flex max-w-sm items-center gap-1.5">
@@ -72,10 +82,10 @@ const ViewLorebooksButton = ({ }) => {
 
                     <Separator />
 
-                    <TextField className="flex max-w-sm items-center gap-1.5">
+                    <TextField className="flex max-w-lg items-center gap-1.5">
                         <Label className="py-2">Add new lorebook: </Label>
-                        <Input placeholder="Gandalf and his homies" onInput={handleInputChange} />
-                        <Button size="md" aria-label='New Lorebook' onPress={() => alert(newLorebookName)}>New Lorebook </Button>
+                        <Input placeholder="Gandalf and his homies" onInput={handleNewLorebookInputChange} />
+                        <Button size="md" aria-label='New Lorebook' onPress={() => alert(newLorebookName)}>Create Lorebook </Button>
                     </TextField>
 
                     {/* Import */}
