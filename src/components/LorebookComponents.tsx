@@ -114,13 +114,6 @@ const ViewLorebooksButton = ({ }) => {
 };
 
 const EditLorebookButton = ({ lorebookId }: { lorebookId: string }) => {
-    const [newLorebookName, setNewLorebookName] = useState('');
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setNewLorebookName(event.target.value);
-    };
-
-    const dummyLorebookNames = ["HarryPotterCharacters", "HarryPotterLocations", "RealWorldLocations", "MidgarLocations"]
-
     return (
         < DialogTrigger >
             <Button size="icon" aria-label='Edit Lorebook'><Edit /></Button>
