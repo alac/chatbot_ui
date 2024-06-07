@@ -74,7 +74,7 @@ const ViewLorebooksButton = ({ }) => {
     };
 
     const maxLorebookTokens = storageManager.getLorebookMaxTokens()
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleMaxLorebookTokensInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const numberValue = parseInt(event.target.value, 10);
         if (!isNaN(numberValue) && numberValue >= -1) {
             storageManager.setLorebookMaxTokens(numberValue);
@@ -83,10 +83,20 @@ const ViewLorebooksButton = ({ }) => {
 
     const [updatedIncrement, setUpdateIncrement] = useState(0)
 
-
     const lorebooks = storageManager.storageState.lorebookIds.map((s: string) => (storageManager.lorebooks.get(s)))
-    console.log(storageManager.storageState.lorebookIds)
-    console.log(lorebooks)
+    const enabledLorebookIds = storageManager.currentConversation.lorebookIds;
+    const handleLorebookSelectionChange = (lorebookId: string, isSelected: boolean) => {
+        if (isSelected && !storageManager.currentConversation.lorebookIds.includes(lorebookId)) {
+            storageManager.currentConversation.lorebookIds = [...storageManager.currentConversation.lorebookIds, lorebookId];
+            storageManager.save();
+            return;
+        }
+        if (!isSelected && storageManager.currentConversation.lorebookIds.includes(lorebookId)) {
+            storageManager.currentConversation.lorebookIds = storageManager.currentConversation.lorebookIds.filter((s: string) => s !== lorebookId);
+            storageManager.save();
+        }
+    };
+
 
     return (
         < DialogTrigger >
@@ -107,7 +117,7 @@ const ViewLorebooksButton = ({ }) => {
 
                         <TextField className="flex max-w-sm items-center gap-1.5">
                             <Label className="py-2">Max Tokens for Lorebook Entries (default: 1000): </Label>
-                            <Input placeholder={`${maxLorebookTokens}`} onInput={handleInputChange} />
+                            <Input placeholder={`${maxLorebookTokens}`} onInput={handleMaxLorebookTokensInputChange} />
                         </TextField>
                     </div>
                     <div>0 in either field disables lorebook insertion <strong>entirely</strong>. -1 disables just that constraint. </div>
@@ -134,7 +144,10 @@ const ViewLorebooksButton = ({ }) => {
                                 const hideUp = (index == 0) ? " opacity-50 pointer-events-none" : "";
                                 const hideDown = (index == lorebooks.length - 1) ? " opacity-50 pointer-events-none" : "";
                                 return <div className="flex items-center bg-white hover:bg-gray-200 transition duration-300 ease-in-out px-2" key={lb.lorebookId}>
-                                    <Checkbox>{lb.lorebookName}</Checkbox>
+                                    <Checkbox defaultSelected={enabledLorebookIds.includes(lb.lorebookId)}
+                                        onChange={(isSelected: boolean) => handleLorebookSelectionChange(lb.lorebookId, isSelected)}>
+                                        {lb.lorebookName}
+                                    </Checkbox>
                                     <div className="ml-auto">
                                         <span className='corner-button mx-2'><EditLorebookButton lorebookId={lb.lorebookId} /></span>
                                         {/* Export <Button size="icon"><Export /></Button> */}
