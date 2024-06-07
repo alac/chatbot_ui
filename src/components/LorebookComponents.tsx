@@ -18,6 +18,9 @@ import Edit from '@spectrum-icons/workflow/Edit';
 import ChevronDown from '@spectrum-icons/workflow/ChevronDown';
 import ChevronUp from '@spectrum-icons/workflow/ChevronUp';
 
+import { storageManager, Lorebook } from './../storage';
+
+
 
 const LorebookPanel = ({ }) => {
     return (
@@ -44,17 +47,46 @@ const ViewLorebooksButton = ({ }) => {
         setNewLorebookName(event.target.value);
     };
 
-    const [maxLorebookEntries, setMaxLorebookEntries] = useState('');
+    const handleCreateLorebook = () => {
+        storageManager.createLorebook(newLorebookName);
+        setUpdateIncrement(updatedIncrement + 1);
+    }
+
+    const handleDeleteLorebook = (lorebookId: string) => {
+        storageManager.deleteLorebook(lorebookId);
+        setUpdateIncrement(updatedIncrement + 1);
+    }
+
+    const handleReorderLorebook = (lorebookId: string, increment: number) => {
+        const index = storageManager.storageState.lorebookIds.indexOf(lorebookId);
+        const lorebookIdsWithoutX = storageManager.storageState.lorebookIds.filter((s: string) => s !== lorebookId);
+        const reorderedLorebookIds = [...lorebookIdsWithoutX.slice(0, index + increment), lorebookId, ...lorebookIdsWithoutX.slice(index + increment)];
+        storageManager.updateLorebookOrder(reorderedLorebookIds);
+        setUpdateIncrement(updatedIncrement + 1);
+    }
+
+    const maxLorebookEntries = storageManager.getLorebookMaxInsertionCount()
     const handleMaxEntriesInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setMaxLorebookEntries(event.target.value);
+        const numberValue = parseInt(event.target.value, 10);
+        if (!isNaN(numberValue) && numberValue >= -1) {
+            storageManager.setLorebookMaxInsertionCount(numberValue);
+        }
     };
 
-    const [maxLorebookTokens, setMaxLorebookTokens] = useState('');
+    const maxLorebookTokens = storageManager.getLorebookMaxTokens()
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setMaxLorebookTokens(event.target.value);
+        const numberValue = parseInt(event.target.value, 10);
+        if (!isNaN(numberValue) && numberValue >= -1) {
+            storageManager.setLorebookMaxTokens(numberValue);
+        }
     };
 
-    const dummyLorebookNames = ["HarryPotterCharacters", "HarryPotterLocations", "RealWorldLocations", "MidgarLocations"]
+    const [updatedIncrement, setUpdateIncrement] = useState(0)
+
+
+    const lorebooks = storageManager.storageState.lorebookIds.map((s: string) => (storageManager.lorebooks.get(s)))
+    console.log(storageManager.storageState.lorebookIds)
+    console.log(lorebooks)
 
     return (
         < DialogTrigger >
@@ -69,13 +101,13 @@ const ViewLorebooksButton = ({ }) => {
 
                     <div className="flex items-center">
                         <TextField className="flex max-w-sm items-center gap-1.5 mr-2">
-                            <Label className="py-2">Max Active Lorebook Entries (default: 5): </Label>
-                            <Input placeholder="0" onInput={handleMaxEntriesInputChange} />
+                            <Label className="py-2">Max Active Lorebook Entries (default: 10): </Label>
+                            <Input placeholder={`${maxLorebookEntries}`} onInput={handleMaxEntriesInputChange} />
                         </TextField>
 
                         <TextField className="flex max-w-sm items-center gap-1.5">
                             <Label className="py-2">Max Tokens for Lorebook Entries (default: 1000): </Label>
-                            <Input placeholder="0" onInput={handleInputChange} />
+                            <Input placeholder={`${maxLorebookTokens}`} onInput={handleInputChange} />
                         </TextField>
                     </div>
                     <div>0 in either field disables lorebook insertion <strong>entirely</strong>. -1 disables just that constraint. </div>
@@ -85,27 +117,34 @@ const ViewLorebooksButton = ({ }) => {
                     <TextField className="flex max-w-lg items-center gap-1.5">
                         <Label className="py-2">Add new lorebook: </Label>
                         <Input placeholder="Gandalf and his homies" onInput={handleNewLorebookInputChange} />
-                        <Button size="md" aria-label='New Lorebook' onPress={() => alert(newLorebookName)}>Create Lorebook </Button>
+                        <Button size="md" aria-label='New Lorebook' onPress={handleCreateLorebook}>Create Lorebook </Button>
                     </TextField>
 
                     {/* Import */}
 
                     <Separator />
 
-                    <span className="text-md font-medium">Enabled lorebooks:</span>
-                    <div className='grid gap-2'>
-                        {dummyLorebookNames.map((name: string) => (
-                            <div className="flex items-center bg-white hover:bg-gray-200 transition duration-300 ease-in-out px-2">
-                                <Checkbox id="terms">{name}</Checkbox>
-                                <div className="ml-auto">
-                                    <span className='corner-button mx-2'><EditLorebookButton lorebookId={name} /></span>
-                                    {/* Export <Button size="icon" aria-label='Edit Lorebook'><Export /></Button> */}
-                                    <span className='corner-button mx-2'><Button size="icon" aria-label='Edit Lorebook'><ChevronUp /></Button></span>
-                                    <span className='corner-button mx-2'><Button size="icon" aria-label='Edit Lorebook'><ChevronDown /></Button></span>
-                                    <span className='corner-button mx-2'><Button size="icon" aria-label='Edit Lorebook'><Delete /></Button></span>
+                    <div key={`${updatedIncrement}`} >
+                        <span className="text-md font-medium">Enabled lorebooks:</span>
+                        <div className='grid gap-2'>
+                            {lorebooks.map((lb: Lorebook | undefined, index: number) => {
+                                if (lb == undefined) {
+                                    return <></>;
+                                }
+                                const hideUp = (index == 0) ? " opacity-50 pointer-events-none" : "";
+                                const hideDown = (index == lorebooks.length - 1) ? " opacity-50 pointer-events-none" : "";
+                                return <div className="flex items-center bg-white hover:bg-gray-200 transition duration-300 ease-in-out px-2" key={lb.lorebookId}>
+                                    <Checkbox>{lb.lorebookName}</Checkbox>
+                                    <div className="ml-auto">
+                                        <span className='corner-button mx-2'><EditLorebookButton lorebookId={lb.lorebookId} /></span>
+                                        {/* Export <Button size="icon"><Export /></Button> */}
+                                        <span className={'corner-button mx-2' + hideUp}><Button size="icon" aria-label='Move lorebook up in list' onPress={() => handleReorderLorebook(lb.lorebookId, -1)}><ChevronUp /></Button></span>
+                                        <span className={'corner-button mx-2' + hideDown}><Button size="icon" aria-label='Move lorebook down in list' onPress={() => handleReorderLorebook(lb.lorebookId, 1)}><ChevronDown /></Button></span>
+                                        <span className='corner-button mx-2'><Button size="icon" aria-label='Delete lorebook' onPress={() => handleDeleteLorebook(lb.lorebookId)}><Delete /></Button></span>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            })}
+                        </div>
                     </div>
                 </DialogContent>
             </DialogOverlay>
