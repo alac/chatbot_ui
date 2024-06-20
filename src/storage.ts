@@ -183,6 +183,7 @@ class DefaultStorageManager implements StorageManager {
     currentConversation: Conversation;
     conversationLoadedCallback: (() => void) | null;
     rerenderConversationCallback: (() => void) | null;
+    lorebookUpdatedCallback: (() => void) | null;
     deletedMessageCallback: ((deleteKey: string) => void) | null;
     conversations: Map<string, Conversation>;
     lorebooks: Map<string, Lorebook>;
@@ -199,6 +200,7 @@ class DefaultStorageManager implements StorageManager {
         this.conversations = new Map<string, Conversation>();
         this.lorebooks = new Map<string, Lorebook>();
         this.conversationLoadedCallback = null;
+        this.lorebookUpdatedCallback = null;
         this.rerenderConversationCallback = null;
         this.deletedMessageCallback = null;
     }
@@ -240,10 +242,12 @@ class DefaultStorageManager implements StorageManager {
                 });
                 this.storageState.lorebookIds.map((lorebookId: string) => {
                     localforage.getItem(lorebookId, (err, readValue) => {
-                        console.log("loading LB: ", lorebookId);
                         if (isLorebook(readValue)) {
-                            console.log("loaded");
+                            console.log("loaded LB: ", lorebookId);
                             this.lorebooks.set(lorebookId, readValue);
+                            if (this.lorebookUpdatedCallback) {
+                                this.lorebookUpdatedCallback()
+                            }
                         } else {
                             console.log("lorebook typeguard failed: ", readValue)
                         }
@@ -352,11 +356,17 @@ class DefaultStorageManager implements StorageManager {
         this.lorebooks.set(lorebookId, lorebook);
         this.storageState.lorebookIds = [... this.storageState.lorebookIds, lorebookId]
         this.saveStorageState();
+        if (this.lorebookUpdatedCallback) {
+            this.lorebookUpdatedCallback()
+        }
         return lorebookId;
     }
 
     saveLorebook(lorebookId: LorebookId, lorebook: Lorebook): void {
         localforage.setItem(lorebookId, lorebook);
+        if (this.lorebookUpdatedCallback) {
+            this.lorebookUpdatedCallback()
+        }
     }
 
     deleteLorebook(lorebookId: LorebookId): void {
@@ -364,6 +374,9 @@ class DefaultStorageManager implements StorageManager {
         this.storageState.lorebookIds = this.storageState.lorebookIds.filter((s: string) => s !== lorebookId)
         this.saveStorageState()
         localforage.removeItem(lorebookId);
+        if (this.lorebookUpdatedCallback) {
+            this.lorebookUpdatedCallback()
+        }
     }
 
     cloneLorebook(oldLorebookId: LorebookId, newLorebookId: LorebookId): void {
@@ -376,6 +389,9 @@ class DefaultStorageManager implements StorageManager {
         const missingOldIds = this.storageState.lorebookIds.filter((s: string) => !lorebookIds.includes(s))
         this.storageState.lorebookIds = [...validNewIds, ...missingOldIds];
         this.saveStorageState()
+        if (this.lorebookUpdatedCallback) {
+            this.lorebookUpdatedCallback()
+        }
     }
 
     getLorebookMaxTokens(): number {
@@ -384,6 +400,9 @@ class DefaultStorageManager implements StorageManager {
     setLorebookMaxTokens(value: number): void {
         this.storageState.lorebookMaxTokens = value;
         this.saveStorageState();
+        if (this.lorebookUpdatedCallback) {
+            this.lorebookUpdatedCallback()
+        }
     }
 
     getLorebookMaxInsertionCount(): number {
@@ -393,6 +412,9 @@ class DefaultStorageManager implements StorageManager {
     setLorebookMaxInsertionCount(value: number): void {
         this.storageState.lorebookMaxInsertionCount = value;
         this.saveStorageState();
+        if (this.lorebookUpdatedCallback) {
+            this.lorebookUpdatedCallback()
+        }
     }
 
 }

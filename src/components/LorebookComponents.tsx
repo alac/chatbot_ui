@@ -42,6 +42,16 @@ const LorebookPanel = ({ }) => {
 
 
 const ViewLorebooksButton = ({ }) => {
+    const [lorebookUpdateTimestamp, setLorebookUpdateTimestamp] = useState(new Date());
+    useEffect(() => {
+        storageManager.lorebookUpdatedCallback = () => {
+            setLorebookUpdateTimestamp((new Date()))
+        }
+        return () => {
+            storageManager.lorebookUpdatedCallback = null;
+        }
+    }, [lorebookUpdateTimestamp]);
+
     const [newLorebookName, setNewLorebookName] = useState('');
     const handleNewLorebookInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setNewLorebookName(event.target.value);
@@ -49,12 +59,10 @@ const ViewLorebooksButton = ({ }) => {
 
     const handleCreateLorebook = () => {
         storageManager.createLorebook(newLorebookName);
-        setUpdateIncrement(updatedIncrement + 1);
     }
 
     const handleDeleteLorebook = (lorebookId: string) => {
         storageManager.deleteLorebook(lorebookId);
-        setUpdateIncrement(updatedIncrement + 1);
     }
 
     const handleReorderLorebook = (lorebookId: string, increment: number) => {
@@ -62,7 +70,6 @@ const ViewLorebooksButton = ({ }) => {
         const lorebookIdsWithoutX = storageManager.storageState.lorebookIds.filter((s: string) => s !== lorebookId);
         const reorderedLorebookIds = [...lorebookIdsWithoutX.slice(0, index + increment), lorebookId, ...lorebookIdsWithoutX.slice(index + increment)];
         storageManager.updateLorebookOrder(reorderedLorebookIds);
-        setUpdateIncrement(updatedIncrement + 1);
     }
 
     const maxLorebookEntries = storageManager.getLorebookMaxInsertionCount()
@@ -81,19 +88,23 @@ const ViewLorebooksButton = ({ }) => {
         }
     };
 
-    const [updatedIncrement, setUpdateIncrement] = useState(0)
-
     const lorebooks = storageManager.storageState.lorebookIds.map((s: string) => (storageManager.lorebooks.get(s)))
     const enabledLorebookIds = storageManager.currentConversation.lorebookIds;
     const handleLorebookSelectionChange = (lorebookId: string, isSelected: boolean) => {
         if (isSelected && !storageManager.currentConversation.lorebookIds.includes(lorebookId)) {
             storageManager.currentConversation.lorebookIds = [...storageManager.currentConversation.lorebookIds, lorebookId];
             storageManager.save();
+            if (storageManager.lorebookUpdatedCallback) {
+                storageManager.lorebookUpdatedCallback()
+            }
             return;
         }
         if (!isSelected && storageManager.currentConversation.lorebookIds.includes(lorebookId)) {
             storageManager.currentConversation.lorebookIds = storageManager.currentConversation.lorebookIds.filter((s: string) => s !== lorebookId);
             storageManager.save();
+            if (storageManager.lorebookUpdatedCallback) {
+                storageManager.lorebookUpdatedCallback()
+            }
         }
     };
 
@@ -109,15 +120,15 @@ const ViewLorebooksButton = ({ }) => {
 
                     <Separator />
 
-                    <div className="flex items-center">
+                    <div className="flex items-center" key={`lbentries_${lorebookUpdateTimestamp}`}>
                         <TextField className="flex max-w-sm items-center gap-1.5 mr-2">
                             <Label className="py-2">Max Active Lorebook Entries (default: 10): </Label>
-                            <Input placeholder={`${maxLorebookEntries}`} onInput={handleMaxEntriesInputChange} />
+                            <Input placeholder={`${maxLorebookEntries}`} onBlur={handleMaxEntriesInputChange} />
                         </TextField>
 
                         <TextField className="flex max-w-sm items-center gap-1.5">
                             <Label className="py-2">Max Tokens for Lorebook Entries (default: 1000): </Label>
-                            <Input placeholder={`${maxLorebookTokens}`} onInput={handleMaxLorebookTokensInputChange} />
+                            <Input placeholder={`${maxLorebookTokens}`} onBlur={handleMaxLorebookTokensInputChange} />
                         </TextField>
                     </div>
                     <div>0 in either field disables lorebook insertion <strong>entirely</strong>. -1 disables just that constraint. </div>
@@ -134,7 +145,7 @@ const ViewLorebooksButton = ({ }) => {
 
                     <Separator />
 
-                    <div key={`${updatedIncrement}`} >
+                    <div key={`${lorebookUpdateTimestamp}`} >
                         <span className="text-md font-medium">Enabled lorebooks:</span>
                         <div className='grid gap-2'>
                             {lorebooks.map((lb: Lorebook | undefined, index: number) => {

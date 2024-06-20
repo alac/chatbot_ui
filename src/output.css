@@ -594,10 +594,6 @@ body {
   pointer-events: none;
 }
 
-.invisible {
-  visibility: hidden;
-}
-
 .fixed {
   position: fixed;
 }
@@ -988,12 +984,12 @@ body {
   text-underline-offset: 4px;
 }
 
-.opacity-70 {
-  opacity: 0.7;
-}
-
 .opacity-50 {
   opacity: 0.5;
+}
+
+.opacity-70 {
+  opacity: 0.7;
 }
 
 .shadow-lg {
