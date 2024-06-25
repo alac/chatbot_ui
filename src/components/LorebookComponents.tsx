@@ -13,12 +13,14 @@ import { Button } from "./../ui/button"
 import { Separator } from "./../ui/separator"
 import { Input } from "../ui/input"
 import { Label } from "./../ui/label"
+import { TextArea } from "./../ui/textarea"
 import Delete from '@spectrum-icons/workflow/Delete';
 import Edit from '@spectrum-icons/workflow/Edit';
 import ChevronDown from '@spectrum-icons/workflow/ChevronDown';
 import ChevronUp from '@spectrum-icons/workflow/ChevronUp';
 
-import { storageManager, Lorebook } from './../storage';
+import { storageManager, Lorebook, LorebookEntry } from './../storage';
+import { isEditable } from '@testing-library/user-event/dist/utils';
 
 
 
@@ -177,22 +179,110 @@ const ViewLorebooksButton = ({ }) => {
 };
 
 const EditLorebookButton = ({ lorebookId }: { lorebookId: string }) => {
+    const [lorebookUpdateCount, setLorebookUpdateCount] = useState(0);
+
+    const lorebook = storageManager.lorebooks.get(lorebookId);
+    if (lorebook === undefined) {
+        return <></>
+    }
+
+    const handleCreateLorebookEntry = () => {
+        const lorebookEntry: LorebookEntry = {
+            entryId: storageManager.newUUID(),
+            entryName: "",
+            entryTrigger: "",
+            entryBody: "",
+        }
+        lorebook.lorebookEntry.push(lorebookEntry);
+        storageManager.saveLorebook(lorebook.lorebookId, lorebook, false)
+        setLorebookUpdateCount((v) => v + 1)
+    }
+
     return (
         < DialogTrigger >
             <Button size="icon" aria-label='Edit Lorebook'><Edit /></Button>
             <DialogOverlay isDismissable={false}>
                 <DialogContent className="max-w-[80%] max-h-[90%] overflow-y-scroll" closeButton={true}>
                     <DialogHeader>
-                        <DialogTitle>Editing Lorebook: '{lorebookId}'</DialogTitle>
+                        <DialogTitle>Editing Lorebook: '{lorebook.lorebookName}'</DialogTitle>
                     </DialogHeader>
 
                     <Separator />
+
+                    <Button size="md" aria-label='New Lorebook' onPress={handleCreateLorebookEntry}>+</Button>
+
+                    <div key={`${lorebookUpdateCount}`} >
+                        <div className='grid gap-2'>
+                            {lorebook.lorebookEntry.map((le: LorebookEntry | undefined, index: number) => {
+                                if (le == undefined) {
+                                    return;
+                                }
+                                return <LorebookEntryEditor lorebookId={lorebookId} lorebookEntry={le} />
+                            })}
+                        </div>
+                    </div>
+
 
                 </DialogContent>
             </DialogOverlay>
         </DialogTrigger >
     )
 };
+
+
+const LorebookEntryEditor = ({ lorebookId, lorebookEntry }: { lorebookId: string, lorebookEntry: LorebookEntry }) => {
+    const [entryName, setEntryName] = useState(lorebookEntry.entryName);
+    const [entryTrigger, setEntryTrigger] = useState(lorebookEntry.entryTrigger);
+    const [entryBody, setEntryBody] = useState(lorebookEntry.entryBody);
+
+    const lorebook = storageManager.lorebooks.get(lorebookId);
+    if (lorebook === undefined) {
+        return <></>
+    }
+
+    const handleEntryNameChange = (event: React.ChangeEvent<HTMLInputElement>, entryId: string) => {
+        lorebookEntry.entryName = event.target.value;
+        storageManager.saveLorebook(lorebook.lorebookId, lorebook, false)
+    };
+
+    const handleEntryTriggerChange = (event: React.ChangeEvent<HTMLInputElement>, entryId: string) => {
+        lorebookEntry.entryTrigger = event.target.value;
+        storageManager.saveLorebook(lorebook.lorebookId, lorebook, false)
+    };
+
+    const handleEntryBodyChange = (event: React.ChangeEvent<HTMLTextAreaElement>, entryId: string) => {
+        lorebookEntry.entryBody = event.target.value;
+        storageManager.saveLorebook(lorebook.lorebookId, lorebook, false)
+    };
+
+    return (<div className="flex flex-col bg-white hover:bg-gray-200 transition duration-300 ease-in-out px-2 pb-2 gap-1" key={lorebookEntry.entryId}>
+        <TextField className="flex items-center gap-1.5">
+            <Label className="py-2">Entry Name: </Label>
+            <Input
+                placeholder="Enter a name for your reference (e.g. Snow White)."
+                value={entryName}
+                onChange={e => setEntryName(e.target.value)}
+                onBlur={(event) => { handleEntryNameChange(event, lorebookEntry.entryId) }} />
+        </TextField>
+        <TextField className="flex items-center gap-1.5">
+            <Label className="py-2">Activation Keys (comma separated): </Label>
+            <Input
+                placeholder="Enter the phrases that should trigger this entry being inserted (e.g. 'Snow,White')."
+                value={entryTrigger}
+                onChange={e => setEntryTrigger(e.target.value)}
+                onBlur={(event) => { handleEntryTriggerChange(event, lorebookEntry.entryId) }} />
+        </TextField>
+        <TextField aria-label="comment" className="w-full">
+            <TextArea
+                placeholder="Enter the text to insert here."
+                value={entryBody}
+                onChange={e => setEntryBody(e.target.value)}
+                onBlur={(event) => { handleEntryBodyChange(event, lorebookEntry.entryId) }} />
+        </TextField>
+    </div>)
+
+}
+
 
 
 export default LorebookPanel;
