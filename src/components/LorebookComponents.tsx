@@ -253,7 +253,7 @@ const LorebookEntryEditor = ({ lorebookId, lorebookEntry }: { lorebookId: string
         storageManager.saveLorebook(lorebook.lorebookId, lorebook, false)
     };
 
-    return (<div className="flex flex-col hover:bg-gray-200 bg-white transition duration-300 ease-in-out px-2 pb-2 gap-1" key={lorebookEntry.entryId}>
+    return (<div className="flex flex-col hover:bg-gray-200 transition duration-300 ease-in-out px-2 pb-2 gap-1" key={lorebookEntry.entryId}>
         <TextField className="flex items-center gap-1.5">
             <Label className="py-2">Entry Name: </Label>
             <Input
