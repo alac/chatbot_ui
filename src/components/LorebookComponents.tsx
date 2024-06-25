@@ -20,8 +20,6 @@ import ChevronDown from '@spectrum-icons/workflow/ChevronDown';
 import ChevronUp from '@spectrum-icons/workflow/ChevronUp';
 
 import { storageManager, Lorebook, LorebookEntry } from './../storage';
-import { isEditable } from '@testing-library/user-event/dist/utils';
-
 
 
 const LorebookPanel = ({ }) => {
@@ -156,7 +154,7 @@ const ViewLorebooksButton = ({ }) => {
                                 }
                                 const hideUp = (index == 0) ? " opacity-50 pointer-events-none" : "";
                                 const hideDown = (index == lorebooks.length - 1) ? " opacity-50 pointer-events-none" : "";
-                                return <div className="flex items-center bg-white hover:bg-gray-200 transition duration-300 ease-in-out px-2" key={lb.lorebookId}>
+                                return <div className="flex items-center hover:bg-gray-200 transition duration-300 ease-in-out px-2" key={lb.lorebookId}>
                                     <Checkbox defaultSelected={enabledLorebookIds.includes(lb.lorebookId)}
                                         onChange={(isSelected: boolean) => handleLorebookSelectionChange(lb.lorebookId, isSelected)}>
                                         {lb.lorebookName}
@@ -255,7 +253,7 @@ const LorebookEntryEditor = ({ lorebookId, lorebookEntry }: { lorebookId: string
         storageManager.saveLorebook(lorebook.lorebookId, lorebook, false)
     };
 
-    return (<div className="flex flex-col bg-white hover:bg-gray-200 transition duration-300 ease-in-out px-2 pb-2 gap-1" key={lorebookEntry.entryId}>
+    return (<div className="flex flex-col hover:bg-gray-200 bg-white transition duration-300 ease-in-out px-2 pb-2 gap-1" key={lorebookEntry.entryId}>
         <TextField className="flex items-center gap-1.5">
             <Label className="py-2">Entry Name: </Label>
             <Input
