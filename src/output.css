@@ -721,6 +721,10 @@ body {
   max-height: 90%;
 }
 
+.min-h-\[80px\] {
+  min-height: 80px;
+}
+
 .w-3\/4 {
   width: 75%;
 }
@@ -773,6 +777,10 @@ body {
 
 .resize {
   resize: both;
+}
+
+.flex-row {
+  flex-direction: row;
 }
 
 .flex-col {
@@ -926,6 +934,10 @@ body {
 
 .py-2 {
   padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.pb-2 {
   padding-bottom: 0.5rem;
 }
 

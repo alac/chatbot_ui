@@ -103,7 +103,8 @@ export function isLorebook(obj: any): obj is Lorebook {
 
 interface LorebookEntry {
     entryId: string;
-    entryTrigger: string[];
+    entryName: string;
+    entryTrigger: string;
     entryBody: string;
     // promptInsertionTag: string;
 }
@@ -112,7 +113,8 @@ export function isLorebookEntry(obj: any): obj is LorebookEntry {
     return (
         typeof obj === "object" &&
         typeof obj.entryId === "string" &&
-        Array.isArray(obj.entryTrigger) &&
+        typeof obj.entryName === "string" &&
+        typeof obj.entryTrigger === "string" &&
         typeof obj.entryBody === "string"
     );
 }
@@ -362,9 +364,9 @@ class DefaultStorageManager implements StorageManager {
         return lorebookId;
     }
 
-    saveLorebook(lorebookId: LorebookId, lorebook: Lorebook): void {
+    saveLorebook(lorebookId: LorebookId, lorebook: Lorebook, triggerRefresh: boolean = false): void {
         localforage.setItem(lorebookId, lorebook);
-        if (this.lorebookUpdatedCallback) {
+        if (this.lorebookUpdatedCallback && triggerRefresh) {
             this.lorebookUpdatedCallback()
         }
     }
@@ -417,6 +419,9 @@ class DefaultStorageManager implements StorageManager {
         }
     }
 
+    newUUID(): string {
+        return uuidv4();
+    }
 }
 
 
