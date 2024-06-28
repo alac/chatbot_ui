@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
     DialogContent,
@@ -22,7 +22,7 @@ import ChevronUp from '@spectrum-icons/workflow/ChevronUp';
 import { storageManager, Lorebook, LorebookEntry } from './../storage';
 
 
-const LorebookPanel = ({ }) => {
+const LorebookPanel = () => {
     return (
         <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
             <div className="flex items-center">
@@ -41,7 +41,7 @@ const LorebookPanel = ({ }) => {
 };
 
 
-const ViewLorebooksButton = ({ }) => {
+const ViewLorebooksButton = () => {
     const [lorebookUpdateTimestamp, setLorebookUpdateTimestamp] = useState(new Date());
     useEffect(() => {
         storageManager.lorebookUpdatedCallback = () => {
@@ -113,7 +113,7 @@ const ViewLorebooksButton = ({ }) => {
         < DialogTrigger >
             <Button size="icon" aria-label='Edit Lorebook'><Edit /></Button>
             <DialogOverlay>
-                <DialogContent className="max-w-[80%] max-h-[90%] overflow-y-scroll" closeButton={false}>
+                <DialogContent className="max-w-[80%] max-h-[90%] overflow-y-scroll" isDismissable={true}>
                     <DialogHeader>
                         <DialogTitle>Lorebooks</DialogTitle>
                     </DialogHeader>
@@ -149,11 +149,11 @@ const ViewLorebooksButton = ({ }) => {
                         <span className="text-md font-medium">Enabled lorebooks:</span>
                         <div className='grid gap-2'>
                             {lorebooks.map((lb: Lorebook | undefined, index: number) => {
-                                if (lb == undefined) {
-                                    return;
+                                if (lb === undefined) {
+                                    return <></>;
                                 }
-                                const hideUp = (index == 0) ? " opacity-50 pointer-events-none" : "";
-                                const hideDown = (index == lorebooks.length - 1) ? " opacity-50 pointer-events-none" : "";
+                                const hideUp = (index === 0) ? " opacity-50 pointer-events-none" : "";
+                                const hideDown = (index === lorebooks.length - 1) ? " opacity-50 pointer-events-none" : "";
                                 return <div className="flex items-center hover:bg-gray-200 transition duration-300 ease-in-out px-2" key={lb.lorebookId}>
                                     <Checkbox defaultSelected={enabledLorebookIds.includes(lb.lorebookId)}
                                         onChange={(isSelected: boolean) => handleLorebookSelectionChange(lb.lorebookId, isSelected)}>
@@ -199,8 +199,8 @@ const EditLorebookButton = ({ lorebookId }: { lorebookId: string }) => {
     return (
         < DialogTrigger >
             <Button size="icon" aria-label='Edit Lorebook'><Edit /></Button>
-            <DialogOverlay isDismissable={false}>
-                <DialogContent className="max-w-[80%] max-h-[90%] overflow-y-scroll" closeButton={true}>
+            <DialogOverlay>
+                <DialogContent className="max-w-[80%] max-h-[90%] overflow-y-scroll" isDismissable={true}>
                     <DialogHeader>
                         <DialogTitle>Editing Lorebook: '{lorebook.lorebookName}'</DialogTitle>
                     </DialogHeader>
@@ -212,14 +212,13 @@ const EditLorebookButton = ({ lorebookId }: { lorebookId: string }) => {
                     <div key={`${lorebookUpdateCount}`} >
                         <div className='grid gap-2'>
                             {lorebook.lorebookEntry.map((le: LorebookEntry | undefined, index: number) => {
-                                if (le == undefined) {
-                                    return;
+                                if (le === undefined) {
+                                    return <></>;
                                 }
                                 return <LorebookEntryEditor lorebookId={lorebookId} lorebookEntry={le} />
                             })}
                         </div>
                     </div>
-
 
                 </DialogContent>
             </DialogOverlay>
