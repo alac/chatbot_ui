@@ -196,7 +196,8 @@ async function buildPrompt(conversation: Conversation, generateParameters: Gener
     var remainingTokens = maxResponseLength - maxTokens - memoryLength - newlineCost;
 
     const activeLorebooks: Lorebook[] = conversation.lorebookIds.map(lorebookId => storageManager.lorebooks.get(lorebookId)).filter(isLorebook);
-    var lorebookEntries: LorebookEntry[] = []
+    var lorebookEntries: LorebookEntry[] = [];
+    var remainingLorebookTokens = storageManager.storageState.lorebookMaxTokens;
     var addedEntries: Map<string, boolean> = new Map();
 
     const messageFormattingCost = 4;
@@ -224,9 +225,12 @@ async function buildPrompt(conversation: Conversation, generateParameters: Gener
         const newLorebookEntries = triggeredLorebookEntries(message.text, activeLorebooks);
         for (const lbEntry of newLorebookEntries) {
             if (addedEntries.has(lbEntry.entryId)) continue;
+            if (storageManager.storageState.lorebookMaxInsertionCount !== -1 &&
+                lorebookEntries.length >= storageManager.storageState.lorebookMaxInsertionCount) continue;
             const entryCost = await cachedTokenCount(lbEntry.entryBody, connectionSettings)
-            if (remainingTokens > entryCost) {
+            if (remainingTokens > entryCost && (remainingLorebookTokens > entryCost || storageManager.storageState.lorebookMaxTokens === -1)) {
                 remainingTokens -= entryCost;
+                remainingLorebookTokens -= entryCost;
                 addedEntries.set(lbEntry.entryId, true);
                 lorebookEntries.push(lbEntry)
             }
