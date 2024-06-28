@@ -1,6 +1,6 @@
-# Getting Started with Create React App
+# Chatbot UI
+Currently, a toy project for messing around with React, Tailwind, Aria Components. TBD on a product differentiation angle.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
 
