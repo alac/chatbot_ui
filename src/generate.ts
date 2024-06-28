@@ -1,4 +1,4 @@
-import { storageManager, Message, Conversation, Lorebook, LorebookEntry } from './storage';
+import { storageManager, Message, Conversation, Lorebook, LorebookEntry, isLorebook } from './storage';
 
 interface GenerateParameters {
     name: string
@@ -182,7 +182,7 @@ async function buildPrompt(conversation: Conversation, generateParameters: Gener
 
     // x v1 use previous messages
     // v2 prompt format string - get the cost of the prompt string (removing substitutions) + the cost of each substitution
-    // v3 lorebook - as we walk back, add each lorebook entry that we find a match for
+    // x v3 lorebook - as we walk back, add each lorebook entry that we find a match for
     var maxTokens = 2048;
     var maxResponseLength = 256;
     if ('max_tokens' in generateParameters.values && typeof generateParameters.values.max_tokens === 'number') {
@@ -195,6 +195,11 @@ async function buildPrompt(conversation: Conversation, generateParameters: Gener
     const newlineCost = 1;
     var remainingTokens = maxResponseLength - maxTokens - memoryLength - newlineCost;
 
+    const activeLorebooks: Lorebook[] = conversation.lorebookIds.map(lorebookId => storageManager.lorebooks.get(lorebookId)).filter(isLorebook);
+    var lorebookEntries: LorebookEntry[] = [];
+    var remainingLorebookTokens = storageManager.storageState.lorebookMaxTokens;
+    var addedEntries: Map<string, boolean> = new Map();
+
     const messageFormattingCost = 4;
     var indexFromEnd = 0;
     while ((conversation.messages.length - indexFromEnd - 1) >= 0) {
@@ -205,14 +210,30 @@ async function buildPrompt(conversation: Conversation, generateParameters: Gener
                 storageManager.updateMessage(message, false);
             }
             const messageCost = await cachedTokenCount(message.username, connectionSettings) + message.tokenCount
-            remainingTokens -= messageFormattingCost + messageCost;
-            console.log("token count: ", remainingTokens)
+            if ((messageFormattingCost + messageCost) < remainingTokens) {
+                remainingTokens -= messageFormattingCost + messageCost;
+                console.log("token count: ", remainingTokens)
+            } else {
+                indexFromEnd -= 1;
+                break;
+            }
         }
         if (indexFromEnd === conversation.authorNotePosition) {
             remainingTokens -= newlineCost * 2 + await cachedTokenCount(conversation.authorNote, connectionSettings)
         }
-        if (remainingTokens < 0) {
-            break;
+
+        const newLorebookEntries = triggeredLorebookEntries(message.text, activeLorebooks);
+        for (const lbEntry of newLorebookEntries) {
+            if (addedEntries.has(lbEntry.entryId)) continue;
+            if (storageManager.storageState.lorebookMaxInsertionCount !== -1 &&
+                lorebookEntries.length >= storageManager.storageState.lorebookMaxInsertionCount) continue;
+            const entryCost = await cachedTokenCount(lbEntry.entryBody, connectionSettings)
+            if (remainingTokens > entryCost && (remainingLorebookTokens > entryCost || storageManager.storageState.lorebookMaxTokens === -1)) {
+                remainingTokens -= entryCost;
+                remainingLorebookTokens -= entryCost;
+                addedEntries.set(lbEntry.entryId, true);
+                lorebookEntries.push(lbEntry)
+            }
         }
         indexFromEnd += 1
     }
@@ -226,9 +247,29 @@ async function buildPrompt(conversation: Conversation, generateParameters: Gener
         const authorsNoteIndex = messages.length - conversation.authorNotePosition;
         messages = [...messages.slice(0, authorsNoteIndex), "\n" + conversation.authorNote + "\n", ...messages.slice(authorsNoteIndex)];
     }
-    return conversation.memory + "\n" + messages.join("");
+    return conversation.memory + "\n" + lorebookEntries.map((value) => value.entryBody).join("") + "\n" + messages.join("");
 }
 
+
+function triggeredLorebookEntries(message: string, lorebooks: Lorebook[]): LorebookEntry[] {
+    // get all the lorebook entries that this message triggered, sorted so that the closest entries to the end of the message are first
+    // includes duplicates, since those get handled later anyways
+    const locationAndEntry: { index: number, entry: LorebookEntry }[] = [];
+    for (const lorebook of lorebooks) {
+        for (const entry of lorebook.lorebookEntry) {
+            const keys = entry.entryTrigger.split(",");
+            for (const key of keys) {
+                if (key.length === 0) continue;
+                const location = message.lastIndexOf(key);
+                if (location !== -1) {
+                    locationAndEntry.push({ index: location, entry: entry });
+                }
+            }
+        }
+    }
+    locationAndEntry.sort((a, b) => b.index - a.index); // reverse sort
+    return locationAndEntry.map((value) => value.entry);
+}
 
 async function countTokens(text: string, connectionSettings: ConnectionSettings): Promise<number> {
     if (connectionSettings.type === 'oobabooga') {

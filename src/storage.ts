@@ -97,6 +97,7 @@ export function isLorebook(obj: any): obj is Lorebook {
     return (
         typeof obj === "object" &&
         typeof obj.lorebookId === "string" &&
+        typeof obj.lorebookName === "string" &&
         Array.isArray(obj.lorebookEntry)
     );
 }
@@ -356,7 +357,7 @@ class DefaultStorageManager implements StorageManager {
 
         localforage.setItem(lorebookId, lorebook);
         this.lorebooks.set(lorebookId, lorebook);
-        this.storageState.lorebookIds = [... this.storageState.lorebookIds, lorebookId]
+        this.storageState.lorebookIds = [...this.storageState.lorebookIds, lorebookId]
         this.saveStorageState();
         if (this.lorebookUpdatedCallback) {
             this.lorebookUpdatedCallback()
