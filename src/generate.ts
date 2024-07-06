@@ -52,7 +52,7 @@ class DefaultGenerateSettingsManager implements GenerateSettingsManager {
         return {
             "name": "default",
             "values": {
-                "max_tokens": 50,
+                "max_tokens": 400,
                 "truncation_length": 8192,
                 "temperature": 2.5,
                 "min_p": 0.058,
@@ -91,7 +91,7 @@ class DefaultGenerateSettingsManager implements GenerateSettingsManager {
     getDefaultConnectionSettings(): ConnectionSettings {
         return {
             'name': 'default',
-            'type': 'dummy',
+            'type': 'oobabooga',
             'baseUrl': 'http://127.0.0.1:5000',
         }
     }
