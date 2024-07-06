@@ -285,13 +285,6 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
     setInputValue("")
 
     setTimeout(async () => {
-      const prompt = await buildPrompt(
-        storageManager.currentConversation,
-        generateSettingsManager.currentGenerateSettings,
-        generateSettingsManager.getDefaultConnectionSettings()
-      )
-      const compressedPrompt = compressString(prompt)
-
       const botMessageId = `${storageManager.consumeMessageId()}`
       const botMessage: Message = {
         userId: 'bot',
@@ -299,11 +292,20 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
         key: `${botMessageId}`,
         text: '',
         tokenCount: null,
-        compressedPrompt: compressedPrompt,
+        compressedPrompt: "",
         isDisabled: false,
       }
       storageManager.updateMessage(botMessage)
       virtuosoChatbox.current?.data.append([botMessage])
+
+      const prompt = await buildPrompt(
+        storageManager.currentConversation,
+        generateSettingsManager.currentGenerateSettings,
+        generateSettingsManager.getDefaultConnectionSettings()
+      )
+      const compressedPrompt = compressString(prompt)
+      botMessage.compressedPrompt = compressedPrompt
+      storageManager.updateMessage(botMessage)
 
       const responseWriter = (token: string, done: boolean) => {
         const oldMessage = storageManager.getMessage(botMessageId)
