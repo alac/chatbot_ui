@@ -14,10 +14,12 @@ import { Separator } from "./../ui/separator"
 import { Input } from "../ui/input"
 import { Label } from "./../ui/label"
 import { TextArea } from "./../ui/textarea"
+import { Popover, PopoverTrigger } from "./../ui/popover"
 import Delete from '@spectrum-icons/workflow/Delete';
 import Edit from '@spectrum-icons/workflow/Edit';
 import ChevronDown from '@spectrum-icons/workflow/ChevronDown';
 import ChevronUp from '@spectrum-icons/workflow/ChevronUp';
+import Magnify from '@spectrum-icons/workflow/Magnify';
 
 import { storageManager, Lorebook, LorebookEntry } from './../storage';
 import { lorebookUsageTracker } from './../generate'
@@ -42,10 +44,11 @@ const LorebookPanel = () => {
             <div className="flex items-center">
                 <span className="text-md font-medium">Lorebook</span>
                 <div className="ml-auto">
+                    <span className='corner-button'><ViewUsedEntriesButton key={`lbEntry_${lorebookUsageUpdatedTimestamp}`} /></span>
                     <span className='corner-button'><ViewLorebooksButton /></span>
                 </div>
             </div>
-            <span className="text-sm" key={`lb_active_${lorebookUsageUpdatedTimestamp}`}>
+            <span className="text-sm" key={`lbEntrySummary_${lorebookUsageUpdatedTimestamp}`}>
                 Entries: {lorebookUsageTracker.lorebookUsageEntries.length}/{maxEntries}.
                 <br />
                 Tokens: {lorebookUsageTracker.lorebookUsageTokens} / {maxTokens}.
@@ -294,6 +297,30 @@ const LorebookEntryEditor = ({ lorebookId, lorebookEntry }: { lorebookId: string
 
 }
 
+
+const ViewUsedEntriesButton = () => {
+    var content = <>No entries in use.</>
+    if (lorebookUsageTracker.lorebookUsageEntries.length > 0) {
+        content = <>
+            <div><span className="text-lg font-medium">Active Entries: </span></div>
+            {lorebookUsageTracker.lorebookUsageEntries.map((le: LorebookEntry, index: number) => {
+                const tokenCount = lorebookUsageTracker.getTokenCount(le);
+                if (tokenCount !== -1) {
+                    return <div><span className="font-medium">{le.entryName}</span> ({tokenCount} tokens)</div>
+                }
+                return <div><span className="font-medium">{le.entryName}</span> (N/A).</div>
+            })}</>
+    }
+
+    return (
+        <PopoverTrigger>
+            <Button size="icon" aria-label='View Lorebook Usage'><Magnify /></Button>
+            <Popover placement="start">
+                {content}
+            </Popover>
+        </PopoverTrigger>
+    )
+};
 
 
 export default LorebookPanel;

@@ -331,6 +331,13 @@ class LorebookUsageTracker {
         this.lorebookUsageTokens = totalTokensUsed;
         this.lorebookUsageUpdatedCallback?.();
     }
+
+    getTokenCount(entry: LorebookEntry): number {
+        if (tokenCountCache.has(entry.entryBody)) {
+            return tokenCountCache.get(entry.entryBody) as number;
+        }
+        return -1
+    }
 }
 
 
