@@ -208,7 +208,7 @@ const EditLorebookButton = ({ lorebookId }: { lorebookId: string }) => {
             entryTrigger: "",
             entryBody: "",
         }
-        lorebook.lorebookEntry.push(lorebookEntry);
+        lorebook.lorebookEntry.unshift(lorebookEntry);
         storageManager.saveLorebook(lorebook.lorebookId, lorebook, false)
         setLorebookUpdateCount((v) => v + 1)
     }
