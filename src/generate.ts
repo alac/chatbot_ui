@@ -247,6 +247,10 @@ async function buildPrompt(conversation: Conversation, generateParameters: Gener
         const authorsNoteIndex = messages.length - conversation.authorNotePosition;
         messages = [...messages.slice(0, authorsNoteIndex), "\n" + conversation.authorNote + "\n", ...messages.slice(authorsNoteIndex)];
     }
+
+    const lorebookTotalTokens = storageManager.storageState.lorebookMaxTokens - remainingLorebookTokens;
+    lorebookUsageTracker.updateUsage(lorebookEntries, lorebookTotalTokens);
+
     return conversation.memory + "\n" + lorebookEntries.map((value) => value.entryBody).join("") + "\n" + messages.join("");
 }
 
@@ -310,7 +314,28 @@ async function cachedTokenCount(text: string, connectionSettings: ConnectionSett
 }
 
 
+class LorebookUsageTracker {
+    lorebookUsageUpdatedCallback: (() => void) | null;
+    lorebookUsageEntries: LorebookEntry[];
+    lorebookUsageTokens: number;
+
+    constructor() {
+        this.lorebookUsageUpdatedCallback = null;
+
+        this.lorebookUsageEntries = [];
+        this.lorebookUsageTokens = 0;
+    }
+
+    updateUsage(entries: LorebookEntry[], totalTokensUsed: number) {
+        this.lorebookUsageEntries = entries;
+        this.lorebookUsageTokens = totalTokensUsed;
+        this.lorebookUsageUpdatedCallback?.();
+    }
+}
+
+
 const generateSettingsManager = new DefaultGenerateSettingsManager();
 const tokenCountCache = new Map<string, number>();
+const lorebookUsageTracker = new LorebookUsageTracker();
 
-export { generate, buildPrompt, generateSettingsManager }
+export { generate, buildPrompt, generateSettingsManager, lorebookUsageTracker }

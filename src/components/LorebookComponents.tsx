@@ -20,9 +20,23 @@ import ChevronDown from '@spectrum-icons/workflow/ChevronDown';
 import ChevronUp from '@spectrum-icons/workflow/ChevronUp';
 
 import { storageManager, Lorebook, LorebookEntry } from './../storage';
+import { lorebookUsageTracker } from './../generate'
 
 
 const LorebookPanel = () => {
+    const [lorebookUsageUpdatedTimestamp, setLorebookUsageUpdatedTimestamp] = useState(new Date());
+    useEffect(() => {
+        lorebookUsageTracker.lorebookUsageUpdatedCallback = () => {
+            setLorebookUsageUpdatedTimestamp((new Date()))
+        }
+        return () => {
+            lorebookUsageTracker.lorebookUsageUpdatedCallback = null;
+        }
+    }, [lorebookUsageUpdatedTimestamp]);
+
+    const maxEntries = storageManager.storageState.lorebookMaxInsertionCount;
+    const maxTokens = storageManager.storageState.lorebookMaxTokens;
+
     return (
         <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
             <div className="flex items-center">
@@ -31,10 +45,10 @@ const LorebookPanel = () => {
                     <span className='corner-button'><ViewLorebooksButton /></span>
                 </div>
             </div>
-            <span className="text-sm">
-                Enabled: N/A.
+            <span className="text-sm" key={`lb_active_${lorebookUsageUpdatedTimestamp}`}>
+                Entries: {lorebookUsageTracker.lorebookUsageEntries.length}/{maxEntries}.
                 <br />
-                Entries: 1/20. Tokens: 1000.
+                Tokens: {lorebookUsageTracker.lorebookUsageTokens} / {maxTokens}.
             </span>
         </div>
     );
