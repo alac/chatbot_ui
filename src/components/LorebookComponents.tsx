@@ -207,6 +207,7 @@ const EditLorebookButton = ({ lorebookId }: { lorebookId: string }) => {
             entryName: "",
             entryTrigger: "",
             entryBody: "",
+            isEnabled: true,
         }
         lorebook.lorebookEntry.unshift(lorebookEntry);
         storageManager.saveLorebook(lorebook.lorebookId, lorebook, false)
@@ -225,7 +226,6 @@ const EditLorebookButton = ({ lorebookId }: { lorebookId: string }) => {
                     <Separator />
 
                     <Button size="md" aria-label='New Lorebook' onPress={handleCreateLorebookEntry}>+</Button>
-
                     <div key={`${lorebookUpdateCount}`} >
                         <div className='grid gap-2'>
                             {lorebook.lorebookEntry.map((le: LorebookEntry | undefined, index: number) => {
@@ -236,7 +236,6 @@ const EditLorebookButton = ({ lorebookId }: { lorebookId: string }) => {
                             })}
                         </div>
                     </div>
-
                 </DialogContent>
             </DialogOverlay>
         </DialogTrigger >
@@ -254,44 +253,54 @@ const LorebookEntryEditor = ({ lorebookId, lorebookEntry }: { lorebookId: string
         return <></>
     }
 
-    const handleEntryNameChange = (event: React.ChangeEvent<HTMLInputElement>, entryId: string) => {
+    const handleEntryNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         lorebookEntry.entryName = event.target.value;
         storageManager.saveLorebook(lorebook.lorebookId, lorebook, false)
     };
 
-    const handleEntryTriggerChange = (event: React.ChangeEvent<HTMLInputElement>, entryId: string) => {
+    const handleEntryTriggerChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         lorebookEntry.entryTrigger = event.target.value;
         storageManager.saveLorebook(lorebook.lorebookId, lorebook, false)
     };
 
-    const handleEntryBodyChange = (event: React.ChangeEvent<HTMLTextAreaElement>, entryId: string) => {
+    const handleEntryBodyChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         lorebookEntry.entryBody = event.target.value;
         storageManager.saveLorebook(lorebook.lorebookId, lorebook, false)
     };
 
+    const handleEntryEnabledChange = (value: boolean) => {
+        lorebookEntry.isEnabled = value;
+        console.log(lorebookEntry)
+        storageManager.saveLorebook(lorebook.lorebookId, lorebook, false)
+    };
+
     return (<div className="flex flex-col hover:bg-gray-200 transition duration-300 ease-in-out px-2 pb-2 gap-1" key={lorebookEntry.entryId}>
-        <TextField className="flex items-center gap-1.5">
-            <Label className="py-2">Entry Name: </Label>
-            <Input
-                placeholder="Enter a name for your reference (e.g. Snow White)."
-                value={entryName}
-                onChange={e => setEntryName(e.target.value)}
-                onBlur={(event) => { handleEntryNameChange(event, lorebookEntry.entryId) }} />
-        </TextField>
+        <div className="flex items-center gap-1.5">
+            <TextField className="flex items-center gap-1.5 flex-grow">
+                <Label className="py-2">Entry Name: </Label>
+                <Input
+                    className='min-w-[250px]'
+                    placeholder="Enter a name (e.g. Snow White)."
+                    value={entryName}
+                    onChange={e => setEntryName(e.target.value)}
+                    onBlur={(event) => { handleEntryNameChange(event) }} />
+            </TextField>
+            <Checkbox defaultSelected={lorebookEntry.isEnabled} onChange={(event) => { handleEntryEnabledChange(event) }}><Label className="py-2">Enable</Label></Checkbox>
+        </div>
         <TextField className="flex items-center gap-1.5">
             <Label className="py-2">Activation Keys (comma separated): </Label>
             <Input
                 placeholder="Enter the phrases that should trigger this entry being inserted (e.g. 'Snow,White')."
                 value={entryTrigger}
                 onChange={e => setEntryTrigger(e.target.value)}
-                onBlur={(event) => { handleEntryTriggerChange(event, lorebookEntry.entryId) }} />
+                onBlur={(event) => { handleEntryTriggerChange(event) }} />
         </TextField>
         <TextField aria-label="comment" className="w-full">
             <TextArea
                 placeholder="Enter the text to insert here."
                 value={entryBody}
                 onChange={e => setEntryBody(e.target.value)}
-                onBlur={(event) => { handleEntryBodyChange(event, lorebookEntry.entryId) }} />
+                onBlur={(event) => { handleEntryBodyChange(event) }} />
         </TextField>
     </div>)
 

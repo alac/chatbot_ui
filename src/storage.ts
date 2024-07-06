@@ -107,6 +107,7 @@ interface LorebookEntry {
     entryName: string;
     entryTrigger: string;
     entryBody: string;
+    isEnabled: boolean;
     // promptInsertionTag: string;
 }
 
@@ -116,7 +117,8 @@ export function isLorebookEntry(obj: any): obj is LorebookEntry {
         typeof obj.entryId === "string" &&
         typeof obj.entryName === "string" &&
         typeof obj.entryTrigger === "string" &&
-        typeof obj.entryBody === "string"
+        typeof obj.entryBody === "string" &&
+        typeof obj.isEnabled === "boolean"
     );
 }
 
