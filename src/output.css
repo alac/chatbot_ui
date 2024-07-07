@@ -652,6 +652,14 @@ body {
   z-index: 50;
 }
 
+.col-span-3 {
+  grid-column: span 3 / span 3;
+}
+
+.col-span-4 {
+  grid-column: span 4 / span 4;
+}
+
 .m-1 {
   margin: 0.25rem;
 }
@@ -753,10 +761,6 @@ body {
   width: 100%;
 }
 
-.min-w-\[300px\] {
-  min-width: 300px;
-}
-
 .min-w-\[250px\] {
   min-width: 250px;
 }
@@ -771,6 +775,10 @@ body {
 
 .max-w-sm {
   max-width: 24rem;
+}
+
+.max-w-\[40\%\] {
+  max-width: 40%;
 }
 
 .shrink-0 {
@@ -793,6 +801,14 @@ body {
 
 .resize {
   resize: both;
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grid-cols-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .flex-col {
@@ -962,6 +978,10 @@ body {
 
 .text-center {
   text-align: center;
+}
+
+.text-right {
+  text-align: right;
 }
 
 .text-lg {
