@@ -22,19 +22,19 @@ import ChevronUp from '@spectrum-icons/workflow/ChevronUp';
 import Magnify from '@spectrum-icons/workflow/Magnify';
 
 import { storageManager, Lorebook, LorebookEntry } from './../storage';
-import { lorebookUsageTracker } from './../generate'
+import { generateStatsTracker } from './../generate'
 
 
 const LorebookPanel = () => {
     const [lorebookUsageUpdatedTimestamp, setLorebookUsageUpdatedTimestamp] = useState(new Date());
     useEffect(() => {
-        lorebookUsageTracker.lorebookUsageUpdatedCallback = () => {
+        generateStatsTracker.lorebookUsageUpdatedCallback = () => {
             setLorebookUsageUpdatedTimestamp((new Date()))
         }
         return () => {
-            lorebookUsageTracker.lorebookUsageUpdatedCallback = null;
+            generateStatsTracker.lorebookUsageUpdatedCallback = null;
         }
-    }, [lorebookUsageUpdatedTimestamp]);
+    },);
 
     const maxEntries = storageManager.storageState.lorebookMaxInsertionCount;
     const maxTokens = storageManager.storageState.lorebookMaxTokens;
@@ -49,9 +49,9 @@ const LorebookPanel = () => {
                 </div>
             </div>
             <span className="text-sm" key={`lbEntrySummary_${lorebookUsageUpdatedTimestamp}`}>
-                Entries: {lorebookUsageTracker.lorebookUsageEntries.length}/{maxEntries}.
+                Entries: {generateStatsTracker.lorebookUsageEntries.length} / {maxEntries}.
                 <br />
-                Tokens: {lorebookUsageTracker.lorebookUsageTokens} / {maxTokens}.
+                Tokens: {generateStatsTracker.lorebookUsageTokens} / {maxTokens}.
             </span>
         </div>
     );
@@ -309,11 +309,11 @@ const LorebookEntryEditor = ({ lorebookId, lorebookEntry }: { lorebookId: string
 
 const ViewUsedEntriesButton = () => {
     var content = <>No entries in use.</>
-    if (lorebookUsageTracker.lorebookUsageEntries.length > 0) {
+    if (generateStatsTracker.lorebookUsageEntries.length > 0) {
         content = <>
             <div><span className="text-lg font-medium">Active Entries: </span></div>
-            {lorebookUsageTracker.lorebookUsageEntries.map((le: LorebookEntry, index: number) => {
-                const tokenCount = lorebookUsageTracker.getTokenCount(le);
+            {generateStatsTracker.lorebookUsageEntries.map((le: LorebookEntry, index: number) => {
+                const tokenCount = generateStatsTracker.getTokenCount(le);
                 if (tokenCount !== -1) {
                     return <div><span className="font-medium">{le.entryName}</span> ({tokenCount} tokens)</div>
                 }

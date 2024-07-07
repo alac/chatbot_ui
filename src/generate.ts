@@ -250,7 +250,7 @@ async function buildPrompt(conversation: Conversation, generateParameters: Gener
     }
 
     const lorebookTotalTokens = storageManager.storageState.lorebookMaxTokens - remainingLorebookTokens;
-    lorebookUsageTracker.updateUsage(lorebookEntries, lorebookTotalTokens);
+    generateStatsTracker.updateUsage(lorebookEntries, lorebookTotalTokens);
 
     return conversation.memory + "\n" + lorebookEntries.map((value) => value.entryBody).join("") + "\n" + messages.join("");
 }
@@ -315,7 +315,7 @@ async function cachedTokenCount(text: string, connectionSettings: ConnectionSett
 }
 
 
-class LorebookUsageTracker {
+class GenerateStatsTracker {
     lorebookUsageUpdatedCallback: (() => void) | null;
     lorebookUsageEntries: LorebookEntry[];
     lorebookUsageTokens: number;
@@ -344,6 +344,6 @@ class LorebookUsageTracker {
 
 const generateSettingsManager = new DefaultGenerateSettingsManager();
 const tokenCountCache = new Map<string, number>();
-const lorebookUsageTracker = new LorebookUsageTracker();
+const generateStatsTracker = new GenerateStatsTracker();
 
-export { generate, buildPrompt, generateSettingsManager, lorebookUsageTracker }
+export { generate, buildPrompt, generateSettingsManager, generateStatsTracker }

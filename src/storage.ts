@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { deflate, inflate } from 'pako';
 
 interface Conversation {
+    conversationId: string;
     displayName: string;
     username: string;
     botName: string;
@@ -18,9 +19,10 @@ interface Conversation {
     // enabledPromptIds: string[]
 }
 
-function NewConversation(): Conversation {
+function NewConversation(displayName: string, id: string): Conversation {
     return {
-        displayName: "New Conversation",
+        conversationId: id,
+        displayName: displayName,
         username: "User",
         botName: "Bot",
         messages: [],
@@ -37,6 +39,8 @@ export function isConversation(obj: any): obj is Conversation {
     return (
         typeof obj === 'object' &&
         obj !== null &&
+        'conversationId' in obj &&
+        typeof obj.conversationId === 'string' &&
         'displayName' in obj &&
         typeof obj.displayName === 'string' &&
         'username' in obj &&
@@ -123,29 +127,6 @@ export function isLorebookEntry(obj: any): obj is LorebookEntry {
 }
 
 
-interface StorageManager {
-    startup(): void;
-
-    setConversation(conversationId: string): void;
-    save(): void;
-    newConversation(): void;
-    cloneConversation(oldConversationId: string, newConversationId: string): void;
-
-    currentConversation: Conversation;
-    conversations: Map<string, Conversation>;
-
-    consumeMessageId(): number;
-    updateMessage(message: Message): void;
-    getMessage(messageId: string): Message | null;
-    deleteMessage(messageId: string): void;
-
-    lorebooks: Map<string, Lorebook>;
-    createLorebook(lorebookId: string): void;
-    cloneLorebook(oldConversationId: string, newConversationId: string): void;
-    updateLorebookOrder(lorebookIds: string[]): void;
-}
-
-
 interface StorageState {
     currentConversationId: string | null;
 
@@ -183,10 +164,11 @@ const isStorageState = (obj: unknown): obj is StorageState => {
 const STORAGE_STATE_KEY = "STORAGE_STATE"
 
 
-class DefaultStorageManager implements StorageManager {
+class StorageManager {
     storageState: StorageState;
     currentConversation: Conversation;
     conversationLoadedCallback: (() => void) | null;
+    conversationLifecycleCallback: (() => void) | null; // conversation created or deleted
     rerenderConversationCallback: (() => void) | null;
     lorebookUpdatedCallback: (() => void) | null;
     deletedMessageCallback: ((deleteKey: string) => void) | null;
@@ -195,16 +177,17 @@ class DefaultStorageManager implements StorageManager {
 
     constructor() {
         this.storageState = {
-            currentConversationId: this.newConversationDBKey(),
+            currentConversationId: "",
             conversationIds: [],
             lorebookIds: [],
             lorebookMaxInsertionCount: 10,
             lorebookMaxTokens: 1000,
         }
-        this.currentConversation = NewConversation();
+        this.currentConversation = NewConversation("", this.newConversationDBKey());
         this.conversations = new Map<string, Conversation>();
         this.lorebooks = new Map<string, Lorebook>();
         this.conversationLoadedCallback = null;
+        this.conversationLifecycleCallback = null;
         this.lorebookUpdatedCallback = null;
         this.rerenderConversationCallback = null;
         this.deletedMessageCallback = null;
@@ -299,14 +282,24 @@ class DefaultStorageManager implements StorageManager {
         return "CONV_" + uuidv4();
     }
 
-    newConversation(): void {
+    newConversation(displayName: string): void {
         const newConversationId = this.newConversationDBKey()
         this.storageState.currentConversationId = newConversationId
-        this.currentConversation = NewConversation()
+        this.currentConversation = NewConversation(displayName, newConversationId)
+        this.conversations.set(newConversationId, this.currentConversation)
         this.save()
-        if (this.conversationLoadedCallback) {
-            this.conversationLoadedCallback();
+        this.conversationLoadedCallback?.()
+        this.conversationLifecycleCallback?.()
+    }
+
+    deleteConversation(conversationId: string): void {
+        if (this.conversations.has(conversationId)) {
+            this.conversations.delete(conversationId)
         }
+        this.storageState.conversationIds = this.storageState.conversationIds.filter(item => item != conversationId)
+        this.saveStorageState()
+        localforage.removeItem(conversationId);
+        this.conversationLifecycleCallback?.()
     }
 
     cloneConversation(oldConversationId: string, newConversationId: string): void {
@@ -447,7 +440,7 @@ function decompressString(compressedStr: string): string {
 }
 
 
-const storageManager = new DefaultStorageManager();
+const storageManager = new StorageManager();
 
 export { storageManager, compressString, decompressString }
 export type { Message, Conversation, Lorebook, LorebookEntry }

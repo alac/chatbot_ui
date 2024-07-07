@@ -17,6 +17,7 @@ import Delete from '@spectrum-icons/workflow/Delete';
 import Deselect from '@spectrum-icons/workflow/Deselect';
 import Compare from '@spectrum-icons/workflow/Compare';
 import LorebookPanel from './components/LorebookComponents';
+import ConversationsPanel from './components/ConversationsComponent';
 
 
 function App() {
@@ -99,7 +100,8 @@ function App() {
           </VirtuosoMessageListLicense>
         </div>
         <div className="sidebar-container" style={{ width: '200px', height: chatLogHeight }}>
-          <LorebookPanel></LorebookPanel>
+          <LorebookPanel />
+          <ConversationsPanel />
         </div>
       </div>
       <BottomContainer ref={bottomContainerRef} virtuosoChatbox={virtuosoChatbox} />
@@ -345,8 +347,6 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
         />
         <div className="command-container">
           <Button onPress={sendChatMessage}>Send</Button>
-          <Button onPress={() => { storageManager.save(); }}>Save</Button>
-          <Button onPress={() => { storageManager.newConversation(); }}>New Conversation</Button>
         </div>
       </div>
     </div>
