@@ -263,6 +263,10 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
 
 
   const sendChatMessage = () => {
+    if (storageManager.storageState.currentConversationId === "") {
+      storageManager.newConversation("Default Conversation")
+    }
+
     const userMessageId = `${storageManager.consumeMessageId()}`
     const userMessage: Message = {
       userId: 'user',
