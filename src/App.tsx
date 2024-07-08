@@ -1,21 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { VirtuosoMessageListProps, VirtuosoMessageListMethods, VirtuosoMessageList, VirtuosoMessageListLicense } from '@virtuoso.dev/message-list';
-import './App.css';
-import { generate, buildPrompt, generateSettingsManager } from './generate';
-import { storageManager, compressString, Message, decompressString } from './storage';
-import {
-  DialogContent,
-  DialogHeader,
-  DialogOverlay,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog"
-import {
-  Button
-} from "./ui/button"
+import { DialogContent, DialogHeader, DialogOverlay, DialogTitle, DialogTrigger, } from "./ui/dialog"
+import { Button } from "./ui/button"
+import { Tooltip, TooltipTrigger } from "./ui/tooltip"
 import Delete from '@spectrum-icons/workflow/Delete';
 import Deselect from '@spectrum-icons/workflow/Deselect';
 import Compare from '@spectrum-icons/workflow/Compare';
+
+import './App.css';
+import { generate, buildPrompt, generateSettingsManager } from './generate';
+import { storageManager, compressString, Message, decompressString } from './storage';
+
 import LorebookPanel from './components/LorebookComponents';
 import ConversationsPanel from './components/ConversationsComponent';
 
@@ -264,30 +259,32 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
   useEffect(expandTextareaDuringEdit, [inputValue]);
 
 
-  const sendChatMessage = () => {
+  const sendChatMessage = (isContinue: boolean) => {
     if (storageManager.storageState.currentConversationId === "") {
       storageManager.newConversation("Default Conversation")
     }
 
-    const userMessageId = `${storageManager.consumeMessageId()}`
-    const userMessage: Message = {
-      userId: 'user',
-      username: storageManager.currentConversation.username,
-      key: `${userMessageId}`,
-      text: inputValue,
-      tokenCount: null,
-      compressedPrompt: '',
-      isDisabled: false,
-    }
-    storageManager.updateMessage(userMessage)
-
-    virtuosoChatbox.current?.data.append([userMessage], ({ scrollInProgress, atBottom }: { scrollInProgress: boolean; atBottom: boolean }) => {
-      return {
-        index: 'LAST',
-        align: 'end',
-        behavior: atBottom || scrollInProgress ? 'smooth' : 'auto',
+    if (!isContinue) {
+      const userMessageId = `${storageManager.consumeMessageId()}`
+      const userMessage: Message = {
+        userId: 'user',
+        username: storageManager.currentConversation.username,
+        key: `${userMessageId}`,
+        text: inputValue,
+        tokenCount: null,
+        compressedPrompt: '',
+        isDisabled: false,
       }
-    })
+      storageManager.updateMessage(userMessage)
+
+      virtuosoChatbox.current?.data.append([userMessage], ({ scrollInProgress, atBottom }: { scrollInProgress: boolean; atBottom: boolean }) => {
+        return {
+          index: 'LAST',
+          align: 'end',
+          behavior: atBottom || scrollInProgress ? 'smooth' : 'auto',
+        }
+      })
+    }
     setInputValue("")
 
     setTimeout(async () => {
@@ -335,6 +332,12 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
     }, 1000)
   }
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.shiftKey && event.key === 'Enter') {
+      sendChatMessage(false)
+    }
+  };
+
   return (
     <div className="bottom-container" ref={ref}>
       <div className="input-area">
@@ -344,9 +347,17 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
           placeholder="Enter text here..."
           value={inputValue}
           onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
         />
         <div className="command-container">
-          <Button onPress={sendChatMessage}>Send</Button>
+          <TooltipTrigger>
+            <Button onPress={() => sendChatMessage(false)}>Send</Button>
+            <Tooltip>Send the message to chat (Shift+Enter)</Tooltip>
+          </TooltipTrigger>
+          <TooltipTrigger>
+            <Button onPress={() => sendChatMessage(true)}>Continue</Button>
+            <Tooltip>Generate another response without sending a message.</Tooltip>
+          </TooltipTrigger>
         </div>
       </div>
     </div>
