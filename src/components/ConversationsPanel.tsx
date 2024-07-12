@@ -49,7 +49,7 @@ const SwitchConversationButton = ({ conversationsUpdateCounter }: { conversation
         < DialogTrigger >
             <Button size="icon" aria-label='Switch the current conversation'><Switch /></Button>
             <DialogOverlay>
-                <DialogContent className="max-w-[80%] max-h-[90%] overflow-y-scroll" isDismissable={true}>
+                <DialogContent side="right" className="max-w-[80%] overflow-y-scroll" isDismissable={true}>
                     <DialogHeader>
                         <DialogTitle>Conversations</DialogTitle>
                     </DialogHeader>
