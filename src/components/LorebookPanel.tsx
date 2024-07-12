@@ -6,23 +6,23 @@ import {
     DialogOverlay,
     DialogTitle,
     DialogTrigger,
-} from "./../ui/dialog"
-import { Checkbox } from "./../ui/checkbox"
+} from "../ui/dialog"
+import { Checkbox } from "../ui/checkbox"
 import { TextField } from "react-aria-components"
-import { Button } from "./../ui/button"
-import { Separator } from "./../ui/separator"
+import { Button } from "../ui/button"
+import { Separator } from "../ui/separator"
 import { Input } from "../ui/input"
-import { Label } from "./../ui/label"
-import { TextArea } from "./../ui/textarea"
-import { Popover, PopoverTrigger } from "./../ui/popover"
+import { Label } from "../ui/label"
+import { TextArea } from "../ui/textarea"
+import { Popover, PopoverTrigger } from "../ui/popover"
 import Delete from '@spectrum-icons/workflow/Delete';
 import Edit from '@spectrum-icons/workflow/Edit';
 import ChevronDown from '@spectrum-icons/workflow/ChevronDown';
 import ChevronUp from '@spectrum-icons/workflow/ChevronUp';
 import Magnify from '@spectrum-icons/workflow/Magnify';
 
-import { storageManager, Lorebook, LorebookEntry } from './../storage';
-import { generateStatsTracker } from './../generate'
+import { storageManager, Lorebook, LorebookEntry } from '../storage';
+import { generateStatsTracker } from '../generate'
 
 
 const LorebookPanel = () => {

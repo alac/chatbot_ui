@@ -7,16 +7,16 @@ import {
     DialogOverlay,
     DialogTitle,
     DialogTrigger,
-} from "./../ui/dialog"
-import { Button } from "./../ui/button"
-import { Separator } from "./../ui/separator"
+} from "../ui/dialog"
+import { Button } from "../ui/button"
+import { Separator } from "../ui/separator"
 import { Input } from "../ui/input"
-import { Label } from "./../ui/label"
+import { Label } from "../ui/label"
 import Delete from '@spectrum-icons/workflow/Delete';
 import NewItem from '@spectrum-icons/workflow/NewItem';
 import Switch from '@spectrum-icons/workflow/Switch';
 
-import { storageManager, Conversation } from './../storage';
+import { storageManager, Conversation } from '../storage';
 
 
 const ConversationsPanel = () => {

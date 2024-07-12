@@ -11,8 +11,8 @@ import './App.css';
 import { generate, buildPrompt, generateSettingsManager } from './generate';
 import { storageManager, compressString, Message, decompressString } from './storage';
 
-import LorebookPanel from './components/LorebookComponents';
-import ConversationsPanel from './components/ConversationsComponent';
+import LorebookPanel from './components/LorebookPanel';
+import ConversationsPanel from './components/ConversationsPanel';
 
 
 function App() {
