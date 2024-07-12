@@ -13,6 +13,7 @@ import { storageManager, compressString, Message, decompressString } from './sto
 
 import LorebookPanel from './components/LorebookPanel';
 import ConversationsPanel from './components/ConversationsPanel';
+import ConnectionPanel from './components/ConnectionPanel';
 
 
 function App() {
@@ -97,6 +98,7 @@ function App() {
         <div className="sidebar-container" style={{ width: '200px', height: chatLogHeight }}>
           <LorebookPanel />
           <ConversationsPanel />
+          <ConnectionPanel />
         </div>
       </div>
       <BottomContainer ref={bottomContainerRef} virtuosoChatbox={virtuosoChatbox} />
