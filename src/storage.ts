@@ -138,10 +138,13 @@ interface StorageState {
     lorebookIds: string[];
     // conversationNameToId: map<string, string>
     // lorebookNameToId: map<string, string>
+
+    currentConnectionSettings: "DUMMY" | "OPENAI";
+    connectionSettingsById: Map<string, DummyConnectionSettings | OpenAIConnectionSettings>;
 }
 
 const isStorageState = (obj: unknown): obj is StorageState => {
-    return (
+    if ((
         typeof obj === "object" &&
         obj !== null &&
         ("currentConversationId" in obj &&
@@ -155,10 +158,65 @@ const isStorageState = (obj: unknown): obj is StorageState => {
             (typeof obj.lorebookMaxTokens === "number")) &&
         ("lorebookIds" in obj &&
             Array.isArray(obj.lorebookIds) &&
-            obj.lorebookIds.every((id) => typeof id === "string"))
+            obj.lorebookIds.every((id) => typeof id === "string")) &&
+        ("currentConnectionSettings" in obj &&
+            (typeof obj.currentConnectionSettings === "string")) &&
+        ("connectionSettingsById" in obj &&
+            !(obj.connectionSettingsById instanceof Map))
+    ) === false) {
+        return false;
+    }
 
-    );
+    for (const [key, value] of (obj as StorageState).connectionSettingsById) {
+        if (
+            typeof key !== "string" ||
+            !(
+                isDummyConnectionSettings(value) ||
+                isOpenAIConnectionSettings(value)
+            )
+        ) {
+            return false;
+        }
+    }
+
+    return true;
 };
+
+
+interface DummyConnectionSettings {
+    type: string;
+    response: string;
+}
+
+function isDummyConnectionSettings(obj: any): obj is DummyConnectionSettings {
+    return (
+        typeof obj === "object" &&
+        obj !== null &&
+        typeof obj.type === "string" &&
+        typeof obj.response === "string" &&
+        Object.keys(obj).length === 2
+    );
+}
+
+
+interface OpenAIConnectionSettings {
+    type: string;
+    url: string;
+    apiKey: string;
+    modelName: string;
+}
+
+function isOpenAIConnectionSettings(obj: any): obj is OpenAIConnectionSettings {
+    return (
+        typeof obj === "object" &&
+        obj !== null &&
+        typeof obj.type === "string" &&
+        typeof obj.url === "string" &&
+        typeof obj.apiKey === "string" &&
+        typeof obj.modelName === "string" &&
+        Object.keys(obj).length === 4
+    );
+}
 
 
 const STORAGE_STATE_KEY = "STORAGE_STATE"
@@ -182,6 +240,8 @@ class StorageManager {
             lorebookIds: [],
             lorebookMaxInsertionCount: 10,
             lorebookMaxTokens: 1000,
+            currentConnectionSettings: "DUMMY",
+            connectionSettingsById: new Map<string, DummyConnectionSettings | OpenAIConnectionSettings>()
         }
         this.currentConversation = NewConversation("", this.newConversationDBKey());
         this.conversations = new Map<string, Conversation>();
