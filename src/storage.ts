@@ -160,8 +160,9 @@ const isStorageState = (obj: unknown): obj is StorageState => {
         ("currentConnectionSettingsId" in obj &&
             (typeof obj.currentConnectionSettingsId === "string")) &&
         ("connectionSettingsById" in obj &&
-            !(obj.connectionSettingsById instanceof Map))
+            (obj.connectionSettingsById instanceof Map))
     ) === false) {
+        console.log("type failed")
         return false;
     }
 
@@ -231,6 +232,7 @@ class StorageManager {
     rerenderConversationCallback: (() => void) | null;
     lorebookUpdatedCallback: (() => void) | null;
     deletedMessageCallback: ((deleteKey: string) => void) | null;
+    updateConnectionsPanelCallback: (() => void) | null;
     conversations: Map<string, Conversation>;
     lorebooks: Map<string, Lorebook>;
 
@@ -252,6 +254,7 @@ class StorageManager {
         this.lorebookUpdatedCallback = null;
         this.rerenderConversationCallback = null;
         this.deletedMessageCallback = null;
+        this.updateConnectionsPanelCallback = null;
     }
 
     startup(): void {

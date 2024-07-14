@@ -106,8 +106,6 @@ const NewConversationButton = () => {
         storageManager.newConversation(conversationName);
         close();
     }
-
-
     return (
         <DialogTrigger>
             <Button size="icon" aria-label='Start a new conversation'><NewItem /></Button>

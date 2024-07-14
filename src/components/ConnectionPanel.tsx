@@ -21,9 +21,19 @@ import { Key } from 'react-aria-components';
 
 
 const ConnectionsPanel = () => {
+    const [connectionsUpdateCounter, setConnectionsUpdateCounter] = useState(0);
+    useEffect(() => {
+        storageManager.updateConnectionsPanelCallback = () => {
+            setConnectionsUpdateCounter(x => x + 1)
+        }
+        return () => {
+            storageManager.updateConnectionsPanelCallback = null;
+        }
+    },)
+
     return (
         <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
-            <div className="flex items-center">
+            <div className="flex items-center" key={"ConnPanel_" + connectionsUpdateCounter}>
                 <span className="text-md font-medium">Generate</span>
                 <div className="ml-auto">
                     <span className='corner-button'><EditConnectionsPanel /></span>
@@ -34,7 +44,8 @@ const ConnectionsPanel = () => {
 };
 
 const EditConnectionsPanel = () => {
-    const [connectionType, setConnectionType] = useState("DUMMY")
+    const defaultConnection = storageManager.getCurrentConnectionSettingsId();
+    const [connectionType, setConnectionType] = useState(defaultConnection)
     const handleConnectionTypeChange = (key: Key) => {
         if (typeof key === "string") {
             setConnectionType(key);
@@ -47,7 +58,7 @@ const EditConnectionsPanel = () => {
     }
 
     return (
-        < DialogTrigger >
+        <DialogTrigger>
             <Button size="icon" aria-label='Edit Lorebook'><Settings /></Button>
             <DialogOverlay>
                 <DialogContent className="max-w-[80%] max-h-[90%] overflow-y-scroll" isDismissable={true}>
@@ -56,14 +67,19 @@ const EditConnectionsPanel = () => {
                     </DialogHeader>
                     <Separator />
 
-                    <Select placeholder="Select an item" aria-label="item selection" onSelectionChange={handleConnectionTypeChange} defaultSelectedKey={connectionType}>
+                    <Select
+                        placeholder="Select an item"
+                        aria-label="item selection"
+                        onSelectionChange={handleConnectionTypeChange}
+                        defaultSelectedKey={connectionType}
+                    >
                         {/* <Select placeholder="Select an item" aria-label="item selection"> */}
                         <SelectTrigger className="w-[300px]">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectPopover>
                             <SelectContent aria-label="items" className="px-2 py-2">
-                                <SelectItem textValue="OpenAI" id="OPENAI"> OpenAI /Completions</SelectItem>
+                                <SelectItem textValue="OpenAI" id="OPENAI">OpenAI /Completions</SelectItem>
                                 <SelectItem textValue="Dummy" id="DUMMY">Dummy</SelectItem>
                             </SelectContent>
                         </SelectPopover>
