@@ -136,8 +136,6 @@ interface StorageState {
     lorebookMaxTokens: number;
 
     lorebookIds: string[];
-    // conversationNameToId: map<string, string>
-    // lorebookNameToId: map<string, string>
 
     currentConnectionSettings: "DUMMY" | "OPENAI";
     connectionSettingsById: Map<string, DummyConnectionSettings | OpenAIConnectionSettings>;
@@ -263,7 +261,7 @@ class StorageManager {
                 if (isStorageState(readValue)) {
                     this.storageState = readValue;
                 } else {
-                    console.log("storage state typeguard failed")
+                    console.log("isStorageState typeguard failed; value: ", readValue)
                 }
                 if (err !== null) {
                     console.log("Error in StorageManager reading STORAGE_STATE_KEY: ", err)
@@ -280,7 +278,7 @@ class StorageManager {
                             }
                             this.conversations.set(conversationId, readValue);
                         } else {
-                            console.log("currentConversation typeguard failed")
+                            console.log("isConversation typeguard failed; value: ", readValue)
                         }
                         if (err !== null) {
                             console.log("Error in StorageManager reading conversations: ", err)
@@ -297,7 +295,7 @@ class StorageManager {
                                 this.lorebookUpdatedCallback()
                             }
                         } else {
-                            console.log("lorebook typeguard failed: ", readValue)
+                            console.log("isLorebook failed; value: ", readValue)
                         }
                         if (err !== null) {
                             console.log("Error in StorageManager reading lorebooks: ", err)
