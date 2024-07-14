@@ -39,8 +39,12 @@ const EditConnectionsPanel = () => {
         if (typeof key === "string") {
             setConnectionType(key);
         }
+        if (key === "OPENAI") {
+            storageManager.setCurrentConnectionSettingsId("OPENAI");
+        } else if (key === "DUMMY") {
+            storageManager.setCurrentConnectionSettingsId("DUMMY");
+        }
     }
-    console.log(connectionType)
 
     return (
         < DialogTrigger >
@@ -80,34 +84,64 @@ const EditConnectionsPanel = () => {
 };
 
 const OpenAIConnectionSettings = () => {
+    const connectionSettings = storageManager.getOpenAIConnectionSettingsById("OPENAI");
+    const [url, setUrl] = useState(connectionSettings.url)
+    const [modelName, setModelName] = useState(connectionSettings.modelName)
+    const [apiKey, setApiKey] = useState(connectionSettings.apiKey)
+
+    const handleUrlUpdate = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setUrl(event.target.value);
+        connectionSettings.url = event.target.value;
+        storageManager.setConnectionSettings("OPENAI", connectionSettings);
+    };
+    const handleModelNameUpdate = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setModelName(event.target.value);
+        connectionSettings.modelName = event.target.value;
+        storageManager.setConnectionSettings("OPENAI", connectionSettings);
+    };
+    const handleApiKeyUpdate = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setApiKey(event.target.value);
+        connectionSettings.apiKey = event.target.value;
+        storageManager.setConnectionSettings("OPENAI", connectionSettings);
+    };
+
+
     return (<>
         <div>
             <TextField className="flex max-w-[700px] items-center gap-1.5 mr-2">
                 <Label className="w-[320px] text-md">Server URL<br />(e.g. "http://127.0.0.1:5000"): </Label>
-                <Input placeholder={``} onBlur={() => { }} />
+                <Input placeholder={url} onBlur={handleUrlUpdate} />
             </TextField>
             Supports any server compatible with the OpenAI 'completions' endpoint (e.g. <strong>Oogabooga</strong>).
         </div>
 
         <TextField className="flex max-w-[700px] items-center gap-1.5 mr-2">
             <Label className="w-[320px] text-md">Custom Model (Optional): </Label>
-            <Input placeholder={``} onBlur={() => { }} />
+            <Input placeholder={modelName} onBlur={handleModelNameUpdate} />
         </TextField>
 
         <TextField className="flex max-w-[700px] items-center gap-1.5 mr-2">
             <Label className="w-[320px] text-md">API Key (Optional): </Label>
-            <Input placeholder={``} onBlur={() => { }} />
+            <Input placeholder={apiKey} onBlur={handleApiKeyUpdate} />
         </TextField>
 
     </>)
 }
 
 const DummyValueSettings = () => {
+    const connectionSettings = storageManager.getDummyConnectionSettingsById("DUMMY");
+    const [placeholder, setPlaceholder] = useState(connectionSettings.response)
+    const handlePlaceholderUpdate = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setPlaceholder(event.target.value);
+        connectionSettings.response = event.target.value;
+        storageManager.setConnectionSettings("DUMMY", connectionSettings);
+    };
+
     return (<>
         <div>
             <TextField className="flex max-w-[600px] items-center gap-1.5 mr-2">
                 <Label className="w-[320px] text-md">Dummy Response: </Label>
-                <Input placeholder={``} onBlur={() => { }} />
+                <Input placeholder={placeholder} onBlur={handlePlaceholderUpdate} />
             </TextField>
             For testing. No attempt to connect to an AI will be made. The dummy response will be returned to all messages.
         </div>

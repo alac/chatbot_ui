@@ -137,8 +137,8 @@ interface StorageState {
 
     lorebookIds: string[];
 
-    currentConnectionSettings: "DUMMY" | "OPENAI";
-    connectionSettingsById: Map<string, DummyConnectionSettings | OpenAIConnectionSettings>;
+    currentConnectionSettingsId: "DUMMY" | "OPENAI";
+    connectionSettingsById: Map<string, AnyConnectionSettings>;
 }
 
 const isStorageState = (obj: unknown): obj is StorageState => {
@@ -157,8 +157,8 @@ const isStorageState = (obj: unknown): obj is StorageState => {
         ("lorebookIds" in obj &&
             Array.isArray(obj.lorebookIds) &&
             obj.lorebookIds.every((id) => typeof id === "string")) &&
-        ("currentConnectionSettings" in obj &&
-            (typeof obj.currentConnectionSettings === "string")) &&
+        ("currentConnectionSettingsId" in obj &&
+            (typeof obj.currentConnectionSettingsId === "string")) &&
         ("connectionSettingsById" in obj &&
             !(obj.connectionSettingsById instanceof Map))
     ) === false) {
@@ -217,6 +217,9 @@ function isOpenAIConnectionSettings(obj: any): obj is OpenAIConnectionSettings {
 }
 
 
+type AnyConnectionSettings = DummyConnectionSettings | OpenAIConnectionSettings;
+
+
 const STORAGE_STATE_KEY = "STORAGE_STATE"
 
 
@@ -238,7 +241,7 @@ class StorageManager {
             lorebookIds: [],
             lorebookMaxInsertionCount: 10,
             lorebookMaxTokens: 1000,
-            currentConnectionSettings: "DUMMY",
+            currentConnectionSettingsId: "DUMMY",
             connectionSettingsById: new Map<string, DummyConnectionSettings | OpenAIConnectionSettings>()
         }
         this.currentConversation = NewConversation("", this.newConversationDBKey());
@@ -458,6 +461,45 @@ class StorageManager {
         this.storageState.lorebookMaxInsertionCount = value;
         this.saveStorageState();
         this.lorebookUpdatedCallback?.()
+    }
+
+    getCurrentConnectionSettingsId(): string {
+        return this.storageState.currentConnectionSettingsId;
+    }
+
+    setCurrentConnectionSettingsId(id: "DUMMY" | "OPENAI"): void {
+        this.storageState.currentConnectionSettingsId = id;
+        this.saveStorageState();
+    }
+
+
+    getDummyConnectionSettingsById(id: string): DummyConnectionSettings {
+        const dictValue = this.storageState.connectionSettingsById.get(id)
+        if (dictValue !== undefined && isDummyConnectionSettings(dictValue)) {
+            return dictValue;
+        }
+        return {
+            type: "DUMMY",
+            response: "This is a dummy bot response."
+        }
+    }
+
+    getOpenAIConnectionSettingsById(id: string): OpenAIConnectionSettings {
+        const dictValue = this.storageState.connectionSettingsById.get(id)
+        if (dictValue !== undefined && isOpenAIConnectionSettings(dictValue)) {
+            return dictValue;
+        }
+        return {
+            type: "OPENAI",
+            url: "Enter the URL here.",
+            apiKey: "",
+            modelName: "",
+        }
+    }
+
+    setConnectionSettings(id: string, settings: AnyConnectionSettings): void {
+        this.storageState.connectionSettingsById.set(id, settings);
+        this.saveStorageState();
     }
 
     newUUID(): string {
