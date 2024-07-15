@@ -126,19 +126,19 @@ const OpenAIConnectionSettings = () => {
         <div>
             <TextField className="flex max-w-[700px] items-center gap-1.5 mr-2">
                 <Label className="w-[320px] text-md">Server URL<br />(e.g. "http://127.0.0.1:5000"): </Label>
-                <Input placeholder={url} onBlur={handleUrlUpdate} />
+                <Input value={url} onChange={handleUrlUpdate} />
             </TextField>
             Supports any server compatible with the OpenAI 'completions' endpoint (e.g. <strong>Oogabooga</strong>).
         </div>
 
         <TextField className="flex max-w-[700px] items-center gap-1.5 mr-2">
             <Label className="w-[320px] text-md">Custom Model (Optional): </Label>
-            <Input placeholder={modelName} onBlur={handleModelNameUpdate} />
+            <Input value={modelName} onChange={handleModelNameUpdate} />
         </TextField>
 
         <TextField className="flex max-w-[700px] items-center gap-1.5 mr-2">
             <Label className="w-[320px] text-md">API Key (Optional): </Label>
-            <Input placeholder={apiKey} onBlur={handleApiKeyUpdate} />
+            <Input value={apiKey} onChange={handleApiKeyUpdate} />
         </TextField>
 
     </>)
@@ -157,7 +157,7 @@ const DummyValueSettings = () => {
         <div>
             <TextField className="flex max-w-[600px] items-center gap-1.5 mr-2">
                 <Label className="w-[320px] text-md">Dummy Response: </Label>
-                <Input placeholder={placeholder} onBlur={handlePlaceholderUpdate} />
+                <Input value={placeholder} onChange={handlePlaceholderUpdate} />
             </TextField>
             For testing. No attempt to connect to an AI will be made. The dummy response will be returned to all messages.
         </div>
