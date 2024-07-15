@@ -266,6 +266,7 @@ class StorageManager {
             localforage.getItem(STORAGE_STATE_KEY, (err, readValue) => {
                 if (isStorageState(readValue)) {
                     this.storageState = readValue;
+                    this.updateConnectionsPanelCallback?.();
                 } else {
                     console.log("isStorageState typeguard failed; value: ", readValue)
                 }
