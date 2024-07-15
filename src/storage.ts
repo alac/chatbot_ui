@@ -476,6 +476,13 @@ class StorageManager {
         this.saveStorageState();
     }
 
+    getCurrentConnectionSettings(): AnyConnectionSettings {
+        const settings = this.storageState.connectionSettingsById.get(this.storageState.currentConnectionSettingsId);
+        if (settings) {
+            return settings;
+        }
+        throw Error("Invalid currentConnectionSettingsId: " + this.storageState.currentConnectionSettingsId);
+    }
 
     getDummyConnectionSettingsById(id: string): DummyConnectionSettings {
         const dictValue = this.storageState.connectionSettingsById.get(id)
@@ -533,5 +540,5 @@ function decompressString(compressedStr: string): string {
 
 const storageManager = new StorageManager();
 
-export { storageManager, compressString, decompressString }
-export type { Message, Conversation, Lorebook, LorebookEntry }
+export { storageManager, compressString, decompressString, isDummyConnectionSettings, isOpenAIConnectionSettings }
+export type { Message, Conversation, Lorebook, LorebookEntry, AnyConnectionSettings, DummyConnectionSettings, OpenAIConnectionSettings }

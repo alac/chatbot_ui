@@ -1,16 +1,8 @@
-import { storageManager, Message, Conversation, Lorebook, LorebookEntry, isLorebook } from './storage';
+import { storageManager, Message, Conversation, Lorebook, LorebookEntry, isLorebook, AnyConnectionSettings, isOpenAIConnectionSettings, isDummyConnectionSettings } from './storage';
 
 interface GenerateParameters {
     name: string
     values: object
-}
-
-interface ConnectionSettings {
-    name: string
-    type: 'oobabooga' | 'dummy' // future use: 'oobabooga', 'openai', etc
-    baseUrl: string // http://... should include port, but not '/api/v1...'
-    // api_key: string
-    // model: string
 }
 
 interface GenerateSettingsManager {
@@ -20,7 +12,6 @@ interface GenerateSettingsManager {
     updateGenerateParameters(config: GenerateParameters): void;
     getGenerateParameters(name: string): GenerateParameters;
     getDefaultGenerateParameters(): GenerateParameters;
-    getDefaultConnectionSettings(): ConnectionSettings;
 }
 
 class DefaultGenerateSettingsManager implements GenerateSettingsManager {
@@ -87,14 +78,6 @@ class DefaultGenerateSettingsManager implements GenerateSettingsManager {
             }
         }
     }
-
-    getDefaultConnectionSettings(): ConnectionSettings {
-        return {
-            'name': 'default',
-            'type': 'oobabooga',
-            'baseUrl': 'http://127.0.0.1:5000',
-        }
-    }
 }
 
 type ResponseWriter = (token: string, done: boolean) => void;
@@ -117,10 +100,10 @@ type TextCompletionChoice = {
     };
 };
 
-async function generate(prompt: string, terminationStrings: string[], connectionSettings: ConnectionSettings, generateParameters: GenerateParameters, writeStream: ResponseWriter) {
+async function generate(prompt: string, terminationStrings: string[], connectionSettings: AnyConnectionSettings, generateParameters: GenerateParameters, writeStream: ResponseWriter) {
     console.log("Prompt: ", prompt)
-    if (connectionSettings.type === 'oobabooga') {
-        const url = connectionSettings.baseUrl + "/v1/completions"
+    if (connectionSettings.type === 'OPENAI' && isOpenAIConnectionSettings(connectionSettings)) {
+        const url = connectionSettings.url + "/v1/completions"
         const response = await fetch(url, {
             method: "POST",
             cache: "no-cache",
@@ -143,15 +126,9 @@ async function generate(prompt: string, terminationStrings: string[], connection
             }
         }
         writeStream("", true)
-    } else if (connectionSettings.type === 'dummy') {
+    } else if (connectionSettings.type === 'DUMMY' && isDummyConnectionSettings(connectionSettings)) {
         let i = 0;
-        const inputString = `type TextCompletionChunk = {
-    id: string;
-    object: "text_completion.chunk";
-    created: number;
-    model: string;
-    choices: TextCompletionChoice[];
-};`
+        const inputString = connectionSettings.response;
         const dummyResponse = breakStringIntoSubstrings(inputString);
         const intervalId = setInterval(() => {
             writeStream(dummyResponse[i], false)
@@ -176,7 +153,7 @@ function breakStringIntoSubstrings(str: string): string[] {
 }
 
 
-async function buildPrompt(conversation: Conversation, generateParameters: GenerateParameters, connectionSettings: ConnectionSettings): Promise<string> {
+async function buildPrompt(conversation: Conversation, generateParameters: GenerateParameters, connectionSettings: AnyConnectionSettings): Promise<string> {
     // the latest message should _already_ be a part of the conversation
     // ... actually, maybe not. let's let the most recent message be _injected_ on the fly. for stuff like AGENT commands/chained prompts.
 
@@ -276,9 +253,9 @@ function triggeredLorebookEntries(message: string, lorebooks: Lorebook[]): Loreb
     return locationAndEntry.map((value) => value.entry);
 }
 
-async function countTokens(text: string, connectionSettings: ConnectionSettings): Promise<number> {
-    if (connectionSettings.type === 'oobabooga') {
-        const resp = await fetch(`${connectionSettings.baseUrl}/v1/internal/token-count`, {
+async function countTokens(text: string, connectionSettings: AnyConnectionSettings): Promise<number> {
+    if (connectionSettings.type === 'OPENAI' && isOpenAIConnectionSettings(connectionSettings)) {
+        const resp = await fetch(`${connectionSettings.url}/v1/internal/token-count`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', },
             body: JSON.stringify({
@@ -296,7 +273,7 @@ async function countTokens(text: string, connectionSettings: ConnectionSettings)
             console.log("Exception unpacking tokenCount json", e)
             return -1;
         }
-    } else if (connectionSettings.type === 'dummy') {
+    } else if (connectionSettings.type === 'DUMMY' && isDummyConnectionSettings(connectionSettings)) {
         return text.length / 3;
     } else {
         console.log("Invalid connection type: ", connectionSettings.type)
@@ -305,7 +282,7 @@ async function countTokens(text: string, connectionSettings: ConnectionSettings)
 }
 
 
-async function cachedTokenCount(text: string, connectionSettings: ConnectionSettings): Promise<number> {
+async function cachedTokenCount(text: string, connectionSettings: AnyConnectionSettings): Promise<number> {
     if (tokenCountCache.has(text)) {
         return tokenCountCache.get(text) as number;
     }

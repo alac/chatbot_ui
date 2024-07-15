@@ -306,7 +306,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
       const prompt = await buildPrompt(
         storageManager.currentConversation,
         generateSettingsManager.currentGenerateSettings,
-        generateSettingsManager.getDefaultConnectionSettings()
+        storageManager.getCurrentConnectionSettings(),
       )
       const compressedPrompt = compressString(prompt)
       botMessage.compressedPrompt = compressedPrompt
@@ -327,7 +327,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
       generate(
         prompt,
         [`\n${storageManager.currentConversation.username}:`],
-        generateSettingsManager.getDefaultConnectionSettings(),
+        storageManager.getCurrentConnectionSettings(),
         generateSettingsManager.currentGenerateSettings,
         responseWriter
       )

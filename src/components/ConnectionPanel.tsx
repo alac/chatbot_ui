@@ -18,6 +18,7 @@ import Settings from '@spectrum-icons/workflow/Settings';
 
 import { storageManager, Conversation } from '../storage';
 import { Key } from 'react-aria-components';
+import { TextArea } from '../ui/textarea';
 
 
 const ConnectionsPanel = () => {
@@ -147,7 +148,7 @@ const OpenAIConnectionSettings = () => {
 const DummyValueSettings = () => {
     const connectionSettings = storageManager.getDummyConnectionSettingsById("DUMMY");
     const [placeholder, setPlaceholder] = useState(connectionSettings.response)
-    const handlePlaceholderUpdate = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePlaceholderUpdate = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setPlaceholder(event.target.value);
         connectionSettings.response = event.target.value;
         storageManager.setConnectionSettings("DUMMY", connectionSettings);
@@ -155,9 +156,9 @@ const DummyValueSettings = () => {
 
     return (<>
         <div>
-            <TextField className="flex max-w-[600px] items-center gap-1.5 mr-2">
+            <TextField className="flex items-center gap-1.5 mr-2">
                 <Label className="w-[320px] text-md">Dummy Response: </Label>
-                <Input value={placeholder} onChange={handlePlaceholderUpdate} />
+                <TextArea value={placeholder} onChange={handlePlaceholderUpdate} />
             </TextField>
             For testing. No attempt to connect to an AI will be made. The dummy response will be returned to all messages.
         </div>
