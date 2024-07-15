@@ -158,7 +158,7 @@ const DummyValueSettings = () => {
         <div>
             <TextField className="flex items-center gap-1.5 mr-2">
                 <Label className="w-[320px] text-md">Dummy Response: </Label>
-                <TextArea value={placeholder} onChange={handlePlaceholderUpdate} />
+                <TextArea className="min-h-[400px]" value={placeholder} onChange={handlePlaceholderUpdate} />
             </TextField>
             For testing. No attempt to connect to an AI will be made. The dummy response will be returned to all messages.
         </div>
