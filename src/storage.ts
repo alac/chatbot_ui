@@ -227,10 +227,10 @@ const STORAGE_STATE_KEY = "STORAGE_STATE"
 class StorageManager {
     storageState: StorageState;
     currentConversation: Conversation;
-    conversationLoadedCallback: (() => void) | null;
-    conversationLifecycleCallback: (() => void) | null; // conversation created or deleted
-    rerenderConversationCallback: (() => void) | null;
-    lorebookUpdatedCallback: (() => void) | null;
+    conversationLoadedCallback: (() => void) | null; // Conversation made active.
+    conversationLifecycleCallback: (() => void) | null; // Conversation loaded from datastore, created, deleted, or made active.
+    rerenderConversationCallback: (() => void) | null; // Message added or updated.
+    lorebookUpdatedCallback: (() => void) | null; // Lorebook (or entry) updated, OR Lorebook enabled for Conversation.
     deletedMessageCallback: ((deleteKey: string) => void) | null;
     updateConnectionsPanelCallback: (() => void) | null;
     conversations: Map<string, Conversation>;
@@ -279,12 +279,8 @@ class StorageManager {
                         if (isConversation(readValue)) {
                             if (this.storageState.currentConversationId !== null && this.storageState.currentConversationId === conversationId) {
                                 this.currentConversation = readValue;
-                                if (this.conversationLoadedCallback) {
-                                    this.conversationLoadedCallback();
-                                }
-                                if (this.conversationLifecycleCallback) {
-                                    this.conversationLifecycleCallback();
-                                }
+                                this.conversationLoadedCallback?.()
+                                this.conversationLifecycleCallback?.()
                             }
                             this.conversations.set(conversationId, readValue);
                         } else {
@@ -301,9 +297,7 @@ class StorageManager {
                         if (isLorebook(readValue)) {
                             console.log("loaded LB: ", lorebookId);
                             this.lorebooks.set(lorebookId, readValue);
-                            if (this.lorebookUpdatedCallback) {
-                                this.lorebookUpdatedCallback()
-                            }
+                            this.lorebookUpdatedCallback?.()
                         } else {
                             console.log("isLorebook failed; value: ", readValue)
                         }

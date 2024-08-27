@@ -111,17 +111,13 @@ const ViewLorebooksButton = () => {
         if (isSelected && !storageManager.currentConversation.lorebookIds.includes(lorebookId)) {
             storageManager.currentConversation.lorebookIds = [...storageManager.currentConversation.lorebookIds, lorebookId];
             storageManager.save();
-            if (storageManager.lorebookUpdatedCallback) {
-                storageManager.lorebookUpdatedCallback()
-            }
+            storageManager.lorebookUpdatedCallback?.()
             return;
         }
         if (!isSelected && storageManager.currentConversation.lorebookIds.includes(lorebookId)) {
             storageManager.currentConversation.lorebookIds = storageManager.currentConversation.lorebookIds.filter((s: string) => s !== lorebookId);
             storageManager.save();
-            if (storageManager.lorebookUpdatedCallback) {
-                storageManager.lorebookUpdatedCallback()
-            }
+            storageManager.lorebookUpdatedCallback?.()
         }
     };
 
