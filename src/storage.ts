@@ -282,6 +282,9 @@ class StorageManager {
                                 if (this.conversationLoadedCallback) {
                                     this.conversationLoadedCallback();
                                 }
+                                if (this.conversationLifecycleCallback) {
+                                    this.conversationLifecycleCallback();
+                                }
                             }
                             this.conversations.set(conversationId, readValue);
                         } else {
