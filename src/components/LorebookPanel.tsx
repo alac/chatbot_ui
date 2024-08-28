@@ -36,23 +36,15 @@ const LorebookPanel = () => {
         }
     },);
 
-    const maxEntries = storageManager.storageState.lorebookMaxInsertionCount;
-    const maxTokens = storageManager.storageState.lorebookMaxTokens;
-
     return (
         <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
             <div className="flex items-center">
                 <span className="text-md font-medium">Lorebook</span>
                 <div className="ml-auto">
-                    <span className='corner-button'><ViewUsedEntriesButton key={`lbEntry_${lorebookUsageUpdatedTimestamp}`} /></span>
+                    <span className='corner-button'><ViewUsedEntriesButton lorebookUsageUpdatedTimestamp={lorebookUsageUpdatedTimestamp} key={`lbEntry_${lorebookUsageUpdatedTimestamp}`} /></span>
                     <span className='corner-button'><ViewLorebooksButton /></span>
                 </div>
             </div>
-            <span className="text-sm" key={`lbEntrySummary_${lorebookUsageUpdatedTimestamp}`}>
-                Entries: {generateStatsTracker.lorebookUsageEntries.length} / {maxEntries}.
-                <br />
-                Tokens: {generateStatsTracker.lorebookUsageTokens} / {maxTokens}.
-            </span>
         </div>
     );
 };
@@ -303,15 +295,22 @@ const LorebookEntryEditor = ({ lorebookId, lorebookEntry }: { lorebookId: string
 }
 
 
-const ViewUsedEntriesButton = () => {
+const ViewUsedEntriesButton = ({ lorebookUsageUpdatedTimestamp }: { lorebookUsageUpdatedTimestamp: Date }) => {
     var content = <>No entries in use.</>
+
+    const maxEntries = storageManager.storageState.lorebookMaxInsertionCount;
+    const maxTokens = storageManager.storageState.lorebookMaxTokens;
+
     if (generateStatsTracker.lorebookUsageEntries.length > 0) {
         content = <>
-            <div><span className="text-lg font-medium">Active Entries: </span></div>
+            <span className="font-medium" key={`lbEntrySummary_${lorebookUsageUpdatedTimestamp}`}>
+                Total Tokens: {Math.round(generateStatsTracker.lorebookUsageTokens)} / {maxTokens}.
+            </span>
+            <div><span className="font-medium">Active Entries ({generateStatsTracker.lorebookUsageEntries.length} / {maxEntries}): </span></div>
             {generateStatsTracker.lorebookUsageEntries.map((le: LorebookEntry, index: number) => {
                 const tokenCount = generateStatsTracker.getTokenCount(le);
                 if (tokenCount !== -1) {
-                    return <div><span className="font-medium">{le.entryName}</span> ({tokenCount} tokens)</div>
+                    return <div><span className="font-medium">- {le.entryName}</span> ({Math.round(tokenCount)} tokens)</div>
                 }
                 return <div><span className="font-medium">{le.entryName}</span> (N/A).</div>
             })}</>
