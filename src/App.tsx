@@ -16,6 +16,9 @@ import ConversationsPanel from './components/ConversationsPanel';
 import ConnectionPanel from './components/ConnectionPanel';
 import ContextPanel from './components/ContextPanel';
 
+import RailRightOpen from '@spectrum-icons/workflow/RailRightOpen';
+import RailRightClose from '@spectrum-icons/workflow/RailRightClose';
+
 
 function App() {
   const virtuosoChatbox = React.useRef<VirtuosoMessageListMethods<Message>>(null)
@@ -79,6 +82,8 @@ function App() {
     }
   }, [conversationId]);
 
+  const [panelWidth, setPanelWidth] = useState(200);
+
   return (
     <div className="app-container">
       <div className="top-container">
@@ -96,7 +101,15 @@ function App() {
             />
           </VirtuosoMessageListLicense>
         </div>
-        <div className="sidebar-container" style={{ width: '200px', height: chatLogHeight }}>
+        <div className="sidebar-container" style={{ width: `${panelWidth}px`, height: chatLogHeight }}>
+
+          <div className="flex items-center">
+            <div className="ml-auto">
+              <span className='corner-button'><Button size="icon" aria-label='Expand Sidebar' onPressEnd={() => { setPanelWidth(panelWidth + 50) }}><RailRightOpen /></Button></span>
+              <span className='corner-button'><Button size="icon" aria-label='Contract Sidebar' onPressEnd={() => { setPanelWidth(Math.max(panelWidth - 50, 200)) }}><RailRightClose /></Button></span>
+            </div>
+          </div>
+
           <ConversationsPanel />
           <ConnectionPanel />
           <ContextPanel />
