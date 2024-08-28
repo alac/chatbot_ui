@@ -280,9 +280,9 @@ class StorageManager {
                             if (this.storageState.currentConversationId !== null && this.storageState.currentConversationId === conversationId) {
                                 this.currentConversation = readValue;
                                 this.conversationLoadedCallback?.()
-                                this.conversationLifecycleCallback?.()
                             }
                             this.conversations.set(conversationId, readValue);
+                            this.conversationLifecycleCallback?.()
                         } else {
                             console.log("isConversation typeguard failed; value: ", readValue)
                         }
