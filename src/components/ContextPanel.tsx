@@ -34,11 +34,14 @@ const ContextPanel = () => {
         <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
             <div className="flex items-center">
                 <span className="text-md font-medium">Context</span>
+                <div className="ml-auto">
+                    <span className='corner-button'><NewConversationButton /></span>
+                </div>
             </div>
             <span className="text-sm">
-                Edit Header <NewConversationButton />
+                Header
                 <br />
-                Edit Footer <NewConversationButton />
+                Footer
             </span>
 
         </div>

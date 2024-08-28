@@ -14,6 +14,7 @@ import { storageManager, compressString, Message, decompressString } from './sto
 import LorebookPanel from './components/LorebookPanel';
 import ConversationsPanel from './components/ConversationsPanel';
 import ConnectionPanel from './components/ConnectionPanel';
+import ContextPanel from './components/ContextPanel';
 
 
 function App() {
@@ -96,9 +97,10 @@ function App() {
           </VirtuosoMessageListLicense>
         </div>
         <div className="sidebar-container" style={{ width: '200px', height: chatLogHeight }}>
-          <LorebookPanel />
           <ConversationsPanel />
           <ConnectionPanel />
+          <ContextPanel />
+          <LorebookPanel />
         </div>
       </div>
       <BottomContainer ref={bottomContainerRef} virtuosoChatbox={virtuosoChatbox} />
