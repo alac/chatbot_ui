@@ -103,10 +103,13 @@ function App() {
         </div>
         <div className="sidebar-container" style={{ width: `${panelWidth}px`, height: chatLogHeight }}>
 
-          <div className="flex items-center">
-            <div className="ml-auto">
-              <span className='corner-button'><Button size="icon" aria-label='Expand Sidebar' onPressEnd={() => { setPanelWidth(panelWidth + 50) }}><RailRightOpen /></Button></span>
-              <span className='corner-button'><Button size="icon" aria-label='Contract Sidebar' onPressEnd={() => { setPanelWidth(Math.max(panelWidth - 50, 200)) }}><RailRightClose /></Button></span>
+          <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
+            <div className="flex items-center">
+              <span className="text-md font-medium">UI</span>
+              <div className="ml-auto">
+                <span className='corner-button'><Button size="icon" aria-label='Expand Sidebar' onPressEnd={() => { setPanelWidth(panelWidth + 50) }}><RailRightOpen /></Button></span>
+                <span className='corner-button'><Button size="icon" aria-label='Contract Sidebar' onPressEnd={() => { setPanelWidth(Math.max(panelWidth - 50, 200)) }}><RailRightClose /></Button></span>
+              </div>
             </div>
           </div>
 
