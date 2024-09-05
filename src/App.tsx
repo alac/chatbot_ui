@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { VirtuosoMessageListProps, VirtuosoMessageListMethods, VirtuosoMessageList, VirtuosoMessageListLicense } from '@virtuoso.dev/message-list';
+import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import { DialogContent, DialogHeader, DialogOverlay, DialogTitle, DialogTrigger, } from "./ui/dialog"
 import { Button } from "./ui/button"
 import { Tooltip, TooltipTrigger } from "./ui/tooltip"
@@ -16,41 +17,10 @@ import ConversationsPanel from './components/ConversationsPanel';
 import ConnectionPanel from './components/ConnectionPanel';
 import ContextPanel from './components/ContextPanel';
 
-import RailRightOpen from '@spectrum-icons/workflow/RailRightOpen';
-import RailRightClose from '@spectrum-icons/workflow/RailRightClose';
 
 
 function App() {
   const virtuosoChatbox = React.useRef<VirtuosoMessageListMethods<Message>>(null)
-
-
-  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowHeight(window.innerHeight);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-
-  const bottomContainerRef = useRef<HTMLDivElement>(null);
-  const [chatLogHeight, setChatLogHeight] = useState(window.innerHeight);
-  useEffect(() => {
-    const updateChatLogHeight = () => {
-      if (bottomContainerRef.current) {
-        setChatLogHeight(windowHeight - bottomContainerRef.current.offsetHeight);
-      }
-    };
-    const resizeObserver = new ResizeObserver(updateChatLogHeight);
-    if (bottomContainerRef.current) {
-      resizeObserver.observe(bottomContainerRef.current);
-    }
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [windowHeight]);
-
 
   const [conversationId, setConversationId] = useState("");
   useEffect(() => {
@@ -82,44 +52,44 @@ function App() {
     }
   }, [conversationId]);
 
-  const [panelWidth, setPanelWidth] = useState(200);
-
   return (
     <div className="app-container">
-      <div className="top-container">
-        <div className="messages-container"  >
-          <VirtuosoMessageListLicense licenseKey="">
-            <VirtuosoMessageList<Message, null>
-              ref={virtuosoChatbox}
-              style={{ maxHeight: chatLogHeight, minHeight: chatLogHeight }}
-              computeItemKey={(data: Message) => data.key}
-              initialLocation={{ index: 'LAST', align: 'end' }}
-              shortSizeAlign="bottom-smooth"
-              ItemContent={ItemContent}
-              key={conversationId}
-              initialData={storageManager.currentConversation.messages}
-            />
-          </VirtuosoMessageListLicense>
-        </div>
-        <div className="sidebar-container" style={{ width: `${panelWidth}px`, height: chatLogHeight }}>
-
-          <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
-            <div className="flex items-center">
-              <span className="text-md font-medium">UI</span>
-              <div className="ml-auto">
-                <span className='corner-button'><Button size="icon" aria-label='Expand Sidebar' onPressEnd={() => { setPanelWidth(panelWidth + 50) }}><RailRightOpen /></Button></span>
-                <span className='corner-button'><Button size="icon" aria-label='Contract Sidebar' onPressEnd={() => { setPanelWidth(Math.max(panelWidth - 50, 200)) }}><RailRightClose /></Button></span>
+      <PanelGroup direction="vertical">
+        <Panel>
+          <PanelGroup direction="horizontal">
+            <Panel className="messages-container">
+              <VirtuosoMessageListLicense licenseKey="">
+                <VirtuosoMessageList<Message, null>
+                  ref={virtuosoChatbox}
+                  style={{ maxHeight: "100%", minHeight: "100%" }}
+                  computeItemKey={(data: Message) => data.key}
+                  initialLocation={{ index: 'LAST', align: 'end' }}
+                  shortSizeAlign="bottom-smooth"
+                  ItemContent={ItemContent}
+                  key={conversationId}
+                  initialData={storageManager.currentConversation.messages}
+                />
+              </VirtuosoMessageListLicense>
+            </Panel>
+            <PanelResizeHandle />
+            <Panel defaultSize={20} className="sidebar-container">
+              <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
+                <div className="flex items-center">
+                  <span className="text-md font-medium">UI</span>
+                </div>
               </div>
-            </div>
-          </div>
-
-          <ConversationsPanel />
-          <ConnectionPanel />
-          <ContextPanel />
-          <LorebookPanel />
-        </div>
-      </div>
-      <BottomContainer ref={bottomContainerRef} virtuosoChatbox={virtuosoChatbox} />
+              <ConversationsPanel />
+              <ConnectionPanel />
+              <ContextPanel />
+              <LorebookPanel />
+            </Panel>
+          </PanelGroup>
+        </Panel>
+        <PanelResizeHandle />
+        <Panel defaultSize={10} className="bottom-container">
+          <BottomContainer virtuosoChatbox={virtuosoChatbox} />
+        </Panel>
+      </PanelGroup>
     </div>
   );
 }
@@ -262,22 +232,11 @@ interface BottomContainerProps {
 }
 
 
-const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>(({ virtuosoChatbox }, ref) => {
+const BottomContainer = ({ virtuosoChatbox }: BottomContainerProps) => {
   const [inputValue, setInputValue] = useState('');
   const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(event.target.value);
   };
-
-
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const expandTextareaDuringEdit = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
-    }
-  }
-  useEffect(expandTextareaDuringEdit, [inputValue]);
-
 
   const sendChatMessage = (isContinue: boolean) => {
     if (storageManager.storageState.currentConversationId === "") {
@@ -359,10 +318,9 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
   };
 
   return (
-    <div className="bottom-container" ref={ref}>
+    <div className="bottom-container">
       <div className="input-area">
         <textarea
-          ref={textareaRef}
           className="text-field"
           placeholder="Enter text here..."
           value={inputValue}
@@ -382,7 +340,7 @@ const BottomContainer = React.forwardRef<HTMLDivElement, BottomContainerProps>((
       </div>
     </div>
   );
-});
+};
 
 
 export default App;
