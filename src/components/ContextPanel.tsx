@@ -12,6 +12,7 @@ import { Button } from "../ui/button"
 import { Separator } from "../ui/separator"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
+import { Tab, TabList, TabPanel, Tabs } from "../ui/tabs"
 import Delete from '@spectrum-icons/workflow/Delete';
 import NewItem from '@spectrum-icons/workflow/NewItem';
 import Switch from '@spectrum-icons/workflow/Switch';
@@ -39,9 +40,18 @@ const ContextPanel = () => {
                 </div>
             </div>
             <span className="text-sm">
-                Header
-                <br />
-                Footer
+                <Tabs>
+                    <TabList aria-label="Select Context Field">
+                        <Tab id="Header">Header</Tab>
+                        <Tab id="Footer">Footer</Tab>
+                    </TabList>
+                    <TabPanel id="Header">
+                        Arma virumque cano, Troiae qui primus ab oris.
+                    </TabPanel>
+                    <TabPanel id="Footer">
+                        Senatus Populusque Romanus.
+                    </TabPanel>
+                </Tabs>
             </span>
 
         </div>
