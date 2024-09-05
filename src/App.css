@@ -82,6 +82,15 @@
   size: auto;
 }
 
+.sidebar-text-field {
+  flex-grow: 1;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 2px;
+  size: auto;
+  color: black;
+}
+
 .command-container {
   width: 200px;
   display: flex;

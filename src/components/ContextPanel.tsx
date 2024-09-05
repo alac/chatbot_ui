@@ -21,15 +21,33 @@ import { storageManager, Conversation } from '../storage';
 
 
 const ContextPanel = () => {
-    const [conversationsUpdateCounter, setConversationsUpdateCounter] = useState(0);
+    const [contextUpdatedCounter, setContextUpdatedCounter] = useState(0);
     useEffect(() => {
-        storageManager.conversationLifecycleCallback = () => {
-            setConversationsUpdateCounter(x => x + 1)
+        storageManager.contextUpdatedCallback = () => {
+            setContextUpdatedCounter(x => x + 1)
         }
         return () => {
-            storageManager.conversationLifecycleCallback = null;
+            storageManager.contextUpdatedCallback = null;
         }
     },);
+
+    useEffect(() => {
+        setHeaderValue(storageManager.currentConversation.memory);
+        setFooterValue(storageManager.currentConversation.authorNote);
+    }, [contextUpdatedCounter])
+
+    const [headerValue, setHeaderValue] = useState(storageManager.currentConversation.memory);
+    const handleHeaderInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setHeaderValue(event.target.value);
+        storageManager.currentConversation.memory = event.target.value;
+        storageManager.save();
+    };
+    const [footerValue, setFooterValue] = useState(storageManager.currentConversation.authorNote);
+    const handleFooterInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setFooterValue(event.target.value);
+        storageManager.currentConversation.authorNote = event.target.value;
+        storageManager.save();
+    };
 
     return (
         <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
@@ -45,11 +63,21 @@ const ContextPanel = () => {
                         <Tab id="Header">Header</Tab>
                         <Tab id="Footer">Footer</Tab>
                     </TabList>
-                    <TabPanel id="Header">
-                        Arma virumque cano, Troiae qui primus ab oris.
+                    <TabPanel id="Header" className="mt-0">
+                        <textarea
+                            className="sidebar-text-field"
+                            value={headerValue}
+                            onChange={handleHeaderInputChange}
+                            style={{ width: '100%' }}
+                        />
                     </TabPanel>
-                    <TabPanel id="Footer">
-                        Senatus Populusque Romanus.
+                    <TabPanel id="Footer" className="mt-0">
+                        <textarea
+                            className="sidebar-text-field"
+                            value={footerValue}
+                            onChange={handleFooterInputChange}
+                            style={{ width: '100%' }}
+                        />
                     </TabPanel>
                 </Tabs>
             </span>

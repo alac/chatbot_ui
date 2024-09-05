@@ -72,7 +72,7 @@ function App() {
               </VirtuosoMessageListLicense>
             </Panel>
             <PanelResizeHandle />
-            <Panel defaultSize={20} className="sidebar-container">
+            <Panel defaultSize={20} minSize={1} className="sidebar-container">
               <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
                 <div className="flex items-center">
                   <span className="text-md font-medium">UI</span>
@@ -86,7 +86,7 @@ function App() {
           </PanelGroup>
         </Panel>
         <PanelResizeHandle />
-        <Panel defaultSize={10} className="bottom-container">
+        <Panel defaultSize={10} minSize={1} className="bottom-container">
           <BottomContainer virtuosoChatbox={virtuosoChatbox} />
         </Panel>
       </PanelGroup>

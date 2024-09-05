@@ -231,6 +231,7 @@ class StorageManager {
     conversationLifecycleCallback: (() => void) | null; // Conversation loaded from datastore, created, deleted, or made active.
     rerenderConversationCallback: (() => void) | null; // Message added or updated.
     lorebookUpdatedCallback: (() => void) | null; // Lorebook (or entry) updated, OR Lorebook enabled for Conversation.
+    contextUpdatedCallback: (() => void) | null;
     deletedMessageCallback: ((deleteKey: string) => void) | null;
     updateConnectionsPanelCallback: (() => void) | null;
     conversations: Map<string, Conversation>;
@@ -252,6 +253,7 @@ class StorageManager {
         this.conversationLoadedCallback = null;
         this.conversationLifecycleCallback = null;
         this.lorebookUpdatedCallback = null;
+        this.contextUpdatedCallback = null;
         this.rerenderConversationCallback = null;
         this.deletedMessageCallback = null;
         this.updateConnectionsPanelCallback = null;
@@ -277,11 +279,12 @@ class StorageManager {
                 this.storageState.conversationIds.map((conversationId: string) => {
                     localforage.getItem(conversationId, (err, readValue) => {
                         if (isConversation(readValue)) {
+                            this.conversations.set(conversationId, readValue);
                             if (this.storageState.currentConversationId !== null && this.storageState.currentConversationId === conversationId) {
                                 this.currentConversation = readValue;
                                 this.conversationLoadedCallback?.()
+                                this.contextUpdatedCallback?.()
                             }
-                            this.conversations.set(conversationId, readValue);
                             this.conversationLifecycleCallback?.()
                         } else {
                             console.log("isConversation typeguard failed; value: ", readValue)
@@ -323,6 +326,7 @@ class StorageManager {
                 this.storageState.currentConversationId = conversationId;
                 this.conversationLoadedCallback?.();
                 this.lorebookUpdatedCallback?.() // enabled lorebooks changes per conversation
+                this.contextUpdatedCallback?.()
                 this.saveStorageState()
             }
         }
