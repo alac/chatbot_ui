@@ -155,7 +155,7 @@ const ViewLorebooksButton = () => {
                         <div className='grid gap-2'>
                             {lorebooks.map((lb: Lorebook | undefined, index: number) => {
                                 if (lb === undefined) {
-                                    return <></>;
+                                    return <div key={index} />;
                                 }
                                 const hideUp = (index === 0) ? " opacity-50 pointer-events-none" : "";
                                 const hideDown = (index === lorebooks.length - 1) ? " opacity-50 pointer-events-none" : "";
