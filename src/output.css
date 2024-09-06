@@ -691,12 +691,12 @@ body {
   margin-right: 0.5rem;
 }
 
-.mt-2 {
-  margin-top: 0.5rem;
-}
-
 .mt-0 {
   margin-top: 0px;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
 }
 
 .flex {
@@ -860,10 +860,6 @@ body {
 .select-none {
   -webkit-user-select: none;
           user-select: none;
-}
-
-.resize {
-  resize: both;
 }
 
 .grid-cols-5 {
