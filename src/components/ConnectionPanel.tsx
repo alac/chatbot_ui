@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 
 import {
     DialogContent,
-    DialogFooter,
     DialogHeader,
     DialogOverlay,
     DialogTitle,
@@ -16,7 +15,7 @@ import { TextField } from "react-aria-components"
 import { Select, SelectTrigger, SelectValue, SelectPopover, SelectItem, SelectContent } from "../ui/select"
 import Settings from '@spectrum-icons/workflow/Settings';
 
-import { storageManager, Conversation } from '../storage';
+import { storageManager } from '../storage';
 import { Key } from 'react-aria-components';
 import { TextArea } from '../ui/textarea';
 
@@ -87,13 +86,6 @@ const EditConnectionsPanel = () => {
                     </Select>
                     {(connectionType === "OPENAI") ? <OpenAIConnectionSettings /> : <></>}
                     {(connectionType === "DUMMY") ? <DummyValueSettings /> : <></>}
-
-                    <DialogHeader>
-                        <DialogTitle>Connection Settings</DialogTitle>
-                    </DialogHeader>
-                    <Separator />
-
-
                 </DialogContent>
             </DialogOverlay>
         </DialogTrigger >
