@@ -72,7 +72,7 @@ function App() {
               </VirtuosoMessageListLicense>
             </Panel>
             <PanelResizeHandle />
-            <Panel defaultSize={20} minSize={1} className="sidebar-container">
+            <Panel defaultSize={20} minSize={1} className="sidebar-container" style={{ overflow: 'auto' }}>
               <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
                 <div className="flex items-center">
                   <span className="text-md font-medium">UI</span>
