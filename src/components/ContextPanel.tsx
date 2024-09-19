@@ -8,11 +8,13 @@ import {
     DialogTrigger,
 } from "../ui/dialog"
 import { Button } from "../ui/button"
+import { Checkbox } from "../ui/checkbox"
 import { Tab, TabList, TabPanel, Tabs } from "../ui/tabs"
 import Edit from '@spectrum-icons/workflow/Edit';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import { storageManager, Conversation } from '../storage';
+import { TextArea } from 'react-aria-components';
 
 const ContextPanel = () => {
     const [contextUpdatedCounter, setContextUpdatedCounter] = useState(0);
@@ -43,6 +45,8 @@ const ContextPanel = () => {
         storageManager.save();
     };
 
+    const [autoExpandPanelInputs, setAutoExpandPanelInputs] = useState(true);
+
     return (
         <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
             <div className="flex items-center">
@@ -50,7 +54,8 @@ const ContextPanel = () => {
                 <div className="ml-auto">
                     <span className='corner-button'>
                         <ContextDialogButton memory={memoryValue} handleSetMemory={handleMemoryInputChange}
-                            authorsNote={authorsNote} handleSetAuthorsNote={handleAuthorsNoteInputChange} />
+                            authorsNote={authorsNote} handleSetAuthorsNote={handleAuthorsNoteInputChange}
+                            autoExpandPanelInputs={autoExpandPanelInputs} setAutoExpandPanelInputs={setAutoExpandPanelInputs} />
                     </span>
                 </div>
             </div>
@@ -61,20 +66,38 @@ const ContextPanel = () => {
                         <Tab id="AuthorsNote">Author's Note</Tab>
                     </TabList>
                     <TabPanel id="Memory" className="mt-0">
-                        <TextareaAutosize
-                            className="sidebar-text-field"
-                            value={memoryValue}
-                            onChange={handleMemoryInputChange}
-                            style={{ width: '100%' }}
-                        />
+                        {autoExpandPanelInputs ? (
+                            <TextareaAutosize
+                                className="sidebar-text-field"
+                                value={memoryValue}
+                                onChange={handleMemoryInputChange}
+                                style={{ width: '100%' }}
+                            />
+                        ) : (
+                            <textarea
+                                className="sidebar-text-field"
+                                value={memoryValue}
+                                onChange={handleMemoryInputChange}
+                                style={{ width: '100%' }}
+                            />
+                        )}
                     </TabPanel>
                     <TabPanel id="AuthorsNote" className="mt-0">
-                        <TextareaAutosize
-                            className="sidebar-text-field"
-                            value={authorsNote}
-                            onChange={handleAuthorsNoteInputChange}
-                            style={{ width: '100%' }}
-                        />
+                        {autoExpandPanelInputs ? (
+                            <TextareaAutosize
+                                className="sidebar-text-field"
+                                value={authorsNote}
+                                onChange={handleAuthorsNoteInputChange}
+                                style={{ width: '100%' }}
+                            />
+                        ) : (
+                            <textarea
+                                className="sidebar-text-field"
+                                value={authorsNote}
+                                onChange={handleAuthorsNoteInputChange}
+                                style={{ width: '100%' }}
+                            />
+                        )}
                     </TabPanel>
                 </Tabs>
             </span>
@@ -88,6 +111,8 @@ interface ContextDialogProps {
     handleSetMemory: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
     authorsNote: string;
     handleSetAuthorsNote: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
+    autoExpandPanelInputs: boolean;
+    setAutoExpandPanelInputs: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 
@@ -101,6 +126,14 @@ const ContextDialogButton = (props: ContextDialogProps) => {
                         <DialogHeader>
                             <DialogTitle>Edit Context</DialogTitle>
                         </DialogHeader>
+
+                        <div className='grid gap-2' style={{ width: '100%' }}
+                        >
+                            <Checkbox defaultSelected={props.autoExpandPanelInputs}
+                                onChange={props.setAutoExpandPanelInputs}>
+                                Sidebar panel expands to fit Memory/Author's Note
+                            </Checkbox>
+                        </div>
 
                         <div className='grid gap-2' style={{ width: '100%' }}
                         >
@@ -121,6 +154,7 @@ const ContextDialogButton = (props: ContextDialogProps) => {
                                 style={{ width: '100%' }}
                             />
                         </div>
+
                     </>)}
                 </DialogContent>
             </DialogOverlay>
