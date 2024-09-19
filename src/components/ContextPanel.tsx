@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import {
     DialogContent,
@@ -12,6 +12,8 @@ import { Tab, TabList, TabPanel, Tabs } from "../ui/tabs"
 import Edit from '@spectrum-icons/workflow/Edit';
 
 import { storageManager, Conversation } from '../storage';
+import { SyntheticEvent } from 'react';
+import { TextAreaProps } from 'react-aria-components';
 
 
 const ContextPanel = () => {
@@ -93,6 +95,23 @@ interface ContextDialogProps {
 
 
 const ContextDialogButton = (props: ContextDialogProps) => {
+    const [memoryHeight, setMemoryHeight] = useState(200);
+    const [authorsNoteHeight, setAuthorsNoteHeight] = useState(200);
+
+    const memoryTextAreaRef = useRef<HTMLTextAreaElement>(null);
+    const authorsNoteTextAreaRef = useRef<HTMLTextAreaElement>(null);
+
+    const handleMemoryResize = (event: SyntheticEvent<HTMLTextAreaElement>) => {
+        if (memoryTextAreaRef.current) {
+            setMemoryHeight(memoryTextAreaRef.current.offsetHeight);
+        }
+    };
+    const handleAuthorsNoteResize = (event: SyntheticEvent<HTMLTextAreaElement>) => {
+        if (authorsNoteTextAreaRef.current) {
+            setAuthorsNoteHeight(authorsNoteTextAreaRef.current.offsetHeight);
+        }
+    };
+
     return (
         <DialogTrigger>
             <Button size="icon" aria-label='Start a new conversation'><Edit /></Button>
@@ -103,22 +122,27 @@ const ContextDialogButton = (props: ContextDialogProps) => {
                             <DialogTitle>Edit Context</DialogTitle>
                         </DialogHeader>
 
-                        <div className='grid gap-2'>
+                        <div className='grid gap-2' style={{ width: '100%' }}
+                        >
                             <span className="text-md font-medium">Memory:</span>
                             <textarea
                                 className="sidebar-text-field"
+                                ref={memoryTextAreaRef}
                                 value={props.memory}
                                 onChange={props.handleSetMemory}
-                                style={{ width: '100%' }}
+                                style={{ width: '100%', height: `${memoryHeight}px` }}
+                                onResize={handleMemoryResize}
                             />
                         </div>
                         <div className='grid gap-2'>
                             <span className="text-md font-medium">Author's Note:</span>
                             <textarea
                                 className="sidebar-text-field"
+                                ref={authorsNoteTextAreaRef}
                                 value={props.authorsNote}
                                 onChange={props.handleSetAuthorsNote}
-                                style={{ width: '100%' }}
+                                style={{ width: '100%', height: `${authorsNoteHeight}px` }}
+                                onResize={handleAuthorsNoteResize}
                             />
                         </div>
                     </>)}
