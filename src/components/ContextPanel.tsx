@@ -14,7 +14,6 @@ import Edit from '@spectrum-icons/workflow/Edit';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import { storageManager, Conversation } from '../storage';
-import { TextArea } from 'react-aria-components';
 
 const ContextPanel = () => {
     const [contextUpdatedCounter, setContextUpdatedCounter] = useState(0);
