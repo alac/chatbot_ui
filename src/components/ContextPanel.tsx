@@ -10,11 +10,9 @@ import {
 import { Button } from "../ui/button"
 import { Tab, TabList, TabPanel, Tabs } from "../ui/tabs"
 import Edit from '@spectrum-icons/workflow/Edit';
+import TextareaAutosize from 'react-textarea-autosize';
 
 import { storageManager, Conversation } from '../storage';
-import { SyntheticEvent } from 'react';
-import { TextAreaProps } from 'react-aria-components';
-
 
 const ContextPanel = () => {
     const [contextUpdatedCounter, setContextUpdatedCounter] = useState(0);
@@ -63,7 +61,7 @@ const ContextPanel = () => {
                         <Tab id="AuthorsNote">Author's Note</Tab>
                     </TabList>
                     <TabPanel id="Memory" className="mt-0">
-                        <textarea
+                        <TextareaAutosize
                             className="sidebar-text-field"
                             value={memoryValue}
                             onChange={handleMemoryInputChange}
@@ -71,7 +69,7 @@ const ContextPanel = () => {
                         />
                     </TabPanel>
                     <TabPanel id="AuthorsNote" className="mt-0">
-                        <textarea
+                        <TextareaAutosize
                             className="sidebar-text-field"
                             value={authorsNote}
                             onChange={handleAuthorsNoteInputChange}
@@ -85,7 +83,6 @@ const ContextPanel = () => {
     );
 };
 
-
 interface ContextDialogProps {
     memory: string;
     handleSetMemory: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
@@ -95,23 +92,6 @@ interface ContextDialogProps {
 
 
 const ContextDialogButton = (props: ContextDialogProps) => {
-    const [memoryHeight, setMemoryHeight] = useState(200);
-    const [authorsNoteHeight, setAuthorsNoteHeight] = useState(200);
-
-    const memoryTextAreaRef = useRef<HTMLTextAreaElement>(null);
-    const authorsNoteTextAreaRef = useRef<HTMLTextAreaElement>(null);
-
-    const handleMemoryResize = (event: SyntheticEvent<HTMLTextAreaElement>) => {
-        if (memoryTextAreaRef.current) {
-            setMemoryHeight(memoryTextAreaRef.current.offsetHeight);
-        }
-    };
-    const handleAuthorsNoteResize = (event: SyntheticEvent<HTMLTextAreaElement>) => {
-        if (authorsNoteTextAreaRef.current) {
-            setAuthorsNoteHeight(authorsNoteTextAreaRef.current.offsetHeight);
-        }
-    };
-
     return (
         <DialogTrigger>
             <Button size="icon" aria-label='Start a new conversation'><Edit /></Button>
@@ -125,24 +105,20 @@ const ContextDialogButton = (props: ContextDialogProps) => {
                         <div className='grid gap-2' style={{ width: '100%' }}
                         >
                             <span className="text-md font-medium">Memory:</span>
-                            <textarea
+                            <TextareaAutosize
                                 className="sidebar-text-field"
-                                ref={memoryTextAreaRef}
                                 value={props.memory}
                                 onChange={props.handleSetMemory}
-                                style={{ width: '100%', height: `${memoryHeight}px` }}
-                                onResize={handleMemoryResize}
+                                style={{ width: '100%' }}
                             />
                         </div>
                         <div className='grid gap-2'>
                             <span className="text-md font-medium">Author's Note:</span>
-                            <textarea
+                            <TextareaAutosize
                                 className="sidebar-text-field"
-                                ref={authorsNoteTextAreaRef}
                                 value={props.authorsNote}
                                 onChange={props.handleSetAuthorsNote}
-                                style={{ width: '100%', height: `${authorsNoteHeight}px` }}
-                                onResize={handleAuthorsNoteResize}
+                                style={{ width: '100%' }}
                             />
                         </div>
                     </>)}
