@@ -17,10 +17,12 @@ import ConversationsPanel from './components/ConversationsPanel';
 import ConnectionPanel from './components/ConnectionPanel';
 import ContextPanel from './components/ContextPanel';
 
+import SwitchableChatbox from './components/Chatbox/SwitchableChatbox';
+import { ConversationChatboxMethods } from './components/Chatbox/ConversationChatbox';
 
 
 function App() {
-  const virtuosoChatbox = React.useRef<VirtuosoMessageListMethods<Message>>(null)
+  const chatboxRef = useRef<ConversationChatboxMethods>(null);
 
   const [conversationId, setConversationId] = useState("");
   useEffect(() => {
@@ -30,20 +32,16 @@ function App() {
       }
     }
     storageManager.rerenderConversationCallback = () => {
-      // TODO: UPDATE MESSAGES
-
-      // virtuosoChatbox.current?.data.map((message: Message) => {
-      //   const updatedMessage = storageManager.getMessage(message.key)
-      //   if (updatedMessage != null) {
-      //     return updatedMessage;
-      //   }
-      //   return message; // unreachable 
-      // },
-      //   'smooth'
-      // )
+      chatboxRef.current?.updateMessages((message: Message) => {
+        const updatedMessage = storageManager.getMessage(message.key)
+        if (updatedMessage != null) {
+          return updatedMessage;
+        }
+        return message; // unreachable 
+      });
     }
     storageManager.deletedMessageCallback = (deleteKey: string) => {
-      // TODO: DELETE MESSAGE
+      chatboxRef.current?.deleteMessage(deleteKey);
     }
     return () => {
       storageManager.conversationLoadedCallback = null;
@@ -58,18 +56,7 @@ function App() {
         <Panel>
           <PanelGroup direction="horizontal">
             <Panel className="messages-container">
-              <VirtuosoMessageListLicense licenseKey="">
-                <VirtuosoMessageList<Message, null>
-                  ref={virtuosoChatbox}
-                  style={{ maxHeight: "100%", minHeight: "100%" }}
-                  computeItemKey={(data: Message) => data.key}
-                  initialLocation={{ index: 'LAST', align: 'end' }}
-                  shortSizeAlign="bottom-smooth"
-                  ItemContent={ItemContent}
-                  key={conversationId}
-                  initialData={storageManager.currentConversation.messages}
-                />
-              </VirtuosoMessageListLicense>
+              <SwitchableChatbox ref={chatboxRef} implementation="virtuoso" conversationId={conversationId} />
             </Panel>
             <PanelResizeHandle />
             <Panel defaultSize={20} minSize={1} className="sidebar-container" style={{ overflow: 'auto' }}>
@@ -87,7 +74,7 @@ function App() {
         </Panel>
         <PanelResizeHandle />
         <Panel defaultSize={10} minSize={1} className="bottom-container">
-          <BottomContainer virtuosoChatbox={virtuosoChatbox} />
+          <BottomContainer chatboxRef={chatboxRef} />
         </Panel>
       </PanelGroup>
     </div>
@@ -99,11 +86,11 @@ function App() {
 
 
 interface BottomContainerProps {
-  virtuosoChatbox: React.RefObject<VirtuosoMessageListMethods<Message, any>>;
+  chatboxRef: React.RefObject<ConversationChatboxMethods>;
 }
 
 
-const BottomContainer = ({ virtuosoChatbox }: BottomContainerProps) => {
+const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
   const [inputValue, setInputValue] = useState('');
   const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(event.target.value);
@@ -128,6 +115,14 @@ const BottomContainer = ({ virtuosoChatbox }: BottomContainerProps) => {
       storageManager.updateMessage(userMessage)
 
       // TODO: APPEND MESSAGE
+      chatboxRef.current?.appendMessage(userMessage)
+      // virtuosoChatbox.current?.data.append([message], ({ scrollInProgress, atBottom }: { scrollInProgress: boolean; atBottom: boolean }) => {
+      //   return {
+      //       index: 'LAST',
+      //       align: 'end',
+      //       behavior: atBottom || scrollInProgress ? 'smooth' : 'auto',
+      //   }
+      // })
     }
     setInputValue("")
 
@@ -144,7 +139,8 @@ const BottomContainer = ({ virtuosoChatbox }: BottomContainerProps) => {
       }
       storageManager.updateMessage(botMessage)
       // TODO: APPEND MESSAGE
-      virtuosoChatbox.current?.data.append([botMessage])
+      chatboxRef.current?.appendMessage(botMessage)
+      // virtuosoChatbox.current?.data.append([botMessage])
 
       const prompt = await buildPrompt(
         storageManager.currentConversation,

@@ -10,11 +10,11 @@ const implementations = {
 
 type ImplementationKey = keyof typeof implementations;
 
-interface SwitchableComponentProps extends ConversationChatboxProps {
+interface SwitchableChatboxProps extends ConversationChatboxProps {
     implementation?: ImplementationKey;
 }
 
-const SwitchableComponent = forwardRef<ConversationChatboxMethods, SwitchableComponentProps>(
+const SwitchableChatbox = forwardRef<ConversationChatboxMethods, SwitchableChatboxProps>(
     ({ implementation = 'virtuoso', ...props }, ref) => {
         const SelectedImplementation = implementations[implementation] || VirtuosoConversationChatbox;
 
@@ -22,4 +22,4 @@ const SwitchableComponent = forwardRef<ConversationChatboxMethods, SwitchableCom
     }
 );
 
-export default SwitchableComponent;
+export default SwitchableChatbox;
