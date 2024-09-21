@@ -862,10 +862,6 @@ body {
           user-select: none;
 }
 
-.resize {
-  resize: both;
-}
-
 .grid-cols-5 {
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
