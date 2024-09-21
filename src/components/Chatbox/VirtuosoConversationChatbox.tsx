@@ -7,8 +7,8 @@ import Compare from '@spectrum-icons/workflow/Compare';
 import { DialogContent, DialogHeader, DialogOverlay, DialogTitle, DialogTrigger, } from "../../ui/dialog"
 import { Button } from "../../ui/button"
 
-import { storageManager, compressString, Message, decompressString } from '../../storage';
-import { ConversationChatboxMethods, ConversationChatboxProps, ConversationChatboxRef } from './ConversationChatbox';
+import { storageManager, Message, decompressString } from '../../storage';
+import { ConversationChatboxMethods, ConversationChatboxProps } from './ConversationChatbox';
 
 
 const VirtuosoConversationChatbox = forwardRef<ConversationChatboxMethods, ConversationChatboxProps>((props: ConversationChatboxProps, ref) => {

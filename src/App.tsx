@@ -1,16 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { VirtuosoMessageListProps, VirtuosoMessageListMethods, VirtuosoMessageList, VirtuosoMessageListLicense } from '@virtuoso.dev/message-list';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
-import { DialogContent, DialogHeader, DialogOverlay, DialogTitle, DialogTrigger, } from "./ui/dialog"
 import { Button } from "./ui/button"
 import { Tooltip, TooltipTrigger } from "./ui/tooltip"
-import Delete from '@spectrum-icons/workflow/Delete';
-import Deselect from '@spectrum-icons/workflow/Deselect';
-import Compare from '@spectrum-icons/workflow/Compare';
 
 import './App.css';
 import { generate, buildPrompt, generateSettingsManager } from './generate';
-import { storageManager, compressString, Message, decompressString } from './storage';
+import { storageManager, compressString, Message } from './storage';
 
 import LorebookPanel from './components/LorebookPanel';
 import ConversationsPanel from './components/ConversationsPanel';
@@ -114,15 +109,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
       }
       storageManager.updateMessage(userMessage)
 
-      // TODO: APPEND MESSAGE
       chatboxRef.current?.appendMessage(userMessage)
-      // virtuosoChatbox.current?.data.append([message], ({ scrollInProgress, atBottom }: { scrollInProgress: boolean; atBottom: boolean }) => {
-      //   return {
-      //       index: 'LAST',
-      //       align: 'end',
-      //       behavior: atBottom || scrollInProgress ? 'smooth' : 'auto',
-      //   }
-      // })
     }
     setInputValue("")
 
@@ -138,9 +125,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         isDisabled: false,
       }
       storageManager.updateMessage(botMessage)
-      // TODO: APPEND MESSAGE
       chatboxRef.current?.appendMessage(botMessage)
-      // virtuosoChatbox.current?.data.append([botMessage])
 
       const prompt = await buildPrompt(
         storageManager.currentConversation,

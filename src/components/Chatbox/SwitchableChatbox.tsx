@@ -1,6 +1,6 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import VirtuosoConversationChatbox from './VirtuosoConversationChatbox';
-import { ConversationChatboxMethods, ConversationChatboxProps, ConversationChatboxRef } from './ConversationChatbox';
+import { ConversationChatboxMethods, ConversationChatboxProps } from './ConversationChatbox';
 
 
 const implementations = {
