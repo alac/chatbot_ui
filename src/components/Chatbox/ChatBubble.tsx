@@ -41,7 +41,7 @@ const ChatBubble = ({ data }: { data: Message }) => {
 
     const ownMessage = data.userId === 'user'
     return (
-        <div style={{ paddingBottom: '1rem', display: 'flex' }}>
+        <div style={{ paddingBottom: '1rem', display: 'flex' }} key={data.key} >
             <div
                 style={{
                     minWidth: '200px',

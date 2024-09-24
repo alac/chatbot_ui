@@ -10,7 +10,7 @@ const NaiveConversationChatbox = forwardRef<ConversationChatboxMethods, Conversa
 
     useImperativeHandle(ref, () => ({
         appendMessage: (message: Message) => {
-            setMessageList([...messageList, message])
+            setMessageList((v) => [...v, message])
         },
         deleteMessage: (messageKey: string) => {
             setMessageList(messageList.filter((message: Message) => message.key !== messageKey))
@@ -24,7 +24,8 @@ const NaiveConversationChatbox = forwardRef<ConversationChatboxMethods, Conversa
         <div
             style={{ maxHeight: "100%", minHeight: "100%", overflowY: "scroll" }}
         >
-            {messageList.map((m: Message, index: number) => {
+            {/* this is a hack since, when sending a messages, the new user message gets added twice... somehow */}
+            {storageManager.currentConversation.messages.map((m: Message, index: number) => {
                 if (m === undefined) {
                     return <></>;
                 }
