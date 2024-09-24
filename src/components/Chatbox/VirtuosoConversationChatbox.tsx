@@ -37,7 +37,6 @@ const VirtuosoConversationChatbox = forwardRef<ConversationChatboxMethods, Conve
             initialLocation={{ index: 'LAST', align: 'end' }}
             shortSizeAlign="bottom-smooth"
             ItemContent={ItemContent}
-            key={props.conversationId}
             initialData={storageManager.currentConversation.messages}
         />
     </VirtuosoMessageListLicense>;

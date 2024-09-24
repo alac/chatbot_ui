@@ -1,5 +1,4 @@
-import React, { forwardRef, useImperativeHandle } from 'react';
-import { VirtuosoMessageListProps, VirtuosoMessageListMethods, VirtuosoMessageList, VirtuosoMessageListLicense } from '@virtuoso.dev/message-list';
+import { forwardRef, useImperativeHandle, useState } from 'react';
 
 import { storageManager, Message } from '../../storage';
 import { ConversationChatboxMethods, ConversationChatboxProps } from './ConversationChatbox';
@@ -7,43 +6,33 @@ import { ConversationChatboxMethods, ConversationChatboxProps } from './Conversa
 import { ChatBubble } from './ChatBubble';
 
 const NaiveConversationChatbox = forwardRef<ConversationChatboxMethods, ConversationChatboxProps>((props: ConversationChatboxProps, ref) => {
-    const virtuosoChatbox = React.useRef<VirtuosoMessageListMethods<Message>>(null)
+    const [messageList, setMessageList] = useState<Message[]>(storageManager.currentConversation.messages)
 
     useImperativeHandle(ref, () => ({
         appendMessage: (message: Message) => {
-            virtuosoChatbox.current?.data.append([message], ({ scrollInProgress, atBottom }: { scrollInProgress: boolean; atBottom: boolean }) => {
-                return {
-                    index: 'LAST',
-                    align: 'end',
-                    behavior: atBottom || scrollInProgress ? 'smooth' : 'auto',
-                }
-            })
+            setMessageList([...messageList, message])
         },
         deleteMessage: (messageKey: string) => {
-            virtuosoChatbox.current?.data.findAndDelete((message: Message, index: number): boolean => {
-                return message.key === messageKey;
-            })
+            setMessageList(messageList.filter((message: Message) => message.key !== messageKey))
         },
         updateMessages: (callback: (message: Message) => Message) => {
-            virtuosoChatbox.current?.data.map(callback, 'smooth')
+            setMessageList(messageList.map(callback))
         },
     }));
 
-    return <VirtuosoMessageListLicense licenseKey="">
-        <VirtuosoMessageList<Message, null>
-            ref={virtuosoChatbox}
-            style={{ maxHeight: "100%", minHeight: "100%" }}
-            computeItemKey={(data: Message) => data.key}
-            initialLocation={{ index: 'LAST', align: 'end' }}
-            shortSizeAlign="bottom-smooth"
-            ItemContent={ItemContent}
-            key={props.conversationId}
-            initialData={storageManager.currentConversation.messages}
-        />
-    </VirtuosoMessageListLicense>;
+    return <>
+        <div
+            style={{ maxHeight: "100%", minHeight: "100%", overflowY: "scroll" }}
+        >
+            {messageList.map((m: Message, index: number) => {
+                if (m === undefined) {
+                    return <></>;
+                }
+                return <ChatBubble data={m} />
+            })}
+        </div>
+    </>
 });
-
-const ItemContent: VirtuosoMessageListProps<Message, null>['ItemContent'] = ChatBubble;
 
 
 export default NaiveConversationChatbox;

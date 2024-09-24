@@ -18,7 +18,6 @@ interface ConversationChatboxMethods {
 }
 
 interface ConversationChatboxProps {
-    conversationId: string;
 }
 
 type ConversationChatboxRef = React.RefObject<ConversationChatboxMethods>;
