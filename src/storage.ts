@@ -78,18 +78,35 @@ interface Message {
 
 const isMessage = (obj: any): obj is Message => {
     return (
-        typeof obj === 'object' &&
-        obj !== null &&
-        ['user', 'bot'].includes(obj.userId) &&
-        typeof obj.username === 'string' &&
-        typeof obj.key === 'string' &&
-        typeof obj.text === 'string' &&
-        (obj.tokenCount === null || typeof obj.tokenCount === 'number') &&
-        typeof obj.text === 'string' &&
-        typeof obj.compressedPrompt === 'string' &&
-        typeof obj.isDisabled === 'boolean'
+        typeof obj === 'object' && obj !== null &&
+        'userId' in obj && ['user', 'bot'].includes(obj.userId) &&
+        'username' in obj && typeof obj.username === 'string' &&
+        'key' in obj && typeof obj.key === 'string' &&
+        'text' in obj && typeof obj.text === 'string' &&
+        'tokenCount' in obj && (obj.tokenCount === null || typeof obj.tokenCount === 'number') &&
+        'compressedPrompt' in obj && typeof obj.compressedPrompt === 'string' &&
+        'isDisabled' in obj && typeof obj.isDisabled === 'boolean'
     );
 };
+
+
+interface EditEvent {
+    editId: number;
+    type: 'add' | 'delete' | 'update';
+    message: Partial<Message> & { key: string };
+}
+
+
+const isEditEvent = (obj: any): obj is EditEvent => {
+    return (
+        typeof obj === 'object' && obj !== null &&
+        'editId' in obj && typeof obj.editId === 'number' &&
+        'type' in obj && ['add', 'delete', 'update'].includes(obj.type) &&
+        'message' in obj && typeof obj.message === 'object' &&
+        'key' in obj.message && typeof obj.message.key === 'string'
+    );
+};
+
 
 interface Lorebook {
     lorebookId: string;
