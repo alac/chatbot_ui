@@ -153,7 +153,7 @@ function breakStringIntoSubstrings(str: string): string[] {
 }
 
 
-async function buildPrompt(conversation: Conversation, generateParameters: GenerateParameters, connectionSettings: AnyConnectionSettings): Promise<string> {
+async function buildPrompt(allMessages: Message[], conversation: Conversation, generateParameters: GenerateParameters, connectionSettings: AnyConnectionSettings): Promise<string> {
     // the latest message should _already_ be a part of the conversation
     // ... actually, maybe not. let's let the most recent message be _injected_ on the fly. for stuff like AGENT commands/chained prompts.
 
@@ -179,8 +179,8 @@ async function buildPrompt(conversation: Conversation, generateParameters: Gener
 
     const messageFormattingCost = 4;
     var indexFromEnd = 0;
-    while ((conversation.messages.length - indexFromEnd - 1) >= 0) {
-        const message = conversation.messages[conversation.messages.length - indexFromEnd - 1]
+    while ((allMessages.length - indexFromEnd - 1) >= 0) {
+        const message = allMessages[allMessages.length - indexFromEnd - 1]
         if (!message.isDisabled) {
             if (message.tokenCount == null) {
                 message.tokenCount = await cachedTokenCount(message.text, connectionSettings)
@@ -215,7 +215,7 @@ async function buildPrompt(conversation: Conversation, generateParameters: Gener
         }
         indexFromEnd += 1
     }
-    var messages = conversation.messages.slice(-indexFromEnd).map((message: Message) => {
+    var messages = allMessages.slice(-indexFromEnd).map((message: Message) => {
         if (message.isDisabled) {
             return ""
         }

@@ -32,7 +32,7 @@ const NaiveConversationChatbox = forwardRef<ConversationChatboxMethods, Conversa
             ref={messageListRef}
             style={{ maxHeight: "100%", minHeight: "100%", overflowY: "scroll" }}
         >
-            {storageManager.currentConversation.messages.map((m: Message, _index: number) => {
+            {storageManager.messagesCurrent.map((m: Message, _index: number) => {
                 if (m === undefined) {
                     return <></>;
                 }

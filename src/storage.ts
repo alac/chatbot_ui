@@ -7,18 +7,14 @@ interface Conversation {
     displayName: string;
     username: string;
     botName: string;
-    messages: Message[];
-    messagesPrev: Message[];
     editEvents: EditEvent[];
+    editEventsRedoQueue: EditEvent[];
     nextMessageId: number;
     memory: string;
     authorNote: string;
     authorNotePosition: number;
     promptFormat: string;
     lorebookIds: string[];
-    // connectionId: string;
-    // generateSettingsId: string;
-    // enabledPromptIds: string[]
 }
 
 function NewConversation(displayName: string, id: string): Conversation {
@@ -27,9 +23,8 @@ function NewConversation(displayName: string, id: string): Conversation {
         displayName: displayName,
         username: "User",
         botName: "Bot",
-        messages: [],
-        messagesPrev: [],
         editEvents: [],
+        editEventsRedoQueue: [],
         nextMessageId: 0,
         memory: "",
         authorNote: "[Note: this is a conversation]\n",
@@ -41,32 +36,22 @@ function NewConversation(displayName: string, id: string): Conversation {
 
 export function isConversation(obj: any): obj is Conversation {
     return (
-        typeof obj === 'object' &&
-        obj !== null &&
-        'conversationId' in obj &&
-        typeof obj.conversationId === 'string' &&
-        'displayName' in obj &&
-        typeof obj.displayName === 'string' &&
-        'username' in obj &&
-        typeof obj.username === 'string' &&
-        'botName' in obj &&
-        typeof obj.botName === 'string' &&
-        'messages' in obj &&
-        Array.isArray(obj.messages) &&
-        obj.messages.every((message: any) => isMessage(message)) &&
-        'nextMessageId' in obj &&
-        typeof obj.nextMessageId === 'number' &&
-        'memory' in obj &&
-        typeof obj.memory === 'string' &&
-        'authorNote' in obj &&
-        typeof obj.authorNote === 'string' &&
-        'authorNotePosition' in obj &&
-        typeof obj.authorNotePosition === 'number' &&
-        'promptFormat' in obj &&
-        typeof obj.promptFormat === 'string' &&
-        'lorebookIds' in obj &&
-        Array.isArray(obj.lorebookIds) &&
-        obj.lorebookIds.every((id: any) => typeof id === 'string')
+        typeof obj === 'object' && obj !== null &&
+        'conversationId' in obj && typeof obj.conversationId === 'string' &&
+        'displayName' in obj && typeof obj.displayName === 'string' &&
+        'username' in obj && typeof obj.username === 'string' &&
+        'botName' in obj && typeof obj.botName === 'string' &&
+        ('editEvents' in obj && Array.isArray(obj.editEvents) &&
+            obj.editEvents.every((editEvent: any) => isEditEvent(editEvent))) &&
+        ('editEventsRedoQueue' in obj && Array.isArray(obj.editEventsRedoQueue) &&
+            obj.editEventsRedoQueue.every((editEvent: any) => isEditEvent(editEvent))) &&
+        'nextMessageId' in obj && typeof obj.nextMessageId === 'number' &&
+        'memory' in obj && typeof obj.memory === 'string' &&
+        'authorNote' in obj && typeof obj.authorNote === 'string' &&
+        'authorNotePosition' in obj && typeof obj.authorNotePosition === 'number' &&
+        'promptFormat' in obj && typeof obj.promptFormat === 'string' &&
+        ('lorebookIds' in obj && Array.isArray(obj.lorebookIds) &&
+            obj.lorebookIds.every((id: any) => typeof id === 'string'))
     );
 }
 
@@ -101,8 +86,8 @@ interface EditEvent {
 
 enum EventType {
     Add = 'add',
-    Update = 'delete',
-    Delete = 'update',
+    Update = 'update',
+    Delete = 'delete',
 }
 
 interface EditEventAdd extends EditEvent {
@@ -115,8 +100,8 @@ const isEditEventAdd = (obj: any): obj is EditEventAdd => {
     return (
         typeof obj === 'object' && obj !== null &&
         'editId' in obj && typeof obj.editId === 'number' &&
-        'type' in obj && ['add'].includes(obj.type) &&
-        'message' in obj && typeof obj.message === 'object' && isMessage(obj.message)
+        'type' in obj && [EventType.Add].includes(obj.type)
+        && 'addMessage' in obj && typeof obj.addMessage === 'object' && isMessage(obj.addMessage)
     );
 };
 
@@ -130,9 +115,9 @@ const isEditEventUpdate = (obj: any): obj is EditEventUpdate => {
     return (
         typeof obj === 'object' && obj !== null &&
         'editId' in obj && typeof obj.editId === 'number' &&
-        'type' in obj && ['update'].includes(obj.type) &&
-        'message' in obj && typeof obj.message === 'object' &&
-        'key' in obj.message && typeof obj.message.key === 'string'
+        'type' in obj && [EventType.Update].includes(obj.type) &&
+        'updateMessage' in obj && typeof obj.updateMessage === 'object' &&
+        'key' in obj.updateMessage && typeof obj.updateMessage.key === 'string'
     );
 };
 
@@ -146,7 +131,7 @@ const isEditEventDelete = (obj: any): obj is EditEventDelete => {
     return (
         typeof obj === 'object' && obj !== null &&
         'editId' in obj && typeof obj.editId === 'number' &&
-        'type' in obj && ['delete'].includes(obj.type) &&
+        'type' in obj && [EventType.Delete].includes(obj.type) &&
         'deleteKey' in obj && typeof obj.deleteKey === 'string'
     );
 };
@@ -155,8 +140,8 @@ const isEditEvent = (obj: any): obj is EditEvent => {
     return (
         typeof obj === 'object' && obj !== null &&
         'editId' in obj && typeof obj.editId === 'number' &&
-        'type' in obj && [EventType.Add, EventType.Delete, EventType.Update].includes(obj.type) &&
-        (isEditEventAdd(obj.message) || isEditEventUpdate(obj.message) || isEditEventDelete(obj.message))
+        'type' in obj && [EventType.Add, EventType.Delete, EventType.Update].includes(obj.type)
+        && (isEditEventAdd(obj) || isEditEventUpdate(obj) || isEditEventDelete(obj))
     );
 };
 
@@ -232,7 +217,7 @@ const isStorageState = (obj: unknown): obj is StorageState => {
         ("connectionSettingsById" in obj &&
             (obj.connectionSettingsById instanceof Map))
     ) === false) {
-        console.log("type failed")
+        console.log("isStorageState typeguard failed")
         return false;
     }
 
@@ -296,6 +281,8 @@ const STORAGE_STATE_KEY = "STORAGE_STATE"
 
 class StorageManager {
     storageState: StorageState;
+    messagesCurrent: Message[];
+    messagesPrevious: Message[];
     currentConversation: Conversation;
     conversationLoadedCallback: (() => void) | null; // Conversation made active.
     conversationLifecycleCallback: (() => void) | null; // Conversation loaded from datastore, created, deleted, or made active.
@@ -308,6 +295,9 @@ class StorageManager {
     lorebooks: Map<string, Lorebook>;
 
     constructor() {
+        const defaultConnections = new Map<string, DummyConnectionSettings | OpenAIConnectionSettings>()
+        defaultConnections.set("DUMMY", { type: "DUMMY", response: "Click the edit button on the connections panel to set-up a connection to the AI" })
+
         this.storageState = {
             currentConversationId: "",
             conversationIds: [],
@@ -315,8 +305,10 @@ class StorageManager {
             lorebookMaxInsertionCount: 10,
             lorebookMaxTokens: 1000,
             currentConnectionSettingsId: "DUMMY",
-            connectionSettingsById: new Map<string, DummyConnectionSettings | OpenAIConnectionSettings>()
+            connectionSettingsById: defaultConnections
         }
+        this.messagesCurrent = [];
+        this.messagesPrevious = [];
         this.currentConversation = NewConversation("", this.newConversationDBKey());
         this.conversations = new Map<string, Conversation>();
         this.lorebooks = new Map<string, Lorebook>();
@@ -337,8 +329,8 @@ class StorageManager {
         ]).then(() => {
             localforage.getItem(STORAGE_STATE_KEY, (err, readValue) => {
                 if (isStorageState(readValue)) {
-                    this.storageState = readValue;
-                    this.updateConnectionsPanelCallback?.();
+                    this.storageState = readValue
+                    this.updateConnectionsPanelCallback?.()
                 } else {
                     console.log("isStorageState typeguard failed; value: ", readValue)
                 }
@@ -349,9 +341,11 @@ class StorageManager {
                 this.storageState.conversationIds.map((conversationId: string) => {
                     localforage.getItem(conversationId, (err, readValue) => {
                         if (isConversation(readValue)) {
-                            this.conversations.set(conversationId, readValue);
+                            this.conversations.set(conversationId, readValue)
                             if (this.storageState.currentConversationId !== null && this.storageState.currentConversationId === conversationId) {
-                                this.currentConversation = readValue;
+                                this.currentConversation = readValue
+                                this.messagesCurrent = this.applyEditEvents([], this.currentConversation.editEvents)
+                                this.messagesPrevious = [...this.messagesCurrent]
                                 this.conversationLoadedCallback?.()
                                 this.contextUpdatedCallback?.()
                             }
@@ -431,7 +425,7 @@ class StorageManager {
         if (this.conversations.has(conversationId)) {
             this.conversations.delete(conversationId)
         }
-        this.storageState.conversationIds = this.storageState.conversationIds.filter(item => item != conversationId)
+        this.storageState.conversationIds = this.storageState.conversationIds.filter(item => item !== conversationId)
         this.saveStorageState()
         localforage.removeItem(conversationId);
         this.conversationLifecycleCallback?.()
@@ -448,37 +442,37 @@ class StorageManager {
 
     updateMessage(message: Message, rerender: boolean = true): void {
         const messageId = message.key;
-        const allMessageIds = this.currentConversation.messages.map((someMessage: Message) => someMessage.key)
+        const allMessageIds = this.messagesCurrent.map((someMessage: Message) => someMessage.key)
         const index = allMessageIds.indexOf(messageId)
         if (index === -1) {
-            this.currentConversation.messages.push(message)
+            this.messagesCurrent.push(message)
             return
         }
-        this.currentConversation.messages[index] = message
+        this.messagesCurrent[index] = message
         if (this.rerenderConversationCallback && rerender) {
             this.rerenderConversationCallback()
         }
     }
 
     getMessage(messageId: string): Message | null {
-        const allMessageIds = this.currentConversation.messages.map((someMessage: Message) => someMessage.key)
+        const allMessageIds = this.messagesCurrent.map((someMessage: Message) => someMessage.key)
         const index = allMessageIds.indexOf(messageId)
         if (index === -1) {
             return null
         }
-        return this.currentConversation.messages[index]
+        return this.messagesCurrent[index]
     }
 
     deleteMessage(messageId: string): void {
-        const newMessageList = this.currentConversation.messages.filter((someMessage: Message) => someMessage.key !== messageId)
-        this.currentConversation.messages = newMessageList
+        const newMessageList = this.messagesCurrent.filter((someMessage: Message) => someMessage.key !== messageId)
+        this.messagesCurrent = newMessageList
         if (this.deletedMessageCallback) {
             this.deletedMessageCallback(messageId)
         }
     }
 
     createDeleteEditEvent(messageId: string): void {
-        const prevMatches = this.currentConversation.messagesPrev.filter((m: Message) => { m.key === messageId })
+        const prevMatches = this.messagesPrevious.filter((m: Message) => m.key === messageId)
         if (prevMatches.length === 0) {
             console.error("createUpdateEditEvent called for a message that does not have any match")
             return
@@ -496,7 +490,7 @@ class StorageManager {
     }
 
     createAddEditEvent(message: Message): void {
-        const prevMatches = this.currentConversation.messagesPrev.filter((m: Message) => { m.key === message.key })
+        const prevMatches = this.messagesPrevious.filter((m: Message) => m.key === message.key)
         if (prevMatches.length !== 0) {
             console.error("createAddEditEvent called for a message that already exists")
         }
@@ -510,7 +504,7 @@ class StorageManager {
     }
 
     createUpdateEditEvent(message: Partial<Message> & { key: string }): void {
-        const prevMatches = this.currentConversation.messagesPrev.filter((m: Message) => { m.key === message.key })
+        const prevMatches = this.messagesPrevious.filter((m: Message) => m.key === message.key)
         if (prevMatches.length === 0) {
             console.error("createUpdateEditEvent called for a message that does not have any match")
             return
@@ -521,6 +515,9 @@ class StorageManager {
 
         const prevMessage = prevMatches[0];
         const diffsMessage = getDifferences(prevMessage, message);
+        if (Object.keys(diffsMessage).length === 0) {
+            return
+        }
         const justKey = { key: message.key }
 
         const editEvent: EditEventUpdate = {
@@ -533,8 +530,9 @@ class StorageManager {
 
     commitEditEvents(editEvents: EditEvent[]): void {
         this.currentConversation.editEvents = [...this.currentConversation.editEvents, ...editEvents]
+        this.currentConversation.editEventsRedoQueue = []
         this.save()
-        this.applyEditEvents(this.currentConversation.messagesPrev, editEvents)
+        this.applyEditEvents(this.messagesPrevious, editEvents)
     }
 
     applyEditEvents(messages: Message[], editEvents: EditEvent[]): Message[] {
@@ -551,7 +549,7 @@ class StorageManager {
             if (isEditEventUpdate(editEvent)) {
                 const updateEvent: EditEventUpdate = editEvent;
                 messages = messages.map((m: Message) => {
-                    if (m.key == updateEvent.updateMessage.key) {
+                    if (m.key === updateEvent.updateMessage.key) {
                         return { ...m, ...updateEvent.updateMessage }
                     }
                     return m;

@@ -11,15 +11,23 @@ import { storageManager, Message, decompressString } from '../../storage';
 
 const ChatBubble = ({ data }: { data: Message }) => {
     const updateMessageText = (updatedText: string) => {
-        storageManager.updateMessage({ ...data, text: updatedText, tokenCount: null })
+        if (data.text === updatedText) {
+            return
+        }
+        const message = { ...data, text: updatedText, tokenCount: null }
+        storageManager.updateMessage(message, true)
+        storageManager.createUpdateEditEvent(message)
         storageManager.save()
     }
     const toggleDisabled = () => {
-        storageManager.updateMessage({ ...data, isDisabled: !data.isDisabled })
+        const message = { ...data, isDisabled: !data.isDisabled }
+        storageManager.updateMessage(message, true)
+        storageManager.createUpdateEditEvent(message)
         storageManager.save()
     }
     const deleteMessage = () => {
         storageManager.deleteMessage(data.key)
+        storageManager.createDeleteEditEvent(data.key)
         storageManager.save()
     }
     const [isEditing, setIsEditing] = useState(false);

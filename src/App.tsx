@@ -109,6 +109,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         isDisabled: false,
       }
       storageManager.updateMessage(userMessage)
+      storageManager.createAddEditEvent(userMessage)
 
       chatboxRef.current?.appendMessage(userMessage)
     }
@@ -129,6 +130,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
       chatboxRef.current?.appendMessage(botMessage)
 
       const prompt = await buildPrompt(
+        storageManager.messagesCurrent,
         storageManager.currentConversation,
         generateSettingsManager.currentGenerateSettings,
         storageManager.getCurrentConnectionSettings(),
@@ -145,6 +147,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         const newMessage = { ...oldMessage, text: oldMessage?.text + token }
         storageManager.updateMessage(newMessage)
         if (done) {
+          storageManager.createAddEditEvent(newMessage)
           storageManager.save()
         }
       }
