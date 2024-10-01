@@ -51,7 +51,8 @@ function App() {
         <Panel>
           <PanelGroup direction="horizontal">
             <Panel className="messages-container">
-              <SwitchableChatbox ref={chatboxRef} implementation="virtuoso" key={conversationId} />
+              {/* <SwitchableChatbox ref={chatboxRef} implementation="virtuoso" key={conversationId} /> */}
+              <SwitchableChatbox ref={chatboxRef} implementation="naive" key={conversationId} />
             </Panel>
             <PanelResizeHandle />
             <Panel defaultSize={20} minSize={1} className="sidebar-container" style={{ overflow: 'auto' }}>

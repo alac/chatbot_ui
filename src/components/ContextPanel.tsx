@@ -49,7 +49,7 @@ const ContextPanel = () => {
     return (
         <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
             <div className="flex items-center">
-                <span className="text-md font-medium">Context</span>
+                <span className="text-md font-medium">Conversation</span>
                 <div className="ml-auto">
                     <span className='corner-button'>
                         <ContextDialogButton memory={memoryValue} handleSetMemory={handleMemoryInputChange}
@@ -61,7 +61,7 @@ const ContextPanel = () => {
             <span className="text-sm">
                 <Tabs>
                     <TabList aria-label="Select Context Field">
-                        <Tab id="Memory">Memory</Tab>
+                        <Tab id="Memory">Description</Tab>
                         <Tab id="AuthorsNote">Author's Note</Tab>
                     </TabList>
                     <TabPanel id="Memory" className="mt-0">
@@ -123,20 +123,20 @@ const ContextDialogButton = (props: ContextDialogProps) => {
                 <DialogContent className="max-w-[40%] max-h-[90%] overflow-y-scroll" isDismissable={true}>
                     {({ close }) => (<>
                         <DialogHeader>
-                            <DialogTitle>Edit Context</DialogTitle>
+                            <DialogTitle>Edit Conversation</DialogTitle>
                         </DialogHeader>
 
                         <div className='grid gap-2' style={{ width: '100%' }}
                         >
                             <Checkbox defaultSelected={props.autoExpandPanelInputs}
                                 onChange={props.setAutoExpandPanelInputs}>
-                                Sidebar panel expands to fit Memory/Author's Note
+                                Sidebar panel expands to fit Description/Author's Note
                             </Checkbox>
                         </div>
 
                         <div className='grid gap-2' style={{ width: '100%' }}
                         >
-                            <span className="text-md font-medium">Memory:</span>
+                            <span className="text-md font-medium">Description:</span>
                             <TextareaAutosize
                                 className="sidebar-text-field"
                                 value={props.memory}

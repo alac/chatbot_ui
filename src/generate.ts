@@ -101,7 +101,7 @@ type TextCompletionChoice = {
 };
 
 async function generate(prompt: string, terminationStrings: string[], connectionSettings: AnyConnectionSettings, generateParameters: GenerateParameters, writeStream: ResponseWriter) {
-    console.log("Prompt: ", prompt)
+    // console.log("Prompt: ", prompt)
     if (connectionSettings.type === 'OPENAI' && isOpenAIConnectionSettings(connectionSettings)) {
         const url = connectionSettings.url + "/v1/completions"
         const response = await fetch(url, {
