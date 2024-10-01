@@ -8,6 +8,8 @@ interface Conversation {
     username: string;
     botName: string;
     messages: Message[];
+    messagesPrev: Message[];
+    editEvents: EditEvent[];
     nextMessageId: number;
     memory: string;
     authorNote: string;
@@ -26,6 +28,8 @@ function NewConversation(displayName: string, id: string): Conversation {
         username: "User",
         botName: "Bot",
         messages: [],
+        messagesPrev: [],
+        editEvents: [],
         nextMessageId: 0,
         memory: "",
         authorNote: "[Note: this is a conversation]\n",
@@ -92,18 +96,67 @@ const isMessage = (obj: any): obj is Message => {
 
 interface EditEvent {
     editId: number;
-    type: 'add' | 'delete' | 'update';
-    message: Partial<Message> & { key: string };
+    type: EventType;
 }
 
+enum EventType {
+    Add = 'add',
+    Update = 'delete',
+    Delete = 'update',
+}
+
+interface EditEventAdd extends EditEvent {
+    editId: number;
+    type: EventType.Add;
+    addMessage: Message;
+}
+
+const isEditEventAdd = (obj: any): obj is EditEventAdd => {
+    return (
+        typeof obj === 'object' && obj !== null &&
+        'editId' in obj && typeof obj.editId === 'number' &&
+        'type' in obj && ['add'].includes(obj.type) &&
+        'message' in obj && typeof obj.message === 'object' && isMessage(obj.message)
+    );
+};
+
+interface EditEventUpdate extends EditEvent {
+    editId: number;
+    type: EventType.Update;
+    updateMessage: Partial<Message> & { key: string };
+}
+
+const isEditEventUpdate = (obj: any): obj is EditEventUpdate => {
+    return (
+        typeof obj === 'object' && obj !== null &&
+        'editId' in obj && typeof obj.editId === 'number' &&
+        'type' in obj && ['update'].includes(obj.type) &&
+        'message' in obj && typeof obj.message === 'object' &&
+        'key' in obj.message && typeof obj.message.key === 'string'
+    );
+};
+
+interface EditEventDelete extends EditEvent {
+    editId: number;
+    type: EventType.Delete;
+    deleteKey?: string;
+}
+
+const isEditEventDelete = (obj: any): obj is EditEventDelete => {
+    return (
+        typeof obj === 'object' && obj !== null &&
+        'editId' in obj && typeof obj.editId === 'number' &&
+        'type' in obj && ['delete'].includes(obj.type) &&
+        'deleteKey' in obj && typeof obj.deleteKey === 'string'
+    );
+};
 
 const isEditEvent = (obj: any): obj is EditEvent => {
     return (
         typeof obj === 'object' && obj !== null &&
         'editId' in obj && typeof obj.editId === 'number' &&
-        'type' in obj && ['add', 'delete', 'update'].includes(obj.type) &&
-        'message' in obj && typeof obj.message === 'object' &&
-        'key' in obj.message && typeof obj.message.key === 'string'
+        'type' in obj && [EventType.Add, EventType.Delete, EventType.Update].includes(obj.type) &&
+        (isEditEventAdd(obj.message) || isEditEventUpdate(obj.message) || isEditEventDelete(obj.message))
     );
 };
 
@@ -424,6 +477,90 @@ class StorageManager {
         }
     }
 
+    createDeleteEditEvent(messageId: string): void {
+        const prevMatches = this.currentConversation.messagesPrev.filter((m: Message) => { m.key === messageId })
+        if (prevMatches.length === 0) {
+            console.error("createUpdateEditEvent called for a message that does not have any match")
+            return
+        } else if (prevMatches.length > 1) {
+            console.error("createUpdateEditEvent called for a message that has multiple matches")
+            return
+        }
+
+        const editEvent: EditEventDelete = {
+            editId: this.currentConversation.editEvents.length,
+            type: EventType.Delete,
+            deleteKey: messageId,
+        }
+        this.commitEditEvents([editEvent])
+    }
+
+    createAddEditEvent(message: Message): void {
+        const prevMatches = this.currentConversation.messagesPrev.filter((m: Message) => { m.key === message.key })
+        if (prevMatches.length !== 0) {
+            console.error("createAddEditEvent called for a message that already exists")
+        }
+
+        const editEvent: EditEventAdd = {
+            editId: this.currentConversation.editEvents.length,
+            type: EventType.Add,
+            addMessage: message
+        }
+        this.commitEditEvents([editEvent])
+    }
+
+    createUpdateEditEvent(message: Partial<Message> & { key: string }): void {
+        const prevMatches = this.currentConversation.messagesPrev.filter((m: Message) => { m.key === message.key })
+        if (prevMatches.length === 0) {
+            console.error("createUpdateEditEvent called for a message that does not have any match")
+            return
+        } else if (prevMatches.length > 1) {
+            console.error("createUpdateEditEvent called for a message that has multiple matches")
+            return
+        }
+
+        const prevMessage = prevMatches[0];
+        const diffsMessage = getDifferences(prevMessage, message);
+        const justKey = { key: message.key }
+
+        const editEvent: EditEventUpdate = {
+            editId: this.currentConversation.editEvents.length,
+            type: EventType.Update,
+            updateMessage: { ...diffsMessage, ...justKey }
+        }
+        this.commitEditEvents([editEvent])
+    }
+
+    commitEditEvents(editEvents: EditEvent[]): void {
+        this.currentConversation.editEvents = [...this.currentConversation.editEvents, ...editEvents]
+        this.save()
+        this.applyEditEvents(this.currentConversation.messagesPrev, editEvents)
+    }
+
+    applyEditEvents(messages: Message[], editEvents: EditEvent[]): Message[] {
+        for (var i = 0; i < editEvents.length; i++) {
+            const editEvent = editEvents[i]
+            if (isEditEventAdd(editEvent)) {
+                const addEvent: EditEventAdd = editEvent;
+                messages.push(addEvent.addMessage);
+            }
+            if (isEditEventDelete(editEvent)) {
+                const deleteEvent: EditEventDelete = editEvent;
+                messages = messages.filter((m: Message) => m.key !== deleteEvent.deleteKey)
+            }
+            if (isEditEventUpdate(editEvent)) {
+                const updateEvent: EditEventUpdate = editEvent;
+                messages = messages.map((m: Message) => {
+                    if (m.key == updateEvent.updateMessage.key) {
+                        return { ...m, ...updateEvent.updateMessage }
+                    }
+                    return m;
+                })
+            }
+        }
+        return messages;
+    }
+
     createLorebook(lorebookName: string): LorebookId {
         const lorebookId: LorebookId = "LO_" + uuidv4();
         const lorebook: Lorebook = {
@@ -534,6 +671,19 @@ class StorageManager {
     newUUID(): string {
         return uuidv4();
     }
+}
+
+
+// Get a partial object with differences from object B compared to object A
+function getDifferences<T extends Object>(objectA: T, objectB: T): Partial<T> {
+    return Object.keys(objectB).reduce((diffs, key) => {
+        const keyCasted = key as keyof typeof objectB; // Type assertion for key safety
+        if (objectA[keyCasted] !== objectB[keyCasted]) {
+            // @ts-ignore - Ignoring potential index signature errors for brevity 
+            diffs[keyCasted] = objectB[keyCasted];
+        }
+        return diffs;
+    }, {} as Partial<T>);
 }
 
 
