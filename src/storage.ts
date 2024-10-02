@@ -568,7 +568,7 @@ class StorageManager {
         }
         this.currentConversation.editEventsRedoQueue.push(lastEvent)
         this.messagesCurrent = this.applyEditEvents([], this.currentConversation.editEvents)
-        this.messagesPrevious = [... this.messagesCurrent]
+        this.messagesPrevious = [...this.messagesCurrent]
         return true;
     }
 
@@ -579,7 +579,7 @@ class StorageManager {
         }
         this.currentConversation.editEvents.push(lastEvent)
         this.messagesCurrent = this.applyEditEvents([], this.currentConversation.editEvents)
-        this.messagesPrevious = [... this.messagesCurrent]
+        this.messagesPrevious = [...this.messagesCurrent]
         return true;
     }
 
