@@ -4,6 +4,7 @@ import { Button } from "./ui/button"
 import { Tooltip, TooltipTrigger } from "./ui/tooltip"
 import Undo from '@spectrum-icons/workflow/Undo';
 import Redo from '@spectrum-icons/workflow/Redo';
+import Refresh from '@spectrum-icons/workflow/Refresh';
 
 
 import './App.css';
@@ -95,12 +96,12 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
     setInputValue(event.target.value);
   };
 
-  const sendChatMessage = () => {
+  const sendChatMessage = (isRetry: boolean) => {
     if (storageManager.storageState.currentConversationId === "") {
       storageManager.newConversation("Default Conversation")
     }
 
-    if (inputValue !== '') {
+    if (inputValue !== '' && !isRetry) {
       const userMessageId = `${storageManager.consumeMessageId()}`
       const userMessage: Message = {
         userId: 'user',
@@ -115,11 +116,20 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
       storageManager.createAddEditEvent(userMessage)
 
       chatboxRef.current?.appendMessage(userMessage)
+      setInputValue("")
     }
-    setInputValue("")
+
+    var botMessageId = `${storageManager.consumeMessageId()}`
+    if (isRetry) {
+      const lastMessage = storageManager.messagesCurrent.at(-1)
+      if (lastMessage?.userId === 'bot') {
+        botMessageId = lastMessage.key
+      } else {
+        return
+      }
+    }
 
     setTimeout(async () => {
-      const botMessageId = `${storageManager.consumeMessageId()}`
       const botMessage: Message = {
         userId: 'bot',
         username: storageManager.currentConversation.botName,
@@ -150,7 +160,13 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         const newMessage = { ...oldMessage, text: oldMessage?.text + token }
         storageManager.updateMessage(newMessage)
         if (done) {
-          storageManager.createAddEditEvent(newMessage)
+          if (isRetry) {
+            console.log("createUpdateEditEvent")
+            storageManager.createUpdateEditEvent(newMessage)
+          } else {
+            console.log("createAddEditEvent")
+            storageManager.createAddEditEvent(newMessage)
+          }
           storageManager.save()
         }
       }
@@ -183,7 +199,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.shiftKey && event.key === 'Enter') {
-      sendChatMessage()
+      sendChatMessage(false)
     }
   };
 
@@ -199,7 +215,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         />
         <div className="command-container">
           <TooltipTrigger>
-            <Button onPress={() => sendChatMessage()}>Send</Button>
+            <Button onPress={() => sendChatMessage(false)}>Send</Button>
             <Tooltip>Send the message to chat (Shift+Enter)</Tooltip>
           </TooltipTrigger>
           <div className="flex">
@@ -210,6 +226,10 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
             <TooltipTrigger>
               <Button size="icon-md" onPress={() => redoEdit()}><Redo /></Button>
               <Tooltip>Reverse the last undo.</Tooltip>
+            </TooltipTrigger>
+            <TooltipTrigger>
+              <Button size="icon-md" onPress={() => sendChatMessage(true)}><Refresh /></Button>
+              <Tooltip>Regenerate the last message.</Tooltip>
             </TooltipTrigger>
           </div>
         </div>
