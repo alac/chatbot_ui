@@ -120,9 +120,25 @@ async function generate(prompt: string, terminationStrings: string[], connection
             const { value, done } = await reader.read();
             if (done || interruptFlag) break;
             const responseStr = new TextDecoder().decode(value);
-            const responseChunk: TextCompletionChunk = JSON.parse(responseStr.substring(6))
-            if (responseChunk.choices && responseChunk.choices.length !== 0) {
-                writeStream(responseChunk.choices[0].text, false)
+            try {
+                // two kinds of responses
+                // 1) a 'ping'
+                //: ping - 2024-10-02 20:54:51.863679\n\n
+                if (responseStr.startsWith(": ping - ")) {
+                    continue;
+                }
+                // 2) 'data' blob with model and our token
+                //data: {"id": "conv-1727902461437720064", "object": "text_completion.chunk", "created": 1727902461,
+                // "model": "turboderp_Mistral-Large-Instruct-2407-123B-exl2_4.0bpw",
+                // "choices": [{"index": 0, "finish_reason": "stop", "text": "", "logprobs": {"top_logprobs": [{}]}}],
+                //  "usage": {"prompt_tokens": 20, "completion_tokens": 331, "total_tokens": 351}}
+                const responseChunk: TextCompletionChunk = JSON.parse(responseStr.substring(6))
+                if (responseChunk.choices && responseChunk.choices.length !== 0) {
+                    writeStream(responseChunk.choices[0].text, false)
+                }
+            } catch (error) {
+                console.error(`Error parsing json ${responseStr}`, error)
+                throw error;
             }
         }
         writeStream("", true)
@@ -152,8 +168,16 @@ function breakStringIntoSubstrings(str: string): string[] {
     return result;
 }
 
-
 async function buildPrompt(allMessages: Message[], conversation: Conversation, generateParameters: GenerateParameters, connectionSettings: AnyConnectionSettings): Promise<string> {
+    try {
+        return buildPromptWrapped(allMessages, conversation, generateParameters, connectionSettings)
+    } catch (error) {
+        console.error(error)
+        throw error
+    }
+}
+
+async function buildPromptWrapped(allMessages: Message[], conversation: Conversation, generateParameters: GenerateParameters, connectionSettings: AnyConnectionSettings): Promise<string> {
     // the latest message should _already_ be a part of the conversation
     // ... actually, maybe not. let's let the most recent message be _injected_ on the fly. for stuff like AGENT commands/chained prompts.
 
@@ -263,15 +287,14 @@ async function countTokens(text: string, connectionSettings: AnyConnectionSettin
             })
         });
         if (!resp.ok) {
-            throw new Error(`Error counting tokens {resp.status}`);
+            throw new Error(`Error counting tokens ${resp.status}`);
         }
         try {
             const { length } = await resp.json();
             return length;
         }
         catch (e) {
-            console.log("Exception unpacking tokenCount json", e)
-            return -1;
+            throw new Error(`Error unpacking response json`);
         }
     } else if (connectionSettings.type === 'DUMMY' && isDummyConnectionSettings(connectionSettings)) {
         return text.length / 3;
