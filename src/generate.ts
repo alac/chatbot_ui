@@ -201,7 +201,7 @@ async function buildPrompt(allMessages: Message[], conversation: Conversation, g
 
         const newLorebookEntries = triggeredLorebookEntries(message.text, activeLorebooks);
         for (const lbEntry of newLorebookEntries) {
-            if (lbEntry.isEnabled == false) continue;
+            if (lbEntry.isEnabled === false) continue;
             if (addedEntries.has(lbEntry.entryId)) continue;
             if (storageManager.storageState.lorebookMaxInsertionCount !== -1 &&
                 lorebookEntries.length >= storageManager.storageState.lorebookMaxInsertionCount) continue;

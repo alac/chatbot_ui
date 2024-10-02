@@ -6,7 +6,7 @@ import { ConversationChatboxMethods, ConversationChatboxProps } from './Conversa
 import { ChatBubble } from './ChatBubble';
 
 const NaiveConversationChatbox = forwardRef<ConversationChatboxMethods, ConversationChatboxProps>((props: ConversationChatboxProps, ref) => {
-    const [_messageListUpdate, setMessageListUpdate] = useState(0)
+    const [messageListUpdate, setMessageListUpdate] = useState(0)
     const messageListRef = useRef<HTMLDivElement>(null);
 
     useImperativeHandle(ref, () => ({
@@ -31,6 +31,7 @@ const NaiveConversationChatbox = forwardRef<ConversationChatboxMethods, Conversa
         <div
             ref={messageListRef}
             style={{ maxHeight: "100%", minHeight: "100%", overflowY: "scroll" }}
+            key={messageListUpdate}
         >
             {storageManager.messagesCurrent.map((m: Message, _index: number) => {
                 if (m === undefined) {

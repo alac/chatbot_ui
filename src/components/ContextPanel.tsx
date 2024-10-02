@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
     DialogContent,
@@ -13,7 +13,7 @@ import { Tab, TabList, TabPanel, Tabs } from "../ui/tabs"
 import Edit from '@spectrum-icons/workflow/Edit';
 import TextareaAutosize from 'react-textarea-autosize';
 
-import { storageManager, Conversation } from '../storage';
+import { storageManager } from '../storage';
 
 const ContextPanel = () => {
     const [contextUpdatedCounter, setContextUpdatedCounter] = useState(0);
