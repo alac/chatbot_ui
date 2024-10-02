@@ -281,8 +281,8 @@ const STORAGE_STATE_KEY = "STORAGE_STATE"
 
 class StorageManager {
     storageState: StorageState;
-    messagesCurrent: Message[];
-    messagesPrevious: Message[];
+    messagesCurrent: Message[]; // what the user sees in real time.
+    messagesPrevious: Message[]; // what's been saved to the database so far.
     currentConversation: Conversation;
     conversationLoadedCallback: (() => void) | null; // Conversation made active.
     conversationLifecycleCallback: (() => void) | null; // Conversation loaded from datastore, created, deleted, or made active.
