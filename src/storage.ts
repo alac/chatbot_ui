@@ -388,6 +388,8 @@ class StorageManager {
             if (newConversation !== undefined) {
                 this.currentConversation = newConversation;
                 this.storageState.currentConversationId = conversationId;
+                this.messagesCurrent = this.applyEditEvents([], this.currentConversation.editEvents)
+                this.messagesPrevious = [...this.messagesCurrent]
                 this.conversationLoadedCallback?.();
                 this.lorebookUpdatedCallback?.() // enabled lorebooks changes per conversation
                 this.contextUpdatedCallback?.()
