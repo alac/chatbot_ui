@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import { Button } from "./ui/button"
 import { Tooltip, TooltipTrigger } from "./ui/tooltip"
+import Undo from '@spectrum-icons/workflow/Undo';
+import Redo from '@spectrum-icons/workflow/Redo';
+
 
 import './App.css';
 import { generate, buildPrompt, generateSettingsManager } from './generate';
@@ -92,12 +95,12 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
     setInputValue(event.target.value);
   };
 
-  const sendChatMessage = (isContinue: boolean) => {
+  const sendChatMessage = () => {
     if (storageManager.storageState.currentConversationId === "") {
       storageManager.newConversation("Default Conversation")
     }
 
-    if (!isContinue) {
+    if (inputValue !== '') {
       const userMessageId = `${storageManager.consumeMessageId()}`
       const userMessage: Message = {
         userId: 'user',
@@ -162,9 +165,25 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
     }, 1000)
   }
 
+  const undoEdit = () => {
+    const success = storageManager.undoEditEvent()
+    if (success) {
+      storageManager.rerenderConversationCallback?.()
+      storageManager.save()
+    }
+  }
+
+  const redoEdit = () => {
+    const success = storageManager.redoEditEvent()
+    if (success) {
+      storageManager.rerenderConversationCallback?.()
+      storageManager.save()
+    }
+  }
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.shiftKey && event.key === 'Enter') {
-      sendChatMessage(false)
+      sendChatMessage()
     }
   };
 
@@ -180,13 +199,19 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         />
         <div className="command-container">
           <TooltipTrigger>
-            <Button onPress={() => sendChatMessage(false)}>Send</Button>
+            <Button onPress={() => sendChatMessage()}>Send</Button>
             <Tooltip>Send the message to chat (Shift+Enter)</Tooltip>
           </TooltipTrigger>
-          <TooltipTrigger>
-            <Button onPress={() => sendChatMessage(true)}>Continue</Button>
-            <Tooltip>Generate another response without sending a message.</Tooltip>
-          </TooltipTrigger>
+          <div className="flex">
+            <TooltipTrigger>
+              <Button size="icon-md" onPress={() => undoEdit()}><Undo /></Button>
+              <Tooltip>Undo the previous edit.</Tooltip>
+            </TooltipTrigger>
+            <TooltipTrigger>
+              <Button size="icon-md" onPress={() => redoEdit()}><Redo /></Button>
+              <Tooltip>Reverse the last undo.</Tooltip>
+            </TooltipTrigger>
+          </div>
         </div>
       </div>
     </div>

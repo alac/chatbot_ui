@@ -559,6 +559,28 @@ class StorageManager {
         return messages;
     }
 
+    undoEditEvent(): boolean {
+        const lastEvent = this.currentConversation.editEvents.pop()
+        if (lastEvent === undefined) {
+            return false;
+        }
+        this.currentConversation.editEventsRedoQueue.push(lastEvent)
+        this.messagesCurrent = this.applyEditEvents([], this.currentConversation.editEvents)
+        this.messagesPrevious = [... this.messagesCurrent]
+        return true;
+    }
+
+    redoEditEvent(): boolean {
+        const lastEvent = this.currentConversation.editEventsRedoQueue.pop()
+        if (lastEvent === undefined) {
+            return false;
+        }
+        this.currentConversation.editEvents.push(lastEvent)
+        this.messagesCurrent = this.applyEditEvents([], this.currentConversation.editEvents)
+        this.messagesPrevious = [... this.messagesCurrent]
+        return true;
+    }
+
     createLorebook(lorebookName: string): LorebookId {
         const lorebookId: LorebookId = "LO_" + uuidv4();
         const lorebook: Lorebook = {
