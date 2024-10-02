@@ -96,39 +96,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
     setInputValue(event.target.value);
   };
 
-  const sendChatMessage = (isRetry: boolean) => {
-    if (storageManager.storageState.currentConversationId === "") {
-      storageManager.newConversation("Default Conversation")
-    }
-
-    if (inputValue !== '' && !isRetry) {
-      const userMessageId = `${storageManager.consumeMessageId()}`
-      const userMessage: Message = {
-        userId: 'user',
-        username: storageManager.currentConversation.username,
-        key: `${userMessageId}`,
-        text: inputValue,
-        tokenCount: null,
-        compressedPrompt: '',
-        isDisabled: false,
-      }
-      storageManager.updateMessage(userMessage)
-      storageManager.createAddEditEvent(userMessage)
-
-      chatboxRef.current?.appendMessage(userMessage)
-      setInputValue("")
-    }
-
-    var botMessageId = `${storageManager.consumeMessageId()}`
-    if (isRetry) {
-      const lastMessage = storageManager.messagesCurrent.at(-1)
-      if (lastMessage?.userId === 'bot') {
-        botMessageId = lastMessage.key
-      } else {
-        return
-      }
-    }
-
+  const streamBotResponse = (botMessageId: string, isUpdateEvent: boolean) => {
     setTimeout(async () => {
       const botMessage: Message = {
         userId: 'bot',
@@ -160,11 +128,9 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         const newMessage = { ...oldMessage, text: oldMessage?.text + token }
         storageManager.updateMessage(newMessage)
         if (done) {
-          if (isRetry) {
-            console.log("createUpdateEditEvent")
+          if (isUpdateEvent) {
             storageManager.createUpdateEditEvent(newMessage)
           } else {
-            console.log("createAddEditEvent")
             storageManager.createAddEditEvent(newMessage)
           }
           storageManager.save()
@@ -179,6 +145,33 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         responseWriter
       )
     }, 1000)
+  }
+
+  const sendChatMessage = () => {
+    if (storageManager.storageState.currentConversationId === "") {
+      storageManager.newConversation("Default Conversation")
+    }
+
+    if (inputValue !== '') {
+      const userMessageId = `${storageManager.consumeMessageId()}`
+      const userMessage: Message = {
+        userId: 'user',
+        username: storageManager.currentConversation.username,
+        key: `${userMessageId}`,
+        text: inputValue,
+        tokenCount: null,
+        compressedPrompt: '',
+        isDisabled: false,
+      }
+      storageManager.updateMessage(userMessage)
+      storageManager.createAddEditEvent(userMessage)
+
+      chatboxRef.current?.appendMessage(userMessage)
+      setInputValue("")
+    }
+
+    var botMessageId = `${storageManager.consumeMessageId()}`
+    streamBotResponse(botMessageId, false)
   }
 
   const undoEdit = () => {
@@ -197,9 +190,17 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
     }
   }
 
+  const retryBotResponse = () => {
+    const lastMessage = storageManager.messagesCurrent.at(-1)
+    if (lastMessage?.userId !== 'bot') {
+      return
+    }
+    streamBotResponse(lastMessage.key, true)
+  }
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.shiftKey && event.key === 'Enter') {
-      sendChatMessage(false)
+      sendChatMessage()
     }
   };
 
@@ -215,7 +216,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         />
         <div className="command-container">
           <TooltipTrigger>
-            <Button onPress={() => sendChatMessage(false)}>Send</Button>
+            <Button onPress={() => sendChatMessage()}>Send</Button>
             <Tooltip>Send the message to chat (Shift+Enter)</Tooltip>
           </TooltipTrigger>
           <div className="flex">
@@ -228,7 +229,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
               <Tooltip>Reverse the last undo.</Tooltip>
             </TooltipTrigger>
             <TooltipTrigger>
-              <Button size="icon-md" onPress={() => sendChatMessage(true)}><Refresh /></Button>
+              <Button size="icon-md" onPress={() => retryBotResponse()}><Refresh /></Button>
               <Tooltip>Regenerate the last message.</Tooltip>
             </TooltipTrigger>
           </div>
