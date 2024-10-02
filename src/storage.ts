@@ -419,7 +419,7 @@ class StorageManager {
         this.currentConversation = NewConversation(displayName, newConversationId)
         this.conversations.set(newConversationId, this.currentConversation)
         this.save()
-        this.conversationLoadedCallback?.()
+        this.setConversation(newConversationId)
         this.conversationLifecycleCallback?.()
     }
 
