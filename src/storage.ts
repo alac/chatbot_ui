@@ -194,6 +194,9 @@ interface StorageState {
 
     currentConnectionSettingsId: "DUMMY" | "OPENAI";
     connectionSettingsById: Map<string, AnyConnectionSettings>;
+
+    currentFormatSettings: string;
+    formatSettingsById: Map<string, FormatSettings>;
 }
 
 const isStorageState = (obj: unknown): obj is StorageState => {
@@ -252,6 +255,10 @@ function isDummyConnectionSettings(obj: any): obj is DummyConnectionSettings {
     );
 }
 
+function getDummyConnectionSettings(): DummyConnectionSettings {
+    return { type: "DUMMY", response: "Click the edit button on the connections panel to set-up a connection to the AI" }
+}
+
 
 interface OpenAIConnectionSettings {
     type: string;
@@ -276,6 +283,50 @@ function isOpenAIConnectionSettings(obj: any): obj is OpenAIConnectionSettings {
 type AnyConnectionSettings = DummyConnectionSettings | OpenAIConnectionSettings;
 
 
+interface FormatSettings {
+    name: string;
+    instructionFormat: string;
+    systemMessage: string;
+    systemPrefix: string;
+    systemSuffix: string;
+    userPrefix: string;
+    userSuffix: string;
+    lastUserPrefix: string;
+    lastUserSuffix: string;
+    assistantPrefix: string;
+    assistantSuffix: string;
+    lastAssistantPrefix: string;
+    authorsNoteRole: ChatRole;
+    lorebookRole: ChatRole;
+}
+
+enum ChatRole {
+    User = "USER",
+    Bot = "BOT",
+    System = "SYSTEM"
+}
+
+function getDefaultFormatSettings(): FormatSettings {
+    return {
+        name: "DEFAULT",
+        instructionFormat: "<s> [INST]{{SYSTEM_MESSAGE}}\n{{DESCRIPTION}}\n{{LOREBOOK}}\n[/INST]\n{{CHAT_HISTORY}}",
+        systemMessage: "You are a professional writer, known for precise, minimal prose. As {{char}}, continue the exchange with {{user}}.",
+        systemPrefix: "<|start_header_id|>system<|end_header_id|>\n\n",
+        systemSuffix: "<|eot_id|>",
+        userPrefix: "<|start_header_id|>{{user}}<|end_header_id|>\n\n",
+        userSuffix: "<|eot_id|>",
+        lastUserPrefix: "<|start_header_id|>{{user}}<|end_header_id|>\n\n",
+        lastUserSuffix: "<|eot_id|>",
+        assistantPrefix: "<|start_header_id|>{{char}}<|end_header_id|>\n\n",
+        assistantSuffix: "<|eot_id|>",
+        lastAssistantPrefix: "<|start_header_id|>{{char}}<|end_header_id|>\n\n",
+        authorsNoteRole: ChatRole.Bot,
+        lorebookRole: ChatRole.Bot,
+    }
+}
+
+
+
 const STORAGE_STATE_KEY = "STORAGE_STATE"
 
 
@@ -296,7 +347,10 @@ class StorageManager {
 
     constructor() {
         const defaultConnections = new Map<string, DummyConnectionSettings | OpenAIConnectionSettings>()
-        defaultConnections.set("DUMMY", { type: "DUMMY", response: "Click the edit button on the connections panel to set-up a connection to the AI" })
+        defaultConnections.set("DUMMY", getDummyConnectionSettings())
+
+        const defaultFormats = new Map<string, FormatSettings>()
+        defaultFormats.set("DEFAULT", getDefaultFormatSettings())
 
         this.storageState = {
             currentConversationId: "",
@@ -305,7 +359,9 @@ class StorageManager {
             lorebookMaxInsertionCount: 10,
             lorebookMaxTokens: 1000,
             currentConnectionSettingsId: "DUMMY",
-            connectionSettingsById: defaultConnections
+            connectionSettingsById: defaultConnections,
+            currentFormatSettings: "DEFAULT",
+            formatSettingsById: defaultFormats
         }
         this.messagesCurrent = [];
         this.messagesPrevious = [];
