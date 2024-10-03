@@ -69,7 +69,7 @@ const SwitchConversationButton = ({ conversationsUpdateCounter }: { conversation
                             return <div className="flex items-center hover:bg-gray-200 transition duration-300 ease-in-out px-2" key={conversation.conversationId}>
                                 <span className={'corner-button mx-2' + hideLoad}>
                                     <Button size="icon" aria-label='Switch Conversation' onPress={() => {
-                                        storageManager.setConversation(conversation.conversationId)
+                                        storageManager.setActiveConversation(conversation.conversationId)
                                     }}>
                                         <Switch />
                                     </Button>

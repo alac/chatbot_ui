@@ -133,7 +133,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
           } else {
             storageManager.createAddEditEvent(newMessage)
           }
-          storageManager.save()
+          storageManager.persistConversation()
         }
       }
 
@@ -178,7 +178,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
     const success = storageManager.undoEditEvent()
     if (success) {
       storageManager.rerenderConversationCallback?.()
-      storageManager.save()
+      storageManager.persistConversation()
     }
   }
 
@@ -186,7 +186,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
     const success = storageManager.redoEditEvent()
     if (success) {
       storageManager.rerenderConversationCallback?.()
-      storageManager.save()
+      storageManager.persistConversation()
     }
   }
 

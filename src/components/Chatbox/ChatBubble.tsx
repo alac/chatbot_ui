@@ -17,18 +17,18 @@ const ChatBubble = ({ data }: { data: Message }) => {
         const message = { ...data, text: updatedText, tokenCount: null }
         storageManager.updateMessage(message, true)
         storageManager.createUpdateEditEvent(message)
-        storageManager.save()
+        storageManager.persistConversation()
     }
     const toggleDisabled = () => {
         const message = { ...data, isDisabled: !data.isDisabled }
         storageManager.updateMessage(message, true)
         storageManager.createUpdateEditEvent(message)
-        storageManager.save()
+        storageManager.persistConversation()
     }
     const deleteMessage = () => {
         storageManager.deleteMessage(data.key)
         storageManager.createDeleteEditEvent(data.key)
-        storageManager.save()
+        storageManager.persistConversation()
     }
     const [isEditing, setIsEditing] = useState(false);
 

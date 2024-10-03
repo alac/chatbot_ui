@@ -35,13 +35,13 @@ const ContextPanel = () => {
     const handleMemoryInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setMemoryValue(event.target.value);
         storageManager.currentConversation.memory = event.target.value;
-        storageManager.save();
+        storageManager.persistConversation();
     };
     const [authorsNote, setAuthorsNote] = useState(storageManager.currentConversation.authorNote);
     const handleAuthorsNoteInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setAuthorsNote(event.target.value);
         storageManager.currentConversation.authorNote = event.target.value;
-        storageManager.save();
+        storageManager.persistConversation();
     };
 
     const [autoExpandPanelInputs, setAutoExpandPanelInputs] = useState(true);

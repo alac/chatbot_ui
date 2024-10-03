@@ -434,11 +434,22 @@ class StorageManager {
         });
     }
 
-    saveStorageState(): void {
+    persistConversation(): void {
+        if (this.storageState.currentConversationId !== null) {
+            const conversationId = this.storageState.currentConversationId;
+            localforage.setItem(conversationId, this.currentConversation);
+            if (this.storageState.conversationIds.indexOf(conversationId) === -1) {
+                this.storageState.conversationIds.push(conversationId)
+            }
+        }
+        this.persistStorageState()
+    }
+
+    persistStorageState(): void {
         localforage.setItem(STORAGE_STATE_KEY, this.storageState)
     }
 
-    setConversation(conversationId: string): void {
+    setActiveConversation(conversationId: string): void {
         if (this.conversations.has(conversationId)) {
             const newConversation = this.conversations.get(conversationId)
             if (newConversation !== undefined) {
@@ -449,20 +460,9 @@ class StorageManager {
                 this.conversationLoadedCallback?.();
                 this.lorebookUpdatedCallback?.() // enabled lorebooks changes per conversation
                 this.contextUpdatedCallback?.()
-                this.saveStorageState()
+                this.persistStorageState()
             }
         }
-    }
-
-    save(): void {
-        if (this.storageState.currentConversationId !== null) {
-            const conversationId = this.storageState.currentConversationId;
-            localforage.setItem(conversationId, this.currentConversation);
-            if (this.storageState.conversationIds.indexOf(conversationId) === -1) {
-                this.storageState.conversationIds.push(conversationId)
-            }
-        }
-        this.saveStorageState()
     }
 
     newConversationDBKey() {
@@ -471,11 +471,10 @@ class StorageManager {
 
     newConversation(displayName: string): void {
         const newConversationId = this.newConversationDBKey()
-        this.storageState.currentConversationId = newConversationId
         this.currentConversation = NewConversation(displayName, newConversationId)
         this.conversations.set(newConversationId, this.currentConversation)
-        this.save()
-        this.setConversation(newConversationId)
+        this.persistConversation()
+        this.setActiveConversation(newConversationId)
         this.conversationLifecycleCallback?.()
     }
 
@@ -484,7 +483,7 @@ class StorageManager {
             this.conversations.delete(conversationId)
         }
         this.storageState.conversationIds = this.storageState.conversationIds.filter(item => item !== conversationId)
-        this.saveStorageState()
+        this.persistStorageState()
         localforage.removeItem(conversationId);
         this.conversationLifecycleCallback?.()
     }
@@ -589,7 +588,7 @@ class StorageManager {
     commitEditEvents(editEvents: EditEvent[]): void {
         this.currentConversation.editEvents = [...this.currentConversation.editEvents, ...editEvents]
         this.currentConversation.editEventsRedoQueue = []
-        this.save()
+        this.persistConversation()
         this.applyEditEvents(this.messagesPrevious, editEvents)
     }
 
@@ -650,7 +649,7 @@ class StorageManager {
         localforage.setItem(lorebookId, lorebook);
         this.lorebooks.set(lorebookId, lorebook);
         this.storageState.lorebookIds = [...this.storageState.lorebookIds, lorebookId]
-        this.saveStorageState();
+        this.persistStorageState();
         this.lorebookUpdatedCallback?.()
         return lorebookId;
     }
@@ -663,7 +662,7 @@ class StorageManager {
     deleteLorebook(lorebookId: LorebookId): void {
         this.lorebooks.delete(lorebookId);
         this.storageState.lorebookIds = this.storageState.lorebookIds.filter((s: string) => s !== lorebookId)
-        this.saveStorageState()
+        this.persistStorageState()
         localforage.removeItem(lorebookId);
         this.lorebookUpdatedCallback?.()
     }
@@ -677,7 +676,7 @@ class StorageManager {
         const validNewIds = lorebookIds.filter((s: string) => this.storageState.lorebookIds.includes(s))
         const missingOldIds = this.storageState.lorebookIds.filter((s: string) => !lorebookIds.includes(s))
         this.storageState.lorebookIds = [...validNewIds, ...missingOldIds];
-        this.saveStorageState()
+        this.persistStorageState()
         this.lorebookUpdatedCallback?.()
     }
 
@@ -686,7 +685,7 @@ class StorageManager {
     }
     setLorebookMaxTokens(value: number): void {
         this.storageState.lorebookMaxTokens = value;
-        this.saveStorageState();
+        this.persistStorageState();
         this.lorebookUpdatedCallback?.()
     }
 
@@ -696,7 +695,7 @@ class StorageManager {
 
     setLorebookMaxInsertionCount(value: number): void {
         this.storageState.lorebookMaxInsertionCount = value;
-        this.saveStorageState();
+        this.persistStorageState();
         this.lorebookUpdatedCallback?.()
     }
 
@@ -706,7 +705,7 @@ class StorageManager {
 
     setCurrentConnectionSettingsId(id: "DUMMY" | "OPENAI"): void {
         this.storageState.currentConnectionSettingsId = id;
-        this.saveStorageState();
+        this.persistStorageState();
     }
 
     getCurrentConnectionSettings(): AnyConnectionSettings {
@@ -743,7 +742,7 @@ class StorageManager {
 
     setConnectionSettings(id: string, settings: AnyConnectionSettings): void {
         this.storageState.connectionSettingsById.set(id, settings);
-        this.saveStorageState();
+        this.persistStorageState();
     }
 
     newUUID(): string {

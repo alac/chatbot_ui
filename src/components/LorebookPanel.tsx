@@ -102,13 +102,13 @@ const ViewLorebooksButton = () => {
     const handleLorebookSelectionChange = (lorebookId: string, isSelected: boolean) => {
         if (isSelected && !storageManager.currentConversation.lorebookIds.includes(lorebookId)) {
             storageManager.currentConversation.lorebookIds = [...storageManager.currentConversation.lorebookIds, lorebookId];
-            storageManager.save();
+            storageManager.persistConversation();
             storageManager.lorebookUpdatedCallback?.()
             return;
         }
         if (!isSelected && storageManager.currentConversation.lorebookIds.includes(lorebookId)) {
             storageManager.currentConversation.lorebookIds = storageManager.currentConversation.lorebookIds.filter((s: string) => s !== lorebookId);
-            storageManager.save();
+            storageManager.persistConversation();
             storageManager.lorebookUpdatedCallback?.()
         }
     };
