@@ -195,7 +195,7 @@ interface StorageState {
     currentConnectionSettingsId: "DUMMY" | "OPENAI";
     connectionSettingsById: Map<string, AnyConnectionSettings>;
 
-    currentFormatSettings: string;
+    currentFormatSettingsId: string;
     formatSettingsById: Map<string, FormatSettings>;
 }
 
@@ -218,24 +218,29 @@ const isStorageState = (obj: unknown): obj is StorageState => {
         ("currentConnectionSettingsId" in obj &&
             (typeof obj.currentConnectionSettingsId === "string")) &&
         ("connectionSettingsById" in obj &&
-            (obj.connectionSettingsById instanceof Map))
+            (obj.connectionSettingsById instanceof Map)) &&
+        ("currentFormatSettingsId" in obj &&
+            (typeof obj.currentFormatSettingsId === "string")) &&
+        ("formatSettingsById" in obj &&
+            (obj.formatSettingsById instanceof Map))
     ) === false) {
         console.log("isStorageState typeguard failed")
         return false;
     }
 
     for (const [key, value] of (obj as StorageState).connectionSettingsById) {
-        if (
-            typeof key !== "string" ||
-            !(
-                isDummyConnectionSettings(value) ||
-                isOpenAIConnectionSettings(value)
-            )
+        if (typeof key !== "string" ||
+            !(isDummyConnectionSettings(value) || isOpenAIConnectionSettings(value))
         ) {
             return false;
         }
     }
 
+    for (const [key, value] of (obj as StorageState).formatSettingsById) {
+        if (typeof key !== "string" || !isFormatSettings(value)) {
+            return false;
+        }
+    }
     return true;
 };
 
@@ -296,8 +301,8 @@ interface FormatSettings {
     assistantPrefix: string;
     assistantSuffix: string;
     lastAssistantPrefix: string;
-    authorsNoteRole: ChatRole;
-    lorebookRole: ChatRole;
+    authorsNoteRole: ChatRole.User | ChatRole.System | ChatRole.Bot;
+    lorebookRole: ChatRole.User | ChatRole.System | ChatRole.Bot;
 }
 
 enum ChatRole {
@@ -305,6 +310,28 @@ enum ChatRole {
     Bot = "BOT",
     System = "SYSTEM"
 }
+
+const isFormatSettings = (obj: any): obj is FormatSettings => {
+    return (
+        typeof obj === 'object' &&
+        obj !== null &&
+        'name' in obj && typeof obj.name === 'string' &&
+        'instructionFormat' in obj && typeof obj.instructionFormat === 'string' &&
+        'systemMessage' in obj && typeof obj.systemMessage === 'string' &&
+        'systemPrefix' in obj && typeof obj.systemPrefix === 'string' &&
+        'systemSuffix' in obj && typeof obj.systemSuffix === 'string' &&
+        'userPrefix' in obj && typeof obj.userPrefix === 'string' &&
+        'userSuffix' in obj && typeof obj.userSuffix === 'string' &&
+        'lastUserPrefix' in obj && typeof obj.lastUserPrefix === 'string' &&
+        'lastUserSuffix' in obj && typeof obj.lastUserSuffix === 'string' &&
+        'assistantPrefix' in obj && typeof obj.assistantPrefix === 'string' &&
+        'assistantSuffix' in obj && typeof obj.assistantSuffix === 'string' &&
+        'lastAssistantPrefix' in obj && typeof obj.lastAssistantPrefix === 'string' &&
+        'authorsNoteRole' in obj && [ChatRole.Bot, ChatRole.System, ChatRole.User].includes(obj.authorsNoteRole) &&
+        'lorebookRole' in obj && [ChatRole.Bot, ChatRole.System, ChatRole.User].includes(obj.lorebookRole)
+    );
+};
+
 
 function getDefaultFormatSettings(): FormatSettings {
     return {
@@ -360,7 +387,7 @@ class StorageManager {
             lorebookMaxTokens: 1000,
             currentConnectionSettingsId: "DUMMY",
             connectionSettingsById: defaultConnections,
-            currentFormatSettings: "DEFAULT",
+            currentFormatSettingsId: "DEFAULT",
             formatSettingsById: defaultFormats
         }
         this.messagesCurrent = [];
