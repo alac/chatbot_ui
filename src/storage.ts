@@ -430,11 +430,7 @@ class StorageManager {
                         if (isConversation(readValue)) {
                             this.conversations.set(conversationId, readValue)
                             if (this.storageState.currentConversationId !== null && this.storageState.currentConversationId === conversationId) {
-                                this.currentConversation = readValue
-                                this.messagesCurrent = this.applyEditEvents([], this.currentConversation.editEvents)
-                                this.messagesPrevious = [...this.messagesCurrent]
-                                this.conversationLoadedCallback?.()
-                                this.contextUpdatedCallback?.()
+                                this.setActiveConversation(readValue.conversationId)
                             }
                             this.conversationLifecycleCallback?.()
                         } else {
