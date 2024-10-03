@@ -1,7 +1,6 @@
 import localforage from "localforage";
 import { v4 as uuidv4 } from 'uuid';
 import { deflate, inflate } from 'pako';
-import { StringLiteral } from "typescript";
 
 interface Conversation {
     conversationId: string;
@@ -184,7 +183,7 @@ export function isLorebookEntry(obj: any): obj is LorebookEntry {
 
 
 interface StorageState {
-    currentConversationId: string | null;
+    currentConversationId: string | null; // determines which conversation to load; storageManager.currentConversation is downstream from this
 
     conversationIds: string[];
 
@@ -498,6 +497,7 @@ class StorageManager {
 
     newConversation(displayName: string): void {
         const newConversationId = this.newConversationDBKey()
+        this.storageState.currentConversationId = newConversationId // for the persistConversation call
         this.currentConversation = NewConversation(displayName, newConversationId)
         this.conversations.set(newConversationId, this.currentConversation)
         this.persistConversation()
