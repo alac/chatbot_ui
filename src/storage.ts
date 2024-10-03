@@ -1,6 +1,7 @@
 import localforage from "localforage";
 import { v4 as uuidv4 } from 'uuid';
 import { deflate, inflate } from 'pako';
+import { StringLiteral } from "typescript";
 
 interface Conversation {
     conversationId: string;
@@ -289,6 +290,7 @@ type AnyConnectionSettings = DummyConnectionSettings | OpenAIConnectionSettings;
 
 
 interface FormatSettings {
+    id: string;
     name: string;
     instructionFormat: string;
     systemMessage: string;
@@ -315,6 +317,7 @@ const isFormatSettings = (obj: any): obj is FormatSettings => {
     return (
         typeof obj === 'object' &&
         obj !== null &&
+        'id' in obj && typeof obj.id === 'string' &&
         'name' in obj && typeof obj.name === 'string' &&
         'instructionFormat' in obj && typeof obj.instructionFormat === 'string' &&
         'systemMessage' in obj && typeof obj.systemMessage === 'string' &&
@@ -335,6 +338,7 @@ const isFormatSettings = (obj: any): obj is FormatSettings => {
 
 function getDefaultFormatSettings(): FormatSettings {
     return {
+        id: "DEFAULT",
         name: "DEFAULT",
         instructionFormat: "<s> [INST]{{SYSTEM_MESSAGE}}\n{{DESCRIPTION}}\n{{LOREBOOK}}\n[/INST]\n{{CHAT_HISTORY}}",
         systemMessage: "You are a professional writer, known for precise, minimal prose. As {{char}}, continue the exchange with {{user}}.",
@@ -710,6 +714,7 @@ class StorageManager {
     getLorebookMaxTokens(): number {
         return this.storageState.lorebookMaxTokens;
     }
+
     setLorebookMaxTokens(value: number): void {
         this.storageState.lorebookMaxTokens = value;
         this.persistStorageState();
@@ -771,6 +776,38 @@ class StorageManager {
         this.storageState.connectionSettingsById.set(id, settings);
         this.persistStorageState();
     }
+
+
+    getAllFormatSettings(): Map<string, FormatSettings> {
+        return this.storageState.formatSettingsById;
+    }
+
+    setFormatSettings(id: string, settings: FormatSettings): void {
+        this.storageState.formatSettingsById.set(id, settings);
+        this.persistStorageState();
+    }
+
+    getCurrentFormatSettingsId(): string {
+        return this.storageState.currentFormatSettingsId;
+    }
+
+    setCurrentFormatSettingsId(id: string): void {
+        if (!this.storageState.formatSettingsById.has(id)) {
+            console.error(`setCurrentFormatSettingsId called for missing id: ${id}`)
+            return
+        }
+        this.storageState.currentFormatSettingsId = id;
+        this.persistStorageState();
+    }
+
+    getCurrentFormatSettings(): FormatSettings {
+        const settings = this.storageState.formatSettingsById.get(this.storageState.currentFormatSettingsId);
+        if (settings) {
+            return settings;
+        }
+        throw Error("Invalid currentFormatSettingsId: " + this.storageState.currentFormatSettingsId);
+    }
+
 
     newUUID(): string {
         return uuidv4();
