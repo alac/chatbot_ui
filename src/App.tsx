@@ -115,6 +115,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         storageManager.currentConversation,
         generateSettingsManager.currentGenerateSettings,
         storageManager.getCurrentConnectionSettings(),
+        storageManager.getCurrentFormatSettings()
       )
       const compressedPrompt = compressString(prompt)
       botMessage.compressedPrompt = compressedPrompt

@@ -1,4 +1,4 @@
-import { storageManager, Message, Conversation, Lorebook, LorebookEntry, isLorebook, AnyConnectionSettings, isOpenAIConnectionSettings, isDummyConnectionSettings } from './storage';
+import { storageManager, Message, Conversation, Lorebook, LorebookEntry, isLorebook, AnyConnectionSettings, isOpenAIConnectionSettings, isDummyConnectionSettings, FormatSettings, ChatRole } from './storage';
 
 interface GenerateParameters {
     name: string
@@ -168,22 +168,45 @@ function breakStringIntoSubstrings(str: string): string[] {
     return result;
 }
 
-async function buildPrompt(allMessages: Message[], conversation: Conversation, generateParameters: GenerateParameters, connectionSettings: AnyConnectionSettings): Promise<string> {
+async function buildPrompt(
+    allMessages: Message[],
+    conversation: Conversation,
+    generateParameters: GenerateParameters,
+    connectionSettings: AnyConnectionSettings,
+    formatSettings: FormatSettings
+): Promise<string> {
     try {
-        return buildPromptWrapped(allMessages, conversation, generateParameters, connectionSettings)
+        return buildPromptWrapped(allMessages, conversation, generateParameters, connectionSettings, formatSettings)
     } catch (error) {
         console.error(error)
         throw error
     }
 }
 
-async function buildPromptWrapped(allMessages: Message[], conversation: Conversation, generateParameters: GenerateParameters, connectionSettings: AnyConnectionSettings): Promise<string> {
-    // the latest message should _already_ be a part of the conversation
-    // ... actually, maybe not. let's let the most recent message be _injected_ on the fly. for stuff like AGENT commands/chained prompts.
+async function buildPromptWrapped(
+    allMessages: Message[],
+    conversation: Conversation,
+    generateParameters: GenerateParameters,
+    connectionSettings: AnyConnectionSettings,
+    formatSettings: FormatSettings
+): Promise<string> {
+    // assume allMessages contains the partial AI response, although maybe i'll regret that
 
-    // x v1 use previous messages
-    // v2 prompt format string - get the cost of the prompt string (removing substitutions) + the cost of each substitution
-    // x v3 lorebook - as we walk back, add each lorebook entry that we find a match for
+    // lorebook + chatmessages fill out remaining tokens
+    // everything else is an upfront cost: instructionFormat, systemPrompt, description
+
+    const botName = conversation.botName
+    const userName = conversation.username
+    const fillRolePlaceholders = (s: string) => s.replace("{{user}}", userName).replace("{{char}}", botName)
+
+    const systemMessageWithRole = (formatSettings.systemMessage.length !== 0) ? (formatSettings.systemPrefix + formatSettings.systemMessage + formatSettings.systemSuffix) : ""
+    const descriptionWithRole = (conversation.memory.length !== 0) ? (formatSettings.assistantPrefix + conversation.memory + formatSettings.assistantSuffix) : ""
+    const partialFormat = formatSettings.instructionFormat
+        .replace("{{SYSTEM_MESSAGE}}", systemMessageWithRole)
+        .replace("{{DESCRIPTION}}", descriptionWithRole)
+        .replace("{{user}}", userName)
+        .replace("{{char}}", botName)
+
     var maxTokens = 2048;
     var maxResponseLength = 256;
     if ('max_tokens' in generateParameters.values && typeof generateParameters.values.max_tokens === 'number') {
@@ -192,7 +215,8 @@ async function buildPromptWrapped(allMessages: Message[], conversation: Conversa
     if ('truncation_length' in generateParameters.values && typeof generateParameters.values.truncation_length === 'number') {
         maxResponseLength = generateParameters.values.truncation_length;
     }
-    const memoryLength = await cachedTokenCount(conversation.memory, connectionSettings);
+    const memoryEstimateString = partialFormat.replace("{{LOREBOOK}}", "").replace("{{CHAT_HISTORY}}", "")
+    const memoryLength = await cachedTokenCount(memoryEstimateString, connectionSettings);
     const newlineCost = 1;
     var remainingTokens = maxResponseLength - maxTokens - memoryLength - newlineCost;
 
@@ -201,8 +225,20 @@ async function buildPromptWrapped(allMessages: Message[], conversation: Conversa
     var remainingLorebookTokens = storageManager.storageState.lorebookMaxTokens;
     var addedEntries: Map<string, boolean> = new Map();
 
-    const messageFormattingCost = 4;
+    const prefixSuffixByChatRole = new Map<ChatRole, string[]>()
+    prefixSuffixByChatRole.set(ChatRole.Bot, [fillRolePlaceholders(formatSettings.assistantPrefix), fillRolePlaceholders(formatSettings.assistantSuffix)])
+    prefixSuffixByChatRole.set(ChatRole.System, [fillRolePlaceholders(formatSettings.systemPrefix), fillRolePlaceholders(formatSettings.systemSuffix)])
+    prefixSuffixByChatRole.set(ChatRole.User, [fillRolePlaceholders(formatSettings.userPrefix), fillRolePlaceholders(formatSettings.userSuffix)])
+    const lorebookPrefixSuffix = prefixSuffixByChatRole.get(formatSettings.lorebookRole)
+    const authorsNotePrefixSuffix = prefixSuffixByChatRole.get(formatSettings.authorsNoteRole)
+    if (lorebookPrefixSuffix === undefined) throw Error(`Undefined role ${formatSettings.lorebookRole}`)
+    if (authorsNotePrefixSuffix === undefined) throw Error(`Undefined role ${formatSettings.authorsNoteRole}`)
+
+    var reverseChatHistory: string[] = [] // a reverse ordered list of strings to add to the final chat history
+
     var indexFromEnd = 0;
+    var isFirstBotMessage = true
+    var isFirstUserMessage = true
     while ((allMessages.length - indexFromEnd - 1) >= 0) {
         const message = allMessages[allMessages.length - indexFromEnd - 1]
         if (!message.isDisabled) {
@@ -210,26 +246,48 @@ async function buildPromptWrapped(allMessages: Message[], conversation: Conversa
                 message.tokenCount = await cachedTokenCount(message.text, connectionSettings)
                 storageManager.updateMessage(message, false);
             }
-            const messageCost = await cachedTokenCount(message.username, connectionSettings) + message.tokenCount
-            if ((messageFormattingCost + messageCost) < remainingTokens) {
-                remainingTokens -= messageFormattingCost + messageCost;
-                console.log("token count: ", remainingTokens)
+
+            var messageCost = message.tokenCount
+            var formattedMessageStr = ""
+            if (message.userId === "bot") {
+                if (isFirstBotMessage) {
+                    isFirstBotMessage = false
+                    formattedMessageStr = fillRolePlaceholders(formatSettings.lastAssistantPrefix) + message.text
+                } else {
+                    formattedMessageStr = fillRolePlaceholders(formatSettings.assistantPrefix) + message.text + fillRolePlaceholders(formatSettings.assistantSuffix)
+                }
+            } else if (message.userId === "user") {
+                if (isFirstUserMessage) {
+                    isFirstUserMessage = false
+                    formattedMessageStr = fillRolePlaceholders(formatSettings.lastUserPrefix) + message.text + fillRolePlaceholders(formatSettings.lastUserSuffix)
+                } else {
+                    formattedMessageStr = fillRolePlaceholders(formatSettings.userPrefix) + message.text + fillRolePlaceholders(formatSettings.userSuffix)
+                }
+            }
+            if (messageCost < remainingTokens) {
+                remainingTokens -= messageCost;
+                reverseChatHistory.push(formattedMessageStr)
             } else {
                 indexFromEnd -= 1;
                 break;
             }
         }
         if (indexFromEnd === conversation.authorNotePosition) {
-            remainingTokens -= newlineCost * 2 + await cachedTokenCount(conversation.authorNote, connectionSettings)
+            const finalAuthorsNote = fillRolePlaceholders(conversation.authorNote)
+            remainingTokens -= newlineCost * 2 + await cachedTokenCount(finalAuthorsNote, connectionSettings)
+                + await cachedTokenCount(authorsNotePrefixSuffix[0] + authorsNotePrefixSuffix[1], connectionSettings)
+            reverseChatHistory.push(authorsNotePrefixSuffix[0] + finalAuthorsNote + authorsNotePrefixSuffix[1])
         }
-
         const newLorebookEntries = triggeredLorebookEntries(message.text, activeLorebooks);
         for (const lbEntry of newLorebookEntries) {
             if (lbEntry.isEnabled === false) continue;
             if (addedEntries.has(lbEntry.entryId)) continue;
             if (storageManager.storageState.lorebookMaxInsertionCount !== -1 &&
                 lorebookEntries.length >= storageManager.storageState.lorebookMaxInsertionCount) continue;
-            const entryCost = await cachedTokenCount(lbEntry.entryBody, connectionSettings)
+            var entryCost = await cachedTokenCount(lbEntry.entryBody, connectionSettings)
+            if (lorebookEntries.length === 0) {
+                entryCost += await cachedTokenCount(lorebookPrefixSuffix[0] + lorebookPrefixSuffix[1], connectionSettings)
+            }
             if (remainingTokens > entryCost && (remainingLorebookTokens > entryCost || storageManager.storageState.lorebookMaxTokens === -1)) {
                 remainingTokens -= entryCost;
                 remainingLorebookTokens -= entryCost;
@@ -239,21 +297,21 @@ async function buildPromptWrapped(allMessages: Message[], conversation: Conversa
         }
         indexFromEnd += 1
     }
-    var messages = allMessages.slice(-indexFromEnd).map((message: Message) => {
-        if (message.isDisabled) {
-            return ""
-        }
-        return `${message.username}: ${message.text}\n\n`
-    })
-    if (messages.length > conversation.authorNotePosition) {
-        const authorsNoteIndex = messages.length - conversation.authorNotePosition;
-        messages = [...messages.slice(0, authorsNoteIndex), "\n" + conversation.authorNote + "\n", ...messages.slice(authorsNoteIndex)];
+
+    const chatHistoryFormatted = reverseChatHistory.reverse().join("");
+    var lorebookFormatted = ""
+    if (lorebookEntries.length !== 0) {
+        lorebookFormatted = lorebookPrefixSuffix[0] + lorebookEntries.map((value) => value.entryBody).join("") + lorebookPrefixSuffix[1]
     }
 
     const lorebookTotalTokens = storageManager.storageState.lorebookMaxTokens - remainingLorebookTokens;
     generateStatsTracker.updateUsage(lorebookEntries, lorebookTotalTokens);
 
-    return conversation.memory + "\n" + lorebookEntries.map((value) => value.entryBody).join("") + "\n" + messages.join("");
+    const finalPrompt = partialFormat
+        .replace("{{LOREBOOK}}", lorebookFormatted)
+        .replace("{{CHAT_HISTORY}}", chatHistoryFormatted)
+
+    return finalPrompt;
 }
 
 
