@@ -15,9 +15,9 @@ import { TextField } from "react-aria-components"
 import { Select, SelectTrigger, SelectValue, SelectPopover, SelectItem, SelectContent } from "../ui/select"
 import Settings from '@spectrum-icons/workflow/Settings';
 
-import { storageManager } from '../storage';
+import { storageManager, FormatSettings, ChatRole } from '../storage';
 import { Key } from 'react-aria-components';
-import { TextArea } from '../ui/textarea';
+import TextAreaAutosizeJolly from '../ui/textareaautosizejolly';
 
 
 const ConnectionsPanel = () => {
@@ -57,6 +57,15 @@ const EditConnectionsPanel = () => {
         }
     }
 
+    const defaultFormat = storageManager.getCurrentFormatSettingsId();
+    const [currentFormatId, setCurrentFormatId] = useState(defaultFormat)
+    const handleFormatIdChange = (key: Key) => {
+        const formatSettingsById = storageManager.getAllFormatSettings();
+        if (typeof key === "string" && formatSettingsById.has(key)) {
+            setCurrentFormatId(key);
+        }
+    }
+
     return (
         <DialogTrigger>
             <Button size="icon" aria-label='Edit Lorebook'><Settings /></Button>
@@ -67,25 +76,58 @@ const EditConnectionsPanel = () => {
                     </DialogHeader>
                     <Separator />
 
-                    <Select
-                        placeholder="Select an item"
-                        aria-label="item selection"
-                        onSelectionChange={handleConnectionTypeChange}
-                        defaultSelectedKey={connectionType}
-                    >
-                        {/* <Select placeholder="Select an item" aria-label="item selection"> */}
-                        <SelectTrigger className="w-[300px]">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectPopover>
-                            <SelectContent aria-label="items" className="px-2 py-2">
-                                <SelectItem textValue="OpenAI" id="OPENAI">OpenAI /Completions</SelectItem>
-                                <SelectItem textValue="Dummy" id="DUMMY">Dummy</SelectItem>
-                            </SelectContent>
-                        </SelectPopover>
-                    </Select>
+                    <TextField className="flex items-center gap-1.5 mr-2">
+                        <Label className="text-md">Type: </Label>
+                        <Select
+                            placeholder="Select an item"
+                            aria-label="item selection"
+                            onSelectionChange={handleConnectionTypeChange}
+                            defaultSelectedKey={connectionType}
+                        >
+                            {/* <Select placeholder="Select an item" aria-label="item selection"> */}
+                            <SelectTrigger className="w-[300px]">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectPopover>
+                                <SelectContent aria-label="items" className="px-2 py-2">
+                                    <SelectItem textValue="OpenAI" id="OPENAI">OpenAI /Completions</SelectItem>
+                                    <SelectItem textValue="Dummy" id="DUMMY">Dummy</SelectItem>
+                                </SelectContent>
+                            </SelectPopover>
+                        </Select>
+                    </TextField>
+
                     {(connectionType === "OPENAI") ? <OpenAIConnectionSettings /> : <></>}
                     {(connectionType === "DUMMY") ? <DummyValueSettings /> : <></>}
+
+                    <DialogHeader className='mt-2'>
+                        <DialogTitle>Format Settings</DialogTitle>
+                    </DialogHeader>
+                    <Separator />
+
+                    <TextField className="flex items-center gap-1.5 mr-2">
+                        <Label className="text-md">Selected: </Label>
+                        <Select
+                            placeholder="Select an item"
+                            aria-label="item selection"
+                            onSelectionChange={handleFormatIdChange}
+                            defaultSelectedKey={currentFormatId}
+                        >
+                            <SelectTrigger className="w-[300px]">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectPopover>
+                                <SelectContent aria-label="items" className="px-2 py-2">
+                                    {[...storageManager.getAllFormatSettings().values()].map((fs: FormatSettings) => {
+                                        return <SelectItem textValue={fs.name} id={fs.id}>{fs.name}</SelectItem>
+                                    })}
+                                </SelectContent>
+                            </SelectPopover>
+                        </Select>
+                    </TextField>
+
+                    <FormatSettingsEditor formatSettingsId={currentFormatId} />
+
                 </DialogContent>
             </DialogOverlay>
         </DialogTrigger >
@@ -150,11 +192,125 @@ const DummyValueSettings = () => {
         <div>
             <TextField className="flex items-center gap-1.5 mr-2">
                 <Label className="w-[320px] text-md">Dummy Response: </Label>
-                <TextArea className="min-h-[400px]" value={placeholder} onChange={handlePlaceholderUpdate} />
+                <TextAreaAutosizeJolly className="min-h-[100px]" value={placeholder} onChange={handlePlaceholderUpdate} />
             </TextField>
             For testing. No attempt to connect to an AI will be made. The dummy response will be returned to all messages.
         </div>
 
+    </>)
+}
+
+const FormatSettingsEditor = ({ formatSettingsId }: { formatSettingsId: string }) => {
+    const initialFormatSettings = storageManager.getAllFormatSettings().get(formatSettingsId);
+    const [formatSettings, setFormatSettings] = useState(initialFormatSettings)
+
+    if (initialFormatSettings === undefined || formatSettings === undefined) {
+        return <></>
+    }
+
+    const handleTextAreaUpdate = (event: React.ChangeEvent<HTMLTextAreaElement>, field: keyof FormatSettings) => {
+        var nextFormatSettings: FormatSettings = formatSettings;
+        if (field === "name") {
+            nextFormatSettings = { ...formatSettings, ...{ name: event.target.value } }
+        } else if (field === "systemMessage") {
+            nextFormatSettings = { ...formatSettings, ...{ systemMessage: event.target.value } }
+        } else if (field === "systemPrefix") {
+            nextFormatSettings = { ...formatSettings, ...{ systemPrefix: event.target.value } }
+        } else if (field === "systemSuffix") {
+            nextFormatSettings = { ...formatSettings, ...{ systemSuffix: event.target.value } }
+        } else if (field === "userPrefix") {
+            nextFormatSettings = { ...formatSettings, ...{ userPrefix: event.target.value } }
+        } else if (field === "userSuffix") {
+            nextFormatSettings = { ...formatSettings, ...{ userSuffix: event.target.value } }
+        } else if (field === "lastUserPrefix") {
+            nextFormatSettings = { ...formatSettings, ...{ lastUserPrefix: event.target.value } }
+        } else if (field === "lastUserSuffix") {
+            nextFormatSettings = { ...formatSettings, ...{ lastUserSuffix: event.target.value } }
+        } else if (field === "assistantPrefix") {
+            nextFormatSettings = { ...formatSettings, ...{ assistantPrefix: event.target.value } }
+        } else if (field === "assistantSuffix") {
+            nextFormatSettings = { ...formatSettings, ...{ assistantSuffix: event.target.value } }
+        } else if (field === "lastAssistantPrefix") {
+            nextFormatSettings = { ...formatSettings, ...{ lastAssistantPrefix: event.target.value } }
+        } else if (field === "instructionFormat") {
+            nextFormatSettings = { ...formatSettings, ...{ instructionFormat: event.target.value } }
+        } else {
+            throw Error(`FormatSettingsEditor.handleTextAreaUpdate called for ${field}`)
+        }
+        setFormatSettings(nextFormatSettings)
+        storageManager.setFormatSettings(formatSettingsId, nextFormatSettings)
+    };
+    const textareaField = (field: keyof FormatSettings) => {
+        return <TextField className="flex items-center gap-1.5 mr-2 my-1">
+            <Label className="text-md w-[320px]">{field}: </Label>
+            <TextAreaAutosizeJolly value={formatSettings[field]} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleTextAreaUpdate(e, field)} />
+        </TextField>
+    }
+
+    const handleChatRoleChange = (key: Key, field: keyof FormatSettings) => {
+        const chatRoleByKey = new Map<string, ChatRole>()
+        chatRoleByKey.set(ChatRole.Bot, ChatRole.Bot)
+        chatRoleByKey.set(ChatRole.System, ChatRole.System)
+        chatRoleByKey.set(ChatRole.User, ChatRole.User)
+        if ((typeof key !== 'string')) {
+            throw Error(`FormatSettingsEditor.handleChatRoleChange got unexpected integer key`)
+        }
+        const chatRole = chatRoleByKey.get(key)
+        if (chatRole === undefined) {
+            throw Error(`FormatSettingsEditor.handleChatRoleChange got undefined chatRole`)
+        }
+        var nextFormatSettings: FormatSettings = formatSettings;
+        if (field === "authorsNoteRole") {
+            nextFormatSettings = { ...formatSettings, ...{ authorsNoteRole: chatRole } }
+        } else if (field === "lorebookRole") {
+            nextFormatSettings = { ...formatSettings, ...{ lorebookRole: chatRole } }
+        } else {
+            throw Error(`FormatSettingsEditor.handleChatRoleChange called for ${field}`)
+        }
+        setFormatSettings(nextFormatSettings)
+        storageManager.setFormatSettings(formatSettingsId, nextFormatSettings)
+    }
+    const chatRoleSelector = (field: keyof FormatSettings) => {
+        return <TextField className="flex items-center gap-1.5 mr-2 my-1">
+            <Label className="text-md w-[320px]">{field}: </Label>
+            <Select
+                placeholder="Select an item"
+                aria-label="item selection"
+                onSelectionChange={(key: Key) => { handleChatRoleChange(key, field) }}
+                defaultSelectedKey={formatSettings[field]}
+                className="flex w-full"
+            >
+                <SelectTrigger>
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectPopover>
+                    <SelectContent aria-label="items" className="px-2 py-2">
+                        {[ChatRole.Bot, ChatRole.System, ChatRole.User].map((role: ChatRole) => {
+                            return <SelectItem textValue={role} id={role}>{role}</SelectItem>
+                        })}
+                    </SelectContent>
+                </SelectPopover>
+            </Select>
+        </TextField>
+    }
+
+    return (<>
+        <div key={formatSettingsId}>
+            {textareaField('name')}
+            {textareaField('instructionFormat')}
+            {textareaField('systemMessage')}
+            {textareaField('systemPrefix')}
+            {textareaField('systemSuffix')}
+            {textareaField('userPrefix')}
+            {textareaField('userSuffix')}
+            {textareaField('lastUserPrefix')}
+            {textareaField('lastUserSuffix')}
+            {textareaField('assistantPrefix')}
+            {textareaField('assistantSuffix')}
+            {textareaField('lastAssistantPrefix')}
+            {chatRoleSelector('authorsNoteRole')}
+            {chatRoleSelector('lorebookRole')}
+        </div>
     </>)
 }
 

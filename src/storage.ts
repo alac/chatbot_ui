@@ -340,7 +340,7 @@ function getDefaultFormatSettings(): FormatSettings {
         id: "DEFAULT",
         name: "DEFAULT",
         instructionFormat: "<s> [INST]{{SYSTEM_MESSAGE}}\n{{DESCRIPTION}}\n{{LOREBOOK}}\n[/INST]\n{{CHAT_HISTORY}}",
-        systemMessage: "You are a professional writer, known for precise, minimal prose. As {{char}}, continue the exchange with {{user}}.",
+        systemMessage: "You are {{char}}, a friendly and creative assistant, prone to making wild assertions and unlikely connections. As {{char}}, continue the exchange with {{user}}.",
         systemPrefix: "<|start_header_id|>system<|end_header_id|>\n\n",
         systemSuffix: "<|eot_id|>",
         userPrefix: "<|start_header_id|>{{user}}<|end_header_id|>\n\n",
@@ -845,5 +845,5 @@ function decompressString(compressedStr: string): string {
 
 const storageManager = new StorageManager();
 
-export { storageManager, compressString, decompressString, isDummyConnectionSettings, isOpenAIConnectionSettings }
-export type { Message, Conversation, Lorebook, LorebookEntry, AnyConnectionSettings, DummyConnectionSettings, OpenAIConnectionSettings }
+export { storageManager, compressString, decompressString, isDummyConnectionSettings, isOpenAIConnectionSettings, ChatRole }
+export type { Message, Conversation, Lorebook, LorebookEntry, AnyConnectionSettings, DummyConnectionSettings, OpenAIConnectionSettings, FormatSettings }
