@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useState, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useState, useRef, Fragment } from 'react';
 
 import { storageManager, Message } from '../../storage';
 import { ConversationChatboxMethods, ConversationChatboxProps } from './ConversationChatbox';
@@ -35,9 +35,9 @@ const NaiveConversationChatbox = forwardRef<ConversationChatboxMethods, Conversa
             <div key={messageListUpdate}></div>
             {storageManager.messagesCurrent.map((m: Message, _index: number) => {
                 if (m === undefined) {
-                    return <></>;
+                    return <Fragment key={_index} />;
                 }
-                return <ChatBubble data={m} />
+                return <ChatBubble data={m} key={m.key} />
             })}
         </div>
     </>

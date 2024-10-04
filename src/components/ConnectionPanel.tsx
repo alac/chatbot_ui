@@ -119,7 +119,7 @@ const EditConnectionsPanel = () => {
                             <SelectPopover>
                                 <SelectContent aria-label="items" className="px-2 py-2">
                                     {[...storageManager.getAllFormatSettings().values()].map((fs: FormatSettings) => {
-                                        return <SelectItem textValue={fs.name} id={fs.id}>{fs.name}</SelectItem>
+                                        return <SelectItem textValue={fs.name} id={fs.id} key={fs.id}>{fs.name}</SelectItem>
                                     })}
                                 </SelectContent>
                             </SelectPopover>
