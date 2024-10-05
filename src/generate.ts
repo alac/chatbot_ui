@@ -168,13 +168,25 @@ function breakStringIntoSubstrings(str: string): string[] {
     return result;
 }
 
+
+interface FinalizedPrompt {
+    completionsPrompt: string;
+    chatCompletionsPrompt: ChatCompletionsMessage[];
+}
+
+interface ChatCompletionsMessage {
+    role: string;
+    message: string;
+}
+
+
 async function buildPrompt(
     allMessages: Message[],
     conversation: Conversation,
     generateParameters: GenerateParameters,
     connectionSettings: AnyConnectionSettings,
     formatSettings: FormatSettings
-): Promise<string> {
+): Promise<FinalizedPrompt> {
     try {
         return buildPromptWrapped(allMessages, conversation, generateParameters, connectionSettings, formatSettings)
     } catch (error) {
@@ -189,13 +201,14 @@ async function buildPromptWrapped(
     generateParameters: GenerateParameters,
     connectionSettings: AnyConnectionSettings,
     formatSettings: FormatSettings
-): Promise<string> {
+): Promise<FinalizedPrompt> {
     // assume allMessages contains the partial AI response, although maybe i'll regret that
 
     // lorebook + chatmessages fill out remaining tokens
     // everything else is an upfront cost: instructionFormat, systemPrompt, description
 
     const botName = conversation.botName
+    const systemName = "System"
     const userName = conversation.username
     const fillRolePlaceholders = (s: string) => s.replace("{{user}}", userName).replace("{{char}}", botName)
 
@@ -235,7 +248,7 @@ async function buildPromptWrapped(
     if (authorsNotePrefixSuffix === undefined) throw Error(`Undefined role ${formatSettings.authorsNoteRole}`)
 
     var reverseChatHistory: string[] = [] // a reverse ordered list of strings to add to the final chat history
-
+    var reverseChatCompletions: ChatCompletionsMessage[] = []
     var indexFromEnd = 0;
     var isFirstBotMessage = true
     var isFirstUserMessage = true
@@ -256,6 +269,7 @@ async function buildPromptWrapped(
                 } else {
                     formattedMessageStr = fillRolePlaceholders(formatSettings.assistantPrefix) + message.text + fillRolePlaceholders(formatSettings.assistantSuffix)
                 }
+                reverseChatCompletions.push({ role: botName, message: message.text })
             } else if (message.userId === "user") {
                 if (isFirstUserMessage) {
                     isFirstUserMessage = false
@@ -263,6 +277,7 @@ async function buildPromptWrapped(
                 } else {
                     formattedMessageStr = fillRolePlaceholders(formatSettings.userPrefix) + message.text + fillRolePlaceholders(formatSettings.userSuffix)
                 }
+                reverseChatCompletions.push({ role: userName, message: message.text })
             }
             if (messageCost < remainingTokens) {
                 remainingTokens -= messageCost;
@@ -277,6 +292,14 @@ async function buildPromptWrapped(
             remainingTokens -= newlineCost * 2 + await cachedTokenCount(finalAuthorsNote, connectionSettings)
                 + await cachedTokenCount(authorsNotePrefixSuffix[0] + authorsNotePrefixSuffix[1], connectionSettings)
             reverseChatHistory.push(authorsNotePrefixSuffix[0] + finalAuthorsNote + authorsNotePrefixSuffix[1])
+
+            var authorsNoteRoleName = systemName
+            if (formatSettings.authorsNoteRole === ChatRole.Bot) {
+                authorsNoteRoleName = botName
+            } else if (formatSettings.authorsNoteRole === ChatRole.User) {
+                authorsNoteRoleName = userName
+            }
+            reverseChatCompletions.push({ role: authorsNoteRoleName, message: message.text })
         }
         const newLorebookEntries = triggeredLorebookEntries(message.text, activeLorebooks);
         for (const lbEntry of newLorebookEntries) {
@@ -298,20 +321,31 @@ async function buildPromptWrapped(
         indexFromEnd += 1
     }
 
-    const chatHistoryFormatted = reverseChatHistory.reverse().join("");
+    const chatHistoryFormatted = reverseChatHistory.reverse().join("\n");
     var lorebookFormatted = ""
     if (lorebookEntries.length !== 0) {
-        lorebookFormatted = lorebookPrefixSuffix[0] + lorebookEntries.map((value) => value.entryBody).join("") + lorebookPrefixSuffix[1]
+        lorebookFormatted = lorebookPrefixSuffix[0] + lorebookEntries.map((value) => value.entryBody).join("\n") + lorebookPrefixSuffix[1]
     }
-
-    const lorebookTotalTokens = storageManager.storageState.lorebookMaxTokens - remainingLorebookTokens;
-    generateStatsTracker.updateUsage(lorebookEntries, lorebookTotalTokens);
-
     const finalPrompt = partialFormat
         .replace("{{LOREBOOK}}", lorebookFormatted)
         .replace("{{CHAT_HISTORY}}", chatHistoryFormatted)
 
-    return finalPrompt;
+    var finalChatPrompt: ChatCompletionsMessage[] = [];
+    finalChatPrompt.push({ role: systemName, message: fillRolePlaceholders(formatSettings.systemMessage) })
+    finalChatPrompt.push({ role: botName, message: fillRolePlaceholders(conversation.memory) })
+    var lorebookRoleName = systemName
+    if (formatSettings.lorebookRole === ChatRole.Bot) {
+        lorebookRoleName = botName
+    } else if (formatSettings.lorebookRole === ChatRole.User) {
+        lorebookRoleName = userName
+    }
+    finalChatPrompt.push({ role: lorebookRoleName, message: lorebookEntries.map((value) => value.entryBody).join("\n") })
+    finalChatPrompt = [...finalChatPrompt, ...reverseChatCompletions.reverse()]
+
+    const lorebookTotalTokens = storageManager.storageState.lorebookMaxTokens - remainingLorebookTokens;
+    generateStatsTracker.updateUsage(lorebookEntries, lorebookTotalTokens);
+
+    return { completionsPrompt: finalPrompt, chatCompletionsPrompt: finalChatPrompt };
 }
 
 

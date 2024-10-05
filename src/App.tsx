@@ -117,7 +117,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         storageManager.getCurrentConnectionSettings(),
         storageManager.getCurrentFormatSettings()
       )
-      const compressedPrompt = compressString(prompt)
+      const compressedPrompt = compressString(prompt.completionsPrompt)
       botMessage.compressedPrompt = compressedPrompt
       storageManager.updateMessage(botMessage)
 
@@ -139,7 +139,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
       }
 
       generate(
-        prompt,
+        prompt.completionsPrompt,
         [`\n${storageManager.currentConversation.username}:`],
         storageManager.getCurrentConnectionSettings(),
         generateSettingsManager.currentGenerateSettings,
