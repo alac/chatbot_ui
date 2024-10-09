@@ -5,14 +5,24 @@ import { ConversationChatboxMethods, ConversationChatboxProps } from './Conversa
 
 import { ChatBubble } from './ChatBubble';
 
+const AUTOSCROLL_THRESHOLD = 30;
+
 const NaiveConversationChatbox = forwardRef<ConversationChatboxMethods, ConversationChatboxProps>((props: ConversationChatboxProps, ref) => {
     const [messageListUpdate, setMessageListUpdate] = useState(0); // used only to trigger updates
     const messageListRef = useRef<HTMLDivElement>(null);
 
+    const isScrolledToBottom = () => {
+        if (messageListRef.current) {
+            const { scrollTop, scrollHeight, clientHeight } = messageListRef.current;
+            return scrollTop + clientHeight >= scrollHeight - AUTOSCROLL_THRESHOLD;
+        }
+        return false;
+    };
+
     useImperativeHandle(ref, () => ({
         appendMessage: (_message: Message) => {
             setMessageListUpdate((v) => v + 1)
-            if (messageListRef.current) {
+            if (isScrolledToBottom() && messageListRef.current) {
                 messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
             }
         },
@@ -21,7 +31,7 @@ const NaiveConversationChatbox = forwardRef<ConversationChatboxMethods, Conversa
         },
         updateMessages: (_callback: (message: Message) => Message) => {
             setMessageListUpdate((v) => v + 1)
-            if (messageListRef.current) {
+            if (isScrolledToBottom() && messageListRef.current) {
                 messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
             }
         },
