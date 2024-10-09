@@ -145,7 +145,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         generateSettingsManager.currentGenerateSettings,
         responseWriter
       )
-    }, 1000)
+    }, 100)
   }
 
   const sendChatMessage = () => {

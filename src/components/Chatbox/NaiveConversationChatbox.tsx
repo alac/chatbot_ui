@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useState, useRef, Fragment } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState, useRef, Fragment } from 'react';
 
 import { storageManager, Message } from '../../storage';
 import { ConversationChatboxMethods, ConversationChatboxProps } from './ConversationChatbox';
@@ -10,6 +10,7 @@ const AUTOSCROLL_THRESHOLD = 30;
 const NaiveConversationChatbox = forwardRef<ConversationChatboxMethods, ConversationChatboxProps>((props: ConversationChatboxProps, ref) => {
     const [messageListUpdate, setMessageListUpdate] = useState(0); // used only to trigger updates
     const messageListRef = useRef<HTMLDivElement>(null);
+    const [wasAtBottom, setWasAtBottom] = useState(false);
 
     const isScrolledToBottom = () => {
         if (messageListRef.current) {
@@ -19,12 +20,17 @@ const NaiveConversationChatbox = forwardRef<ConversationChatboxMethods, Conversa
         return false;
     };
 
+    useEffect(() => {
+        if (wasAtBottom && messageListRef.current) {
+            messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+            setWasAtBottom(false)
+        }
+    }, [wasAtBottom])
+
     useImperativeHandle(ref, () => ({
         appendMessage: (_message: Message) => {
+            setWasAtBottom(isScrolledToBottom())
             setMessageListUpdate((v) => v + 1)
-            if (isScrolledToBottom() && messageListRef.current) {
-                messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
-            }
         },
         deleteMessage: (_messageKey: string) => {
             setMessageListUpdate((v) => v + 1)
@@ -40,7 +46,9 @@ const NaiveConversationChatbox = forwardRef<ConversationChatboxMethods, Conversa
     return <>
         <div
             ref={messageListRef}
-            style={{ maxHeight: "100%", minHeight: "100%", overflowY: "scroll" }}
+            style={{
+                maxHeight: "100%", minHeight: "100%", overflowY: "scroll",
+            }}
         >
             <div key={messageListUpdate}></div>
             {storageManager.messagesCurrent.map((m: Message, _index: number) => {
