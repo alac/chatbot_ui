@@ -144,7 +144,10 @@ async function generate(prompt: string, terminationStrings: string[], connection
         writeStream("", true)
     } else if (connectionSettings.type === 'DUMMY' && isDummyConnectionSettings(connectionSettings)) {
         let i = 0;
-        const inputString = connectionSettings.response;
+        var inputString = connectionSettings.response;
+        if (inputString === "") {
+            inputString = "Use the GENERATE menu to setup AI connection or a dummy response."
+        }
         const dummyResponse = breakStringIntoSubstrings(inputString);
         const intervalId = setInterval(() => {
             writeStream(dummyResponse[i], false)
