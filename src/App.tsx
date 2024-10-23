@@ -8,7 +8,7 @@ import Refresh from '@spectrum-icons/workflow/Refresh';
 
 
 import './App.css';
-import { generate, buildPrompt, generateSettingsManager } from './generate';
+import { generate, buildPrompt, generateSettingsManager, setInterruptFlag } from './generate';
 import { storageManager, compressString, Message } from './storage';
 
 import LorebookPanel from './components/LorebookPanel';
@@ -96,6 +96,8 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
     setInputValue(event.target.value);
   };
 
+  const [isStreamingResponse, setIsStreamingResponse] = useState(false)
+
   const streamBotResponse = (botMessageId: string, isUpdateEvent: boolean) => {
     setTimeout(async () => {
       const botMessage: Message = {
@@ -129,6 +131,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         const newMessage = { ...oldMessage, text: oldMessage?.text + token }
         storageManager.updateMessage(newMessage)
         if (done) {
+          setIsStreamingResponse(false)
           if (isUpdateEvent) {
             storageManager.createUpdateEditEvent(newMessage)
           } else {
@@ -138,6 +141,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         }
       }
 
+      setIsStreamingResponse(true)
       generate(
         prompt.completionsPrompt,
         [`\n${storageManager.currentConversation.username}:`],
@@ -216,10 +220,17 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
           onKeyDown={handleKeyDown}
         />
         <div className="command-container">
-          <TooltipTrigger>
-            <Button onPress={() => sendChatMessage()}>Send</Button>
-            <Tooltip>Send the message to chat (Shift+Enter)</Tooltip>
-          </TooltipTrigger>
+          {isStreamingResponse ? (
+            <TooltipTrigger>
+              <Button onPress={() => setInterruptFlag(true)}>Cancel</Button>
+              <Tooltip>Interrupt the AI's response</Tooltip>
+            </TooltipTrigger>
+          ) : (
+            <TooltipTrigger>
+              <Button onPress={() => sendChatMessage()}>Send</Button>
+              <Tooltip>Send the message to chat (Shift+Enter)</Tooltip>
+            </TooltipTrigger>
+          )}
           <div className="flex">
             <TooltipTrigger>
               <Button size="icon-md" onPress={() => undoEdit()}><Undo /></Button>

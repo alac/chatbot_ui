@@ -81,7 +81,15 @@ class DefaultGenerateSettingsManager implements GenerateSettingsManager {
 }
 
 type ResponseWriter = (token: string, done: boolean) => void;
-var interruptFlag = false;
+let _isInterrupted = false;
+
+function isInterrupted() {
+    return _isInterrupted;
+}
+
+function setInterruptFlag(value: boolean) {
+    _isInterrupted = value;
+}
 
 type TextCompletionChunk = {
     id: string;
@@ -118,7 +126,7 @@ async function generate(prompt: string, terminationStrings: string[], connection
         const reader = response?.body?.getReader();
         while (reader) {
             const { value, done } = await reader.read();
-            if (done || interruptFlag) break;
+            if (done || isInterrupted()) break;
             const responseStr = new TextDecoder().decode(value);
             try {
                 // two kinds of responses
@@ -141,6 +149,7 @@ async function generate(prompt: string, terminationStrings: string[], connection
                 throw error;
             }
         }
+        setInterruptFlag(false)
         writeStream("", true)
     } else if (connectionSettings.type === 'DUMMY' && isDummyConnectionSettings(connectionSettings)) {
         let i = 0;
@@ -152,13 +161,15 @@ async function generate(prompt: string, terminationStrings: string[], connection
         const intervalId = setInterval(() => {
             writeStream(dummyResponse[i], false)
             i++;
-            if (i === dummyResponse.length) {
+            if (i === dummyResponse.length || isInterrupted()) {
+                setInterruptFlag(false)
                 writeStream("", true)
                 clearInterval(intervalId);
             }
         }, 50);
     } else {
         console.log("Invalid connection type: ", connectionSettings.type)
+        writeStream("", true)
     }
 }
 
@@ -436,9 +447,8 @@ class GenerateStatsTracker {
     }
 }
 
-
 const generateSettingsManager = new DefaultGenerateSettingsManager();
 const tokenCountCache = new Map<string, number>();
 const generateStatsTracker = new GenerateStatsTracker();
 
-export { generate, buildPrompt, generateSettingsManager, generateStatsTracker }
+export { generate, buildPrompt, generateSettingsManager, generateStatsTracker, setInterruptFlag }
