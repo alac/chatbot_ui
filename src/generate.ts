@@ -492,7 +492,7 @@ async function testConversation(): Promise<string> {
     const conversation = NewConversation("DisplayName", "ConversationID")
     const builtPrompt = await buildPrompt(
         messages,
-        conversation,
+        storageManager.currentConversation,
         generateSettingsManager.currentGenerateSettings,
         storageManager.getCurrentConnectionSettings(),
         storageManager.getCurrentFormatSettings()
