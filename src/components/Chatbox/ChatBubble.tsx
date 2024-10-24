@@ -53,8 +53,8 @@ const ChatBubble = ({ data }: { data: Message }) => {
             <div
                 style={{
                     minWidth: '200px',
-                    maxWidth: '80%',
-                    width: isEditing ? '80%' : 'auto',
+                    maxWidth: '95%',
+                    width: '95%',
                     marginLeft: data.userId === 'user' ? 'auto' : undefined,
 
                     background: ownMessage ? '#0253B3' : '#F0F0F3',
