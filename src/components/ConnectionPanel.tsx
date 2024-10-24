@@ -14,8 +14,10 @@ import { Label } from "../ui/label"
 import { TextField } from "react-aria-components"
 import { Select, SelectTrigger, SelectValue, SelectPopover, SelectItem, SelectContent } from "../ui/select"
 import Settings from '@spectrum-icons/workflow/Settings';
+import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 
 import { storageManager, FormatSettings, ChatRole } from '../storage';
+import { testConversation } from '../generate';
 import { Key } from 'react-aria-components';
 import TextAreaAutosizeJolly from '../ui/textareaautosizejolly';
 
@@ -70,7 +72,7 @@ const EditConnectionsPanel = () => {
         <DialogTrigger>
             <Button size="icon" aria-label='Edit Lorebook'><Settings /></Button>
             <DialogOverlay>
-                <DialogContent className="max-w-[80%] max-h-[90%] overflow-y-scroll" isDismissable={true}>
+                <DialogContent className="max-w-[90%] max-h-[90%] overflow-y-scroll" isDismissable={true}>
                     <DialogHeader>
                         <DialogTitle>Connection Settings</DialogTitle>
                     </DialogHeader>
@@ -204,6 +206,15 @@ const FormatSettingsEditor = ({ formatSettingsId }: { formatSettingsId: string }
     const initialFormatSettings = storageManager.getAllFormatSettings().get(formatSettingsId);
     const [formatSettings, setFormatSettings] = useState(initialFormatSettings)
 
+    const [formattedPrompt, setFormattedPrompt] = useState("")
+    useEffect(() => {
+        const updateTestPrompt = async () => {
+            const result = await testConversation();
+            setFormattedPrompt(result);
+        };
+        updateTestPrompt()
+    }, [formatSettings])
+
     if (initialFormatSettings === undefined || formatSettings === undefined) {
         return <></>
     }
@@ -242,7 +253,7 @@ const FormatSettingsEditor = ({ formatSettingsId }: { formatSettingsId: string }
     };
     const textareaField = (field: keyof FormatSettings) => {
         return <TextField className="flex items-center gap-1.5 mr-2 my-1">
-            <Label className="text-md w-[320px]">{field}: </Label>
+            <Label className="text-md w-[180px]">{field}: </Label>
             <TextAreaAutosizeJolly value={formatSettings[field]} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleTextAreaUpdate(e, field)} />
         </TextField>
     }
@@ -272,7 +283,7 @@ const FormatSettingsEditor = ({ formatSettingsId }: { formatSettingsId: string }
     }
     const chatRoleSelector = (field: keyof FormatSettings) => {
         return <TextField className="flex items-center gap-1.5 mr-2 my-1">
-            <Label className="text-md w-[320px]">{field}: </Label>
+            <Label className="text-md w-[180px]">{field}: </Label>
             <Select
                 placeholder="Select an item"
                 aria-label="item selection"
@@ -295,22 +306,39 @@ const FormatSettingsEditor = ({ formatSettingsId }: { formatSettingsId: string }
     }
 
     return (<>
-        <div key={formatSettingsId}>
-            {textareaField('name')}
-            {textareaField('instructionFormat')}
-            {textareaField('systemMessage')}
-            {textareaField('systemPrefix')}
-            {textareaField('systemSuffix')}
-            {textareaField('userPrefix')}
-            {textareaField('userSuffix')}
-            {textareaField('lastUserPrefix')}
-            {textareaField('lastUserSuffix')}
-            {textareaField('assistantPrefix')}
-            {textareaField('assistantSuffix')}
-            {textareaField('lastAssistantPrefix')}
-            {chatRoleSelector('authorsNoteRole')}
-            {chatRoleSelector('lorebookRole')}
-        </div>
+        <PanelGroup direction="horizontal">
+            <Panel>
+                <div key={formatSettingsId}>
+                    {textareaField('name')}
+                    {textareaField('instructionFormat')}
+                    {textareaField('systemMessage')}
+                    {textareaField('systemPrefix')}
+                    {textareaField('systemSuffix')}
+                    {textareaField('userPrefix')}
+                    {textareaField('userSuffix')}
+                    {textareaField('lastUserPrefix')}
+                    {textareaField('lastUserSuffix')}
+                    {textareaField('assistantPrefix')}
+                    {textareaField('assistantSuffix')}
+                    {textareaField('lastAssistantPrefix')}
+                    {chatRoleSelector('authorsNoteRole')}
+                    {chatRoleSelector('lorebookRole')}
+                </div>
+
+            </Panel>
+            <PanelResizeHandle />
+            <Panel>
+                <div
+                    style={{
+                        whiteSpace: 'pre',
+                        textWrap: 'wrap'
+                    }}
+                >
+                    ${formattedPrompt}
+                </div>
+            </Panel>
+        </PanelGroup>
+
     </>)
 }
 

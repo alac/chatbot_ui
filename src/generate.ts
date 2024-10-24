@@ -1,4 +1,4 @@
-import { storageManager, Message, Conversation, Lorebook, LorebookEntry, isLorebook, AnyConnectionSettings, isOpenAIConnectionSettings, isDummyConnectionSettings, FormatSettings, ChatRole } from './storage';
+import { storageManager, Message, Conversation, NewConversation, Lorebook, LorebookEntry, isLorebook, AnyConnectionSettings, isOpenAIConnectionSettings, isDummyConnectionSettings, FormatSettings, ChatRole } from './storage';
 
 interface GenerateParameters {
     name: string
@@ -202,7 +202,7 @@ async function buildPrompt(
     formatSettings: FormatSettings
 ): Promise<FinalizedPrompt> {
     try {
-        return buildPromptWrapped(allMessages, conversation, generateParameters, connectionSettings, formatSettings)
+        return buildPromptWrapped(allMessages, conversation, generateParameters, connectionSettings, formatSettings, true)
     } catch (error) {
         console.error(error)
         throw error
@@ -214,7 +214,8 @@ async function buildPromptWrapped(
     conversation: Conversation,
     generateParameters: GenerateParameters,
     connectionSettings: AnyConnectionSettings,
-    formatSettings: FormatSettings
+    formatSettings: FormatSettings,
+    updateGenerateStats: boolean,
 ): Promise<FinalizedPrompt> {
     // assume allMessages contains the partial AI response, although maybe i'll regret that
 
@@ -356,8 +357,10 @@ async function buildPromptWrapped(
     finalChatPrompt.push({ role: lorebookRoleName, message: lorebookEntries.map((value) => value.entryBody).join("\n") })
     finalChatPrompt = [...finalChatPrompt, ...reverseChatCompletions.reverse()]
 
-    const lorebookTotalTokens = storageManager.storageState.lorebookMaxTokens - remainingLorebookTokens;
-    generateStatsTracker.updateUsage(lorebookEntries, lorebookTotalTokens);
+    if (updateGenerateStats) {
+        const lorebookTotalTokens = storageManager.storageState.lorebookMaxTokens - remainingLorebookTokens;
+        generateStatsTracker.updateUsage(lorebookEntries, lorebookTotalTokens);
+    }
 
     return { completionsPrompt: finalPrompt, chatCompletionsPrompt: finalChatPrompt };
 }
@@ -447,8 +450,58 @@ class GenerateStatsTracker {
     }
 }
 
+async function testConversation(): Promise<string> {
+    const messages: Message[] = [];
+    messages.push({
+        userId: 'bot',
+        username: storageManager.currentConversation.botName,
+        key: `0`,
+        text: "Hello, I'm a bot.",
+        tokenCount: null,
+        compressedPrompt: "",
+        isDisabled: false,
+    })
+    messages.push({
+        userId: 'user',
+        username: storageManager.currentConversation.username,
+        key: `1`,
+        text: "Hello, I'm a user.",
+        tokenCount: null,
+        compressedPrompt: "",
+        isDisabled: false,
+    })
+    messages.push({
+        userId: 'bot',
+        username: storageManager.currentConversation.botName,
+        key: `2`,
+        text: "I'm still a bot.",
+        tokenCount: null,
+        compressedPrompt: "",
+        isDisabled: false,
+    })
+    messages.push({
+        userId: 'user',
+        username: storageManager.currentConversation.username,
+        key: `3`,
+        text: "And I'm still a user.",
+        tokenCount: null,
+        compressedPrompt: "",
+        isDisabled: false,
+    })
+
+    const conversation = NewConversation("DisplayName", "ConversationID")
+    const builtPrompt = await buildPrompt(
+        messages,
+        conversation,
+        generateSettingsManager.currentGenerateSettings,
+        storageManager.getCurrentConnectionSettings(),
+        storageManager.getCurrentFormatSettings()
+    )
+    return builtPrompt.completionsPrompt
+}
+
+
 const generateSettingsManager = new DefaultGenerateSettingsManager();
 const tokenCountCache = new Map<string, number>();
 const generateStatsTracker = new GenerateStatsTracker();
-
-export { generate, buildPrompt, generateSettingsManager, generateStatsTracker, setInterruptFlag }
+export { generate, buildPrompt, generateSettingsManager, generateStatsTracker, setInterruptFlag, testConversation }

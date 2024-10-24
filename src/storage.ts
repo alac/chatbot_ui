@@ -27,7 +27,7 @@ function NewConversation(displayName: string, id: string): Conversation {
         editEventsRedoQueue: [],
         nextMessageId: 0,
         memory: "",
-        authorNote: "[Note: this is a conversation]\n",
+        authorNote: "[Author's Note: this is a conversation]\n",
         authorNotePosition: 2,
         promptFormat: "[MEMORY]\n[MESSAGES]",
         lorebookIds: [],
@@ -845,5 +845,5 @@ function decompressString(compressedStr: string): string {
 
 const storageManager = new StorageManager();
 
-export { storageManager, compressString, decompressString, isDummyConnectionSettings, isOpenAIConnectionSettings, ChatRole }
+export { storageManager, compressString, decompressString, isDummyConnectionSettings, isOpenAIConnectionSettings, ChatRole, NewConversation }
 export type { Message, Conversation, Lorebook, LorebookEntry, AnyConnectionSettings, DummyConnectionSettings, OpenAIConnectionSettings, FormatSettings }
