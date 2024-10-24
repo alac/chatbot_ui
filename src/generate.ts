@@ -225,15 +225,15 @@ async function buildPromptWrapped(
     const botName = conversation.botName
     const systemName = "System"
     const userName = conversation.username
-    const fillRolePlaceholders = (s: string) => s.replace("{{user}}", userName).replace("{{char}}", botName)
+    const fillRolePlaceholders = (s: string) => s.replace(/{{user}}/g, userName).replace(/{{char}}/g, botName)
 
     const systemMessageWithRole = (formatSettings.systemMessage.length !== 0) ? (formatSettings.systemPrefix + formatSettings.systemMessage + formatSettings.systemSuffix) : ""
     const descriptionWithRole = (conversation.memory.length !== 0) ? (formatSettings.assistantPrefix + conversation.memory + formatSettings.assistantSuffix) : ""
     const partialFormat = formatSettings.instructionFormat
         .replace("{{SYSTEM_MESSAGE}}", systemMessageWithRole)
         .replace("{{DESCRIPTION}}", descriptionWithRole)
-        .replace("{{user}}", userName)
-        .replace("{{char}}", botName)
+        .replace(/{{user}}/g, userName)
+        .replace(/{{char}}/g, botName)
 
     var maxTokens = 2048;
     var maxResponseLength = 256;
