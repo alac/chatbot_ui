@@ -53,12 +53,11 @@ const ChatBubble = ({ data }: { data: Message }) => {
             <div
                 style={{
                     minWidth: '200px',
-                    maxWidth: '95%',
-                    width: '95%',
+                    maxWidth: 'calc(100% - 10px)',
+                    width: 'calc(100% - 10px)',
                     marginLeft: data.userId === 'user' ? 'auto' : undefined,
-
-                    background: ownMessage ? '#0253B3' : '#F0F0F3',
-                    color: ownMessage ? 'white' : 'black',
+                    background: ownMessage ? '#0c4a6e' : '#e2e8f0',
+                    color: ownMessage ? 'white' : '#1e293b',
                     borderRadius: '1rem',
                     padding: '1rem',
                     whiteSpace: 'pre',
@@ -127,7 +126,7 @@ const EditableText = ({ initialText, onTextChange, isEditing, setIsEditing }: { 
         <div
             onClick={handleFocus}
             onBlur={handleBlur}
-            style={{ border: '1px solid #ccc', padding: '10px', cursor: 'pointer' }}
+            style={{ border: '1px solid #f8fafc', padding: '10px', cursor: 'pointer' }}
         >
             {isEditing ? (
                 <textarea
