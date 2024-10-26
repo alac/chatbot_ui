@@ -845,5 +845,5 @@ function decompressString(compressedStr: string): string {
 
 const storageManager = new StorageManager();
 
-export { storageManager, compressString, decompressString, isDummyConnectionSettings, isOpenAIConnectionSettings, ChatRole, NewConversation }
+export { storageManager, compressString, decompressString, isDummyConnectionSettings, isOpenAIConnectionSettings, ChatRole }
 export type { Message, Conversation, Lorebook, LorebookEntry, AnyConnectionSettings, DummyConnectionSettings, OpenAIConnectionSettings, FormatSettings }

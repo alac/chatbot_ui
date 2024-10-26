@@ -1,4 +1,4 @@
-import { storageManager, Message, Conversation, NewConversation, Lorebook, LorebookEntry, isLorebook, AnyConnectionSettings, isOpenAIConnectionSettings, isDummyConnectionSettings, FormatSettings, ChatRole } from './storage';
+import { storageManager, Message, Conversation, Lorebook, LorebookEntry, isLorebook, AnyConnectionSettings, isOpenAIConnectionSettings, isDummyConnectionSettings, FormatSettings, ChatRole } from './storage';
 
 interface GenerateParameters {
     name: string
@@ -489,7 +489,6 @@ async function testConversation(): Promise<string> {
         isDisabled: false,
     })
 
-    const conversation = NewConversation("DisplayName", "ConversationID")
     const builtPrompt = await buildPrompt(
         messages,
         storageManager.currentConversation,
