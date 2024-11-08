@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import Delete from '@spectrum-icons/workflow/Delete';
 import Deselect from '@spectrum-icons/workflow/Deselect';
 import Compare from '@spectrum-icons/workflow/Compare';
+import Markdown from 'react-markdown';
 
 import { DialogContent, DialogHeader, DialogOverlay, DialogTitle, DialogTrigger, } from "../../ui/dialog"
 import { Button } from "../../ui/button"
@@ -141,7 +142,9 @@ const EditableText = ({ initialText, onTextChange, isEditing, setIsEditing }: { 
                 <span
                     ref={spanRef}
                     className='message-body'
-                >{text}</span>
+                >
+                    <Markdown>{text}</Markdown>
+                </span>
             )}
         </div>
     );
