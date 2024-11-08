@@ -57,13 +57,12 @@ const ChatBubble = ({ data }: { data: Message }) => {
                     maxWidth: 'calc(100% - 10px)',
                     width: 'calc(100% - 10px)',
                     marginLeft: data.userId === 'user' ? 'auto' : undefined,
-                    background: ownMessage ? '#292524' : '#e2e8f0',
-                    color: ownMessage ? 'white' : '#1e293b',
+                    background: ownMessage ? `${data.isDisabled ? '#d4d3d3' : '#27272a'}` : `${data.isDisabled ? '#e2e8f0' : '#e2e8f0'}`,
+                    color: ownMessage ? `${data.isDisabled ? '#fafafa' : 'white'}` : `${data.isDisabled ? '#94a3b8' : '#1e293b'}`,
                     borderRadius: '1rem',
                     padding: '1rem',
                     whiteSpace: 'pre',
                     textWrap: 'wrap',
-                    opacity: `${data.isDisabled ? .2 : 1}`,
                 }}
             >
                 <div className="flex items-center">
