@@ -33,7 +33,7 @@ const ConversationsPanel = () => {
     return (
         <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
             <div className="flex items-center">
-                <span className="text-md font-medium">Conversation</span>
+                <span className="text-md font-medium">Conversations</span>
                 <div className="ml-auto">
                     <span className='corner-button'><SwitchConversationButton conversationsUpdateCounter={conversationsUpdateCounter} /></span>
                     <span className='corner-button'><NewConversationButton /></span>

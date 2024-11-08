@@ -49,7 +49,7 @@ const ContextPanel = () => {
     return (
         <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
             <div className="flex items-center">
-                <span className="text-md font-medium">Conversation</span>
+                <span className="text-md font-medium">Context</span>
                 <div className="ml-auto">
                     <span className='corner-button'>
                         <ContextDialogButton memory={memoryValue} handleSetMemory={handleMemoryInputChange}

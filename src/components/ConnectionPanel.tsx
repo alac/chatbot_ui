@@ -36,7 +36,7 @@ const ConnectionsPanel = () => {
     return (
         <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
             <div className="flex items-center" key={"ConnPanel_" + connectionsUpdateCounter}>
-                <span className="text-md font-medium">Generate</span>
+                <span className="text-md font-medium">Connection</span>
                 <div className="ml-auto">
                     <span className='corner-button'><EditConnectionsPanel /></span>
                 </div>
