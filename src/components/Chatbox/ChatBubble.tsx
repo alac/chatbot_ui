@@ -63,6 +63,7 @@ const ChatBubble = ({ data }: { data: Message }) => {
                     padding: '1rem',
                     whiteSpace: 'pre',
                     textWrap: 'wrap',
+                    textDecoration: `${data.isDisabled ? 'line-through' : 'none'}`
                 }}
             >
                 <div className="flex items-center">
