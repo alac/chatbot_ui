@@ -1140,6 +1140,10 @@ body {
   color: hsl(var(--secondary-foreground));
 }
 
+.line-through {
+  text-decoration-line: line-through;
+}
+
 .underline-offset-4 {
   text-underline-offset: 4px;
 }
