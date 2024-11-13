@@ -335,9 +335,11 @@ const isFormatSettings = (obj: any): obj is FormatSettings => {
 };
 
 
-function getDefaultFormatSettings(): FormatSettings {
-    return {
-        id: "DEFAULT",
+const DEFAULT_FORMAT_SETTINGS_ID = "DEFAULT"
+function getDefaultFormatSettingsMap(): Map<string, FormatSettings> {
+    const settingsMap = new Map<string, FormatSettings>()
+    const defaultFormat = {
+        id: DEFAULT_FORMAT_SETTINGS_ID,
         name: "DEFAULT",
         instructionFormat: "<s> [INST]{{SYSTEM_MESSAGE}}\n{{DESCRIPTION}}\n{{LOREBOOK}}\n[/INST]\n{{CHAT_HISTORY}}",
         systemMessage: "You are {{char}}, a friendly and creative assistant, prone to making wild assertions and unlikely connections. As {{char}}, continue the exchange with {{user}}.",
@@ -353,6 +355,8 @@ function getDefaultFormatSettings(): FormatSettings {
         authorsNoteRole: ChatRole.Bot,
         lorebookRole: ChatRole.Bot,
     }
+    settingsMap.set(defaultFormat.id, defaultFormat)
+    return settingsMap;
 }
 
 
@@ -379,9 +383,7 @@ class StorageManager {
         const defaultConnections = new Map<string, DummyConnectionSettings | OpenAIConnectionSettings>()
         defaultConnections.set("DUMMY", getDummyConnectionSettings())
 
-        const defaultFormats = new Map<string, FormatSettings>()
-        defaultFormats.set("DEFAULT", getDefaultFormatSettings())
-
+        const defaultFormats = getDefaultFormatSettingsMap()
         this.storageState = {
             currentConversationId: "",
             conversationIds: [],
@@ -390,7 +392,7 @@ class StorageManager {
             lorebookMaxTokens: 1000,
             currentConnectionSettingsId: "DUMMY",
             connectionSettingsById: defaultConnections,
-            currentFormatSettingsId: "DEFAULT",
+            currentFormatSettingsId: DEFAULT_FORMAT_SETTINGS_ID,
             formatSettingsById: defaultFormats
         }
         this.messagesCurrent = [];
@@ -783,6 +785,11 @@ class StorageManager {
         this.persistStorageState();
     }
 
+    deleteFormatSettings(id: string): void {
+        this.storageState.formatSettingsById.delete(id)
+        this.persistStorageState();
+    }
+
     getCurrentFormatSettingsId(): string {
         return this.storageState.currentFormatSettingsId;
     }
@@ -845,5 +852,5 @@ function decompressString(compressedStr: string): string {
 
 const storageManager = new StorageManager();
 
-export { storageManager, compressString, decompressString, isDummyConnectionSettings, isOpenAIConnectionSettings, ChatRole }
+export { storageManager, compressString, decompressString, isDummyConnectionSettings, isOpenAIConnectionSettings, ChatRole, getDefaultFormatSettingsMap }
 export type { Message, Conversation, Lorebook, LorebookEntry, AnyConnectionSettings, DummyConnectionSettings, OpenAIConnectionSettings, FormatSettings }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import {
     DialogContent,
+    DialogFooter,
     DialogHeader,
     DialogOverlay,
     DialogTitle,
@@ -16,7 +17,7 @@ import { Select, SelectTrigger, SelectValue, SelectPopover, SelectItem, SelectCo
 import Settings from '@spectrum-icons/workflow/Settings';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 
-import { storageManager, FormatSettings, ChatRole } from '../storage';
+import { storageManager, FormatSettings, ChatRole, getDefaultFormatSettingsMap } from '../storage';
 import { testConversation } from '../generate';
 import { Key } from 'react-aria-components';
 import TextAreaAutosizeJolly from '../ui/textareaautosizejolly';
@@ -65,6 +66,39 @@ const EditConnectionsPanel = () => {
         const formatSettingsById = storageManager.getAllFormatSettings();
         if (typeof key === "string" && formatSettingsById.has(key)) {
             setCurrentFormatId(key);
+            const newFormatSettings = storageManager.getAllFormatSettings().get(key)
+            if (newFormatSettings) {
+                setFormatSettings(newFormatSettings)
+            }
+        }
+    }
+
+    const builtInFormatMap = getDefaultFormatSettingsMap();
+    const currentFormatIsBuiltIn = builtInFormatMap.has(currentFormatId)
+
+    var initialFormatSettings = storageManager.getAllFormatSettings().get(currentFormatId);
+    if (!initialFormatSettings) {
+        initialFormatSettings = storageManager.getCurrentFormatSettings();
+    }
+    const [formatSettings, setFormatSettings] = useState(initialFormatSettings)
+
+    const handleReset = () => {
+        const originalFormatSettings = getDefaultFormatSettingsMap().get(currentFormatId);
+        if (originalFormatSettings) {
+            setFormatSettings(originalFormatSettings)
+            storageManager.setFormatSettings(currentFormatId, originalFormatSettings)
+        }
+    }
+
+    const handleDelete = () => {
+        storageManager.deleteFormatSettings(currentFormatId)
+        // switch to an arbitary formatSettings from the defaults
+        const [defaultFormatId] = getDefaultFormatSettingsMap().keys();
+        storageManager.setCurrentFormatSettingsId(defaultFormatId)
+        setCurrentFormatId(defaultFormatId)
+        const defaultFormatSettings = storageManager.getAllFormatSettings().get(defaultFormatId);
+        if (defaultFormatSettings) {
+            setFormatSettings(defaultFormatSettings)
         }
     }
 
@@ -107,29 +141,38 @@ const EditConnectionsPanel = () => {
                     </DialogHeader>
                     <Separator />
 
-                    <TextField className="flex items-center gap-1.5 mr-2">
-                        <Label className="text-md">Selected: </Label>
-                        <Select
-                            placeholder="Select an item"
-                            aria-label="item selection"
-                            onSelectionChange={handleFormatIdChange}
-                            defaultSelectedKey={currentFormatId}
-                        >
-                            <SelectTrigger className="w-[300px]">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectPopover>
-                                <SelectContent aria-label="items" className="px-2 py-2">
-                                    {[...storageManager.getAllFormatSettings().values()].map((fs: FormatSettings) => {
-                                        return <SelectItem textValue={fs.name} id={fs.id} key={fs.id}>{fs.name}</SelectItem>
-                                    })}
-                                </SelectContent>
-                            </SelectPopover>
-                        </Select>
-                    </TextField>
+                    <div className="flex gap-1.5 mr-2" key={"FormatSelector_" + currentFormatId}>
+                        <TextField className="flex items-center gap-1.5 mr-2">
+                            <Label className="text-md">Selected: </Label>
+                            <Select
+                                placeholder="Select an item"
+                                aria-label="item selection"
+                                onSelectionChange={handleFormatIdChange}
+                                defaultSelectedKey={currentFormatId}
+                            >
+                                <SelectTrigger className="w-[300px]">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectPopover>
+                                    <SelectContent aria-label="items" className="px-2 py-2">
+                                        {[...storageManager.getAllFormatSettings().values()].map((fs: FormatSettings) => {
+                                            return <SelectItem textValue={fs.name} id={fs.id} key={fs.id}>{fs.name}</SelectItem>
+                                        })}
+                                    </SelectContent>
+                                </SelectPopover>
+                            </Select>
+                        </TextField>
 
-                    <FormatSettingsEditor formatSettingsId={currentFormatId} />
+                        <CopyFormatButton setCurrentFormatId={setCurrentFormatId} />
+                        {(currentFormatIsBuiltIn) ? <Button size="md" aria-label='Reset Format to Defaults' onPress={handleReset}>Reset</Button> : <></>}
+                        {(!currentFormatIsBuiltIn) ? <Button size="md" aria-label='Delete Format' onPress={handleDelete}>Delete</Button> : <></>}
+                    </div>
 
+                    <FormatSettingsEditor
+                        formatSettingsId={currentFormatId}
+                        formatSettings={formatSettings}
+                        setFormatSettings={setFormatSettings}
+                        key={"FormatEditor_" + currentFormatId} />
                 </DialogContent>
             </DialogOverlay>
         </DialogTrigger >
@@ -202,9 +245,13 @@ const DummyValueSettings = () => {
     </>)
 }
 
-const FormatSettingsEditor = ({ formatSettingsId }: { formatSettingsId: string }) => {
-    const initialFormatSettings = storageManager.getAllFormatSettings().get(formatSettingsId);
-    const [formatSettings, setFormatSettings] = useState(initialFormatSettings)
+interface FormatSettingsEditorProps {
+    formatSettingsId: string,
+    formatSettings: FormatSettings,
+    setFormatSettings: React.Dispatch<React.SetStateAction<FormatSettings>>
+}
+
+const FormatSettingsEditor = ({ formatSettings, setFormatSettings, formatSettingsId }: FormatSettingsEditorProps) => {
 
     const [formattedPrompt, setFormattedPrompt] = useState("")
     useEffect(() => {
@@ -215,7 +262,7 @@ const FormatSettingsEditor = ({ formatSettingsId }: { formatSettingsId: string }
         updateTestPrompt()
     }, [formatSettings])
 
-    if (initialFormatSettings === undefined || formatSettings === undefined) {
+    if (formatSettings === undefined) {
         return <></>
     }
 
@@ -341,5 +388,60 @@ const FormatSettingsEditor = ({ formatSettingsId }: { formatSettingsId: string }
 
     </>)
 }
+
+interface CopyFormatButtonPrompts {
+    setCurrentFormatId: React.Dispatch<React.SetStateAction<string>>
+}
+
+const CopyFormatButton = (props: CopyFormatButtonPrompts) => {
+    const [formatName, setFormatName] = useState("NewFormatName");
+
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setFormatName(event.target.value);
+    };
+
+    const handleCopy = (close: () => void) => {
+        const newFormatSettings = {
+            ...storageManager.getCurrentFormatSettings(),
+            id: `${Date.now()}_${formatName}`,
+            name: formatName
+        }
+        storageManager.setFormatSettings(newFormatSettings.id, newFormatSettings)
+        storageManager.setCurrentFormatSettingsId(newFormatSettings.id)
+        props.setCurrentFormatId(newFormatSettings.id)
+        close();
+    }
+    return (
+        <DialogTrigger>
+            <Button size="md" aria-label='Copy to a New Format Settings'>Copy</Button>
+            <DialogOverlay>
+                <DialogContent className="max-w-[40%] max-h-[90%]" isDismissable={true}>
+                    {({ close }) => (<>
+                        <DialogHeader>
+                            <DialogTitle>Copy to a New Format Settings</DialogTitle>
+                        </DialogHeader>
+
+                        <div className="grid grid-cols-5 items-center gap-4">
+                            <Label htmlFor="formatName" className="text-right">
+                                Name:
+                            </Label>
+                            <Input
+                                id="formatName"
+                                defaultValue={formatName}
+                                className="col-span-4"
+                                onChange={handleInputChange}
+                            />
+                        </div>
+
+                        <DialogFooter>
+                            <Button type="submit" onPress={() => { handleCopy(close) }}>Copy</Button>
+                        </DialogFooter>
+                    </>)}
+                </DialogContent>
+            </DialogOverlay>
+        </DialogTrigger >
+    )
+};
+
 
 export default ConnectionsPanel;
