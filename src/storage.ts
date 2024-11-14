@@ -575,43 +575,28 @@ class StorageManager {
         this.commitEditEvents([editEvent])
     }
 
-    createAddEditEvent(message: Message): void {
-        const prevMatches = this.messagesPrevious.filter((m: Message) => m.key === message.key)
-        if (prevMatches.length !== 0) {
-            console.error("createAddEditEvent called for a message that already exists")
-        }
-
-        const editEvent: EditEventAdd = {
-            editId: this.currentConversation.editEvents.length,
-            type: EventType.Add,
-            addMessage: message
-        }
-        this.commitEditEvents([editEvent])
-    }
-
-    createUpdateEditEvent(message: Partial<Message> & { key: string }): void {
+    createAddOrUpdateEditEvent(message: Message): void {
         const prevMatches = this.messagesPrevious.filter((m: Message) => m.key === message.key)
         if (prevMatches.length === 0) {
-            console.error("createUpdateEditEvent called for a message that does not have any match")
-            return
-        } else if (prevMatches.length > 1) {
-            console.error("createUpdateEditEvent called for a message that has multiple matches")
-            return
+            const editEvent: EditEventAdd = {
+                editId: this.currentConversation.editEvents.length,
+                type: EventType.Add,
+                addMessage: message
+            }
+            this.commitEditEvents([editEvent])
+        } else {
+            const prevMessage = prevMatches[0];
+            const diffsMessage = getDifferences(prevMessage, message);
+            if (Object.keys(diffsMessage).length === 0) {
+                return
+            }
+            const editEvent: EditEventUpdate = {
+                editId: this.currentConversation.editEvents.length,
+                type: EventType.Update,
+                updateMessage: { ...diffsMessage, key: message.key }
+            }
+            this.commitEditEvents([editEvent])
         }
-
-        const prevMessage = prevMatches[0];
-        const diffsMessage = getDifferences(prevMessage, message);
-        if (Object.keys(diffsMessage).length === 0) {
-            return
-        }
-        const justKey = { key: message.key }
-
-        const editEvent: EditEventUpdate = {
-            editId: this.currentConversation.editEvents.length,
-            type: EventType.Update,
-            updateMessage: { ...diffsMessage, ...justKey }
-        }
-        this.commitEditEvents([editEvent])
     }
 
     commitEditEvents(editEvents: EditEvent[]): void {

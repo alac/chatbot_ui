@@ -98,7 +98,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
 
   const [isStreamingResponse, setIsStreamingResponse] = useState(false)
 
-  const streamBotResponse = (botMessageId: string, isUpdateEvent: boolean) => {
+  const streamBotResponse = (botMessageId: string) => {
     setTimeout(async () => {
       const botMessage: Message = {
         userId: 'bot',
@@ -132,11 +132,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         storageManager.updateMessage(newMessage)
         if (done) {
           setIsStreamingResponse(false)
-          if (isUpdateEvent) {
-            storageManager.createUpdateEditEvent(newMessage)
-          } else {
-            storageManager.createAddEditEvent(newMessage)
-          }
+          storageManager.createAddOrUpdateEditEvent(newMessage)
           storageManager.persistConversation()
         }
       }
@@ -169,14 +165,14 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         isDisabled: false,
       }
       storageManager.updateMessage(userMessage)
-      storageManager.createAddEditEvent(userMessage)
+      storageManager.createAddOrUpdateEditEvent(userMessage)
 
       chatboxRef.current?.appendMessage(userMessage)
       setInputValue("")
     }
 
     var botMessageId = `${storageManager.consumeMessageId()}`
-    streamBotResponse(botMessageId, false)
+    streamBotResponse(botMessageId)
   }
 
   const undoEdit = () => {
@@ -200,7 +196,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
     if (lastMessage?.userId !== 'bot') {
       return
     }
-    streamBotResponse(lastMessage.key, true)
+    streamBotResponse(lastMessage.key)
   }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {

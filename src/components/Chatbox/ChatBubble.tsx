@@ -17,13 +17,13 @@ const ChatBubble = ({ data }: { data: Message }) => {
         }
         const message = { ...data, text: updatedText, tokenCount: null }
         storageManager.updateMessage(message, true)
-        storageManager.createUpdateEditEvent(message)
+        storageManager.createAddOrUpdateEditEvent(message)
         storageManager.persistConversation()
     }
     const toggleDisabled = () => {
         const message = { ...data, isDisabled: !data.isDisabled }
         storageManager.updateMessage(message, true)
-        storageManager.createUpdateEditEvent(message)
+        storageManager.createAddOrUpdateEditEvent(message)
         storageManager.persistConversation()
     }
     const deleteMessage = () => {
