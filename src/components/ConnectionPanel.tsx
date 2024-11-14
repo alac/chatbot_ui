@@ -108,7 +108,7 @@ const EditConnectionsPanel = () => {
             <DialogOverlay>
                 <DialogContent className="max-w-[90%] max-h-[90%] overflow-y-scroll" isDismissable={true}>
                     <DialogHeader>
-                        <DialogTitle>Connection Settings</DialogTitle>
+                        <DialogTitle>Provider Settings</DialogTitle>
                     </DialogHeader>
                     <Separator />
 
@@ -137,7 +137,7 @@ const EditConnectionsPanel = () => {
                     {(connectionType === "DUMMY") ? <DummyValueSettings /> : <></>}
 
                     <DialogHeader className='mt-2'>
-                        <DialogTitle>Format Settings</DialogTitle>
+                        <DialogTitle>Instruction Template Settings</DialogTitle>
                     </DialogHeader>
                     <Separator />
 

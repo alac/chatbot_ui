@@ -124,7 +124,8 @@ const ViewLorebooksButton = () => {
                     </DialogHeader>
 
                     <Separator />
-
+                    <span className="text-md">Use lorebooks to conditionally include text in requests.</span>
+                    <span>Example: Suppose you had a lorebook entry with a trigger on "Hogwarts" and definition of "Hogwarts School of Witchcraft and Wizardry is a prestigious magical academy...". Before "Hogwarts" is mentioned, no extra text would be included. On the other hand, mentioning "Hogwarts" would add the definition to the conversation.</span>
                     <div className="flex items-center" key={`lbentries_${lorebookUpdateTimestamp}`}>
                         <TextField className="flex max-w-sm items-center gap-1.5 mr-2">
                             <Label className="py-2">Max Active Lorebook Entries (default: 10): </Label>

@@ -123,7 +123,7 @@ const ContextDialogButton = (props: ContextDialogProps) => {
                 <DialogContent className="max-w-[40%] max-h-[90%] overflow-y-scroll" isDismissable={true}>
                     {({ close }) => (<>
                         <DialogHeader>
-                            <DialogTitle>Edit Conversation</DialogTitle>
+                            <DialogTitle>Edit Context</DialogTitle>
                         </DialogHeader>
 
                         <div className='grid gap-2' style={{ width: '100%' }}
@@ -143,6 +143,7 @@ const ContextDialogButton = (props: ContextDialogProps) => {
                                 onChange={props.handleSetMemory}
                                 style={{ width: '100%' }}
                             />
+                            <span className="text-md">The <i>description</i> is inserted at the top of the conversation. Use it to provide an arbitray amount of background information for the conversation.</span>
                         </div>
                         <div className='grid gap-2'>
                             <span className="text-md font-medium">Author's Note:</span>
@@ -152,8 +153,8 @@ const ContextDialogButton = (props: ContextDialogProps) => {
                                 onChange={props.handleSetAuthorsNote}
                                 style={{ width: '100%' }}
                             />
+                            <span className="text-md">The <i>author's note</i> is inserted near the end of the conversation. Use it to <i>remind</i> the AI of important information, or to guide the next responses.</span>
                         </div>
-
                     </>)}
                 </DialogContent>
             </DialogOverlay>
