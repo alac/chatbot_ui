@@ -6,7 +6,6 @@ import Undo from '@spectrum-icons/workflow/Undo';
 import Redo from '@spectrum-icons/workflow/Redo';
 import Refresh from '@spectrum-icons/workflow/Refresh';
 
-
 import './App.css';
 import { generate, buildPrompt, generateSettingsManager, setInterruptFlag } from './generate';
 import { storageManager, compressString, Message } from './storage';
@@ -15,6 +14,7 @@ import LorebookPanel from './components/LorebookPanel';
 import MenuPanel from './components/MenuPanel';
 import ConnectionPanel from './components/ConnectionPanel';
 import ContextPanel from './components/ContextPanel';
+import SamplingPanel from './components/SamplingPanel';
 
 import SwitchableChatbox from './components/Chatbox/SwitchableChatbox';
 import { ConversationChatboxMethods } from './components/Chatbox/ConversationChatbox';
@@ -62,6 +62,7 @@ function App() {
             <Panel defaultSize={20} minSize={1} className="sidebar-container" style={{ overflow: 'auto' }}>
               <MenuPanel />
               <ConnectionPanel />
+              <SamplingPanel />
               <ContextPanel />
               <LorebookPanel />
             </Panel>
