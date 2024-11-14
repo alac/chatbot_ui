@@ -18,8 +18,35 @@ import Switch from '@spectrum-icons/workflow/Switch';
 
 import { storageManager, Conversation } from '../storage';
 
+import {
+    Menu,
+    MenuItem,
+    MenuPopover,
+    MenuTrigger,
+} from "../ui/menu"
 
-const ConversationsPanel = () => {
+export function MenuDemo() {
+    return (
+        <MenuTrigger>
+            <Button aria-label="Menu" size="icon" variant="outline">
+                ☰
+            </Button>
+            <MenuPopover>
+                <Menu>
+                    <MenuItem onAction={() => alert("open")}>Open</MenuItem>
+                    <MenuItem onAction={() => alert("rename")}>Rename…</MenuItem>
+                    <MenuItem onAction={() => alert("duplicate")}>Duplicate</MenuItem>
+                    <MenuItem onAction={() => alert("share")}>Share…</MenuItem>
+                    <MenuItem onAction={() => alert("delete")}>Delete…</MenuItem>
+                </Menu>
+            </MenuPopover>
+        </MenuTrigger>
+    )
+}
+
+
+
+const MenuPanel = () => {
     const [conversationsUpdateCounter, setConversationsUpdateCounter] = useState(0);
     useEffect(() => {
         storageManager.conversationLifecycleCallback = () => {
@@ -30,24 +57,53 @@ const ConversationsPanel = () => {
         }
     },);
 
+    const [showSwitchConversationDialog, setShowSwitchConversationDialog] = useState(false);
+    const [showNewConversationDialog, setShowNewConversationDialog] = useState(false);
+
+
     return (
         <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
             <div className="flex items-center">
-                <span className="text-md font-medium">Conversations</span>
-                <div className="ml-auto">
-                    <span className='corner-button'><SwitchConversationButton conversationsUpdateCounter={conversationsUpdateCounter} /></span>
-                    <span className='corner-button'><NewConversationButton /></span>
+                <span className="text-md font-medium">Menu</span>
+                <div className="ml-auto corner-button">
+                    <MenuTrigger>
+                        <Button aria-label="Menu" size="icon" variant="outline">
+                            ☰
+                        </Button>
+                        <MenuPopover>
+                            <Menu>
+                                <MenuItem onAction={() => setShowNewConversationDialog(true)}><Button size="icon"><NewItem /></Button>New Chat</MenuItem>
+                                <MenuItem onAction={() => setShowSwitchConversationDialog(true)}><Button size="icon"><Switch /></Button> Switch Chat</MenuItem>
+                            </Menu>
+                        </MenuPopover>
+                    </MenuTrigger>
                 </div>
             </div>
+            <SwitchConversationDialog
+                isDialogOpen={showSwitchConversationDialog}
+                setIsDialogOpen={setShowSwitchConversationDialog}
+                conversationsUpdateCounter={conversationsUpdateCounter}
+            />
+            <NewConversationDialog
+                isDialogOpen={showNewConversationDialog}
+                setIsDialogOpen={setShowNewConversationDialog}
+            />
         </div>
     );
 };
 
 
-const SwitchConversationButton = ({ conversationsUpdateCounter }: { conversationsUpdateCounter: number }) => {
+interface SwitchConversationButtonProps {
+    isDialogOpen: boolean,
+    setIsDialogOpen: React.Dispatch<React.SetStateAction<boolean>>
+    conversationsUpdateCounter: number,
+}
+
+
+const SwitchConversationDialog = ({ isDialogOpen, setIsDialogOpen, conversationsUpdateCounter }: SwitchConversationButtonProps) => {
     return (
-        < DialogTrigger >
-            <Button size="icon" aria-label='Switch the current conversation'><Switch /></Button>
+        < DialogTrigger isOpen={isDialogOpen} onOpenChange={setIsDialogOpen} >
+            <Button className="hidden">Hidden Trigger</Button>
             <DialogOverlay>
                 <DialogContent side="right" className="max-w-[80%] overflow-y-scroll" isDismissable={true}>
                     <DialogHeader>
@@ -93,7 +149,12 @@ const SwitchConversationButton = ({ conversationsUpdateCounter }: { conversation
 };
 
 
-const NewConversationButton = () => {
+interface NewConversationButtonProps {
+    isDialogOpen: boolean,
+    setIsDialogOpen: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+const NewConversationDialog = ({ isDialogOpen, setIsDialogOpen }: NewConversationButtonProps) => {
     const date = new Date();
     const formattedDate = `${date.getMonth() + 1}-${date.getDate()}-${date.getFullYear()}`;
     const [conversationName, setConversationName] = useState(formattedDate + " - New Conversation");
@@ -107,8 +168,8 @@ const NewConversationButton = () => {
         close();
     }
     return (
-        <DialogTrigger>
-            <Button size="icon" aria-label='Start a new conversation'><NewItem /></Button>
+        <DialogTrigger isOpen={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Button className="hidden">Hidden Trigger</Button>
             <DialogOverlay>
                 <DialogContent className="max-w-[40%] max-h-[90%]" isDismissable={true}>
                     {({ close }) => (<>
@@ -139,4 +200,4 @@ const NewConversationButton = () => {
 };
 
 
-export default ConversationsPanel;
+export default MenuPanel;
