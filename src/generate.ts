@@ -2,7 +2,30 @@ import { storageManager, Message, Conversation, Lorebook, LorebookEntry, isLoreb
 
 interface GenerateParameters {
     name: string
-    values: object
+    values: SamplingSettings
+}
+
+export interface SamplingSettings {
+    max_tokens: number;
+    max_context_length: number;
+    sampler_seed: number;
+    temperature: number;
+    min_p: number;
+    top_p: number;
+    top_k: number;
+    typical_p: number;
+
+    smoothing_factor: number;
+    smoothing_curve: number;
+
+    repetition_penalty: number;
+    repetition_penalty_range: number;
+
+    temperature_last: boolean;
+    early_stopping: boolean;
+    add_bos_token: boolean;
+    ban_eos_token: boolean;
+    skip_special_tokens: boolean;
 }
 
 interface GenerateSettingsManager {
@@ -44,7 +67,7 @@ class DefaultGenerateSettingsManager implements GenerateSettingsManager {
             "name": "default",
             "values": {
                 "max_tokens": 400,
-                "truncation_length": 8192,
+                "max_context_length": 8192,
                 "temperature": 2.5,
                 "min_p": 0.058,
 
@@ -55,26 +78,13 @@ class DefaultGenerateSettingsManager implements GenerateSettingsManager {
                 "top_p": 1,
                 "typical_p": 1,
                 "repetition_penalty": 1,
-                "frequency_penalty": 0,
-                "presence_penalty": 0,
                 "top_k": 0,
-                "min_length": 0,
-                "min_tokens": 0,
-                "top_a": 0,
-                "tfs": 1,
-                "epsilon_cutoff": 0,
-                "eta_cutoff": 0,
-                "rep_pen": 1,
-                "rep_pen_range": 0,
                 "repetition_penalty_range": 0,
-                "encoder_repetition_penalty": 1,
-                "no_repeat_ngram_size": 0,
                 "temperature_last": true,
                 "early_stopping": false,
                 "add_bos_token": false,
                 "ban_eos_token": false,
                 "skip_special_tokens": false,
-                "stream": true
             }
         }
     }
@@ -120,7 +130,7 @@ async function generate(prompt: string, terminationStrings: string[], connection
                 "Content-Type": "application/json",
                 "Accept": "text/event-stream",
             },
-            body: JSON.stringify({ ...generateParameters.values, prompt, 'stop': terminationStrings }),
+            body: JSON.stringify({ ...generateParameters.values, prompt, 'stop': terminationStrings, stream: true }),
         });
 
         const reader = response?.body?.getReader();

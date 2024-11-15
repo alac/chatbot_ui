@@ -18,18 +18,40 @@ import Settings from '@spectrum-icons/workflow/Settings';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 
 import { storageManager, FormatSettings, ChatRole, getDefaultFormatSettingsMap } from '../storage';
-import { testConversation } from '../generate';
+import { testConversation, SamplingSettings } from '../generate';
 import { Key } from 'react-aria-components';
 import TextAreaAutosizeJolly from '../ui/textareaautosizejolly';
+
+
+
 
 
 const SamplingPanel = () => {
     // TODO: shared between here and the dialog
     // -- which params to show
     // -- the actual values
-    // -- 
-    // -- 
+    // -- hook Sampling settings into persistence
+    // -- hook PanelToggles into persistence
 
+    /*
+    toggle groups:
+    prediction and context length -> max_tokens, truncation_length
+    sampler_seed
+    temperature
+    min_p
+    top_p
+    top_k
+    typical_p
+    smoothing => smoothing_factor, smotthing_curve
+    repetition_penalty => repeat_penalty, repeat_last_n
+
+    # no toggle
+    "temperature_last": true,
+    "early_stopping": false,
+    "add_bos_token": false,
+    "ban_eos_token": false,
+    "skip_special_tokens": false,
+    */
 
     const [connectionsUpdateCounter, setConnectionsUpdateCounter] = useState(0);
     useEffect(() => {
@@ -40,6 +62,30 @@ const SamplingPanel = () => {
             storageManager.updateConnectionsPanelCallback = null;
         }
     },)
+
+    const [samplingSettings, setSamplingSettings] = useState<SamplingSettings>({
+        "max_tokens": 400,
+        "max_context_length": 8192,
+        "temperature": 2.5,
+        "min_p": 0.058,
+
+        "smoothing_factor": 2,
+        "smoothing_curve": 3.01,
+
+        "sampler_seed": -1,
+        "top_p": 1,
+        "typical_p": 1,
+        "repetition_penalty": 1,
+        "top_k": 0,
+        "repetition_penalty_range": 0,
+        "temperature_last": true,
+        "early_stopping": false,
+        "add_bos_token": false,
+        "ban_eos_token": false,
+        "skip_special_tokens": false,
+    });
+
+    const [panelToggles, setPanelToggles] = useState([])
 
     return (
         <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
