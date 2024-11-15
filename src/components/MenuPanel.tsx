@@ -12,22 +12,21 @@ import { Button } from "../ui/button"
 import { Separator } from "../ui/separator"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
-import Delete from '@spectrum-icons/workflow/Delete';
-import NewItem from '@spectrum-icons/workflow/NewItem';
-import Switch from '@spectrum-icons/workflow/Switch';
-
-import { storageManager, Conversation } from '../storage';
-
 import {
     Menu,
     MenuItem,
     MenuPopover,
     MenuTrigger,
 } from "../ui/menu"
+import Delete from '@spectrum-icons/workflow/Delete';
+import NewItem from '@spectrum-icons/workflow/NewItem';
+import Switch from '@spectrum-icons/workflow/Switch';
+import RailLeft from '@spectrum-icons/workflow/RailLeft';
+
+import { storageManager, Conversation } from '../storage';
 
 
-
-const MenuPanel = () => {
+const MenuPanel = ({ setShowToolsBar }: { setShowToolsBar: React.Dispatch<React.SetStateAction<boolean>> }) => {
     const [conversationsUpdateCounter, setConversationsUpdateCounter] = useState(0);
     useEffect(() => {
         storageManager.conversationLifecycleCallback = () => {
@@ -41,7 +40,6 @@ const MenuPanel = () => {
     const [showSwitchConversationDialog, setShowSwitchConversationDialog] = useState(false);
     const [showNewConversationDialog, setShowNewConversationDialog] = useState(false);
 
-
     return (
         <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
             <div className="flex items-center">
@@ -54,7 +52,8 @@ const MenuPanel = () => {
                         <MenuPopover>
                             <Menu>
                                 <MenuItem onAction={() => setShowNewConversationDialog(true)}><Button size="icon"><NewItem /></Button>New Chat</MenuItem>
-                                <MenuItem onAction={() => setShowSwitchConversationDialog(true)}><Button size="icon"><Switch /></Button> Switch Chat</MenuItem>
+                                <MenuItem onAction={() => setShowSwitchConversationDialog(true)}><Button size="icon"><Switch /></Button>Switch Chat</MenuItem>
+                                <MenuItem onAction={() => setShowToolsBar((b) => !b)}><Button size="icon"><RailLeft /></Button>Toggle Tools</MenuItem>
                             </Menu>
                         </MenuPopover>
                     </MenuTrigger>

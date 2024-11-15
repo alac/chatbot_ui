@@ -49,18 +49,24 @@ function App() {
     }
   }, [conversationId]);
 
+  const [showToolsBar, setShowToolsBar] = useState(false);
   return (
     <div className="app-container">
       <PanelGroup direction="vertical">
         <Panel>
           <PanelGroup direction="horizontal">
+            {showToolsBar ? <>
+              <Panel defaultSize={20} minSize={1} className="sidebar-container" style={{ overflow: 'auto' }}>
+                <SamplingPanel />
+              </Panel>
+              <PanelResizeHandle />
+            </> : <></>}
             <Panel className="messages-container">
-              {/* <SwitchableChatbox ref={chatboxRef} implementation="virtuoso" key={conversationId} /> */}
               <SwitchableChatbox ref={chatboxRef} implementation="naive" key={conversationId} />
             </Panel>
             <PanelResizeHandle />
             <Panel defaultSize={20} minSize={1} className="sidebar-container" style={{ overflow: 'auto' }}>
-              <MenuPanel />
+              <MenuPanel setShowToolsBar={setShowToolsBar} />
               <ConnectionPanel />
               <SamplingPanel />
               <ContextPanel />
