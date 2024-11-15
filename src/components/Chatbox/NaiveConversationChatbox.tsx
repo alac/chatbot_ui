@@ -48,6 +48,7 @@ const NaiveConversationChatbox = forwardRef<ConversationChatboxMethods, Conversa
             ref={messageListRef}
             style={{
                 maxHeight: "100%", minHeight: "100%", overflowY: "scroll",
+                padding: "5px"
             }}
         >
             <div key={messageListUpdate}></div>
