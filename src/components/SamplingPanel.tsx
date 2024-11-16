@@ -10,8 +10,8 @@ import {
 } from "../ui/dialog"
 import { Button } from "../ui/button"
 import { Separator } from "../ui/separator"
+import { FieldGroup, Label } from "../ui/field"
 import { Input } from "../ui/input"
-import { Label } from "../ui/label"
 import { TextField } from "react-aria-components"
 import { Select, SelectTrigger, SelectValue, SelectPopover, SelectItem, SelectContent } from "../ui/select"
 import Settings from '@spectrum-icons/workflow/Settings';

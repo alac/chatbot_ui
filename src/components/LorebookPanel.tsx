@@ -12,7 +12,7 @@ import { TextField } from "react-aria-components"
 import { Button } from "../ui/button"
 import { Separator } from "../ui/separator"
 import { Input } from "../ui/input"
-import { Label } from "../ui/label"
+import { Label } from "../ui/field"
 import { TextArea } from "../ui/textarea"
 import { Popover, PopoverTrigger } from "../ui/popover"
 import Delete from '@spectrum-icons/workflow/Delete';

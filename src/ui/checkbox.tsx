@@ -10,7 +10,7 @@ import {
 
 import { cn } from "./../lib/utils"
 
-import { labelVariants } from "./label"
+import { labelVariants } from "./field"
 
 const _CheckboxGroup = CheckboxGroup
 

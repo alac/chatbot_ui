@@ -11,7 +11,7 @@ import {
 import { Button } from "../ui/button"
 import { Separator } from "../ui/separator"
 import { Input } from "../ui/input"
-import { Label } from "../ui/label"
+import { Label } from "../ui/field"
 import {
     Menu,
     MenuItem,
