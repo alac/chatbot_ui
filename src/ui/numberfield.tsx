@@ -46,11 +46,11 @@ function NumberFieldSteppers({
             {...props}
         >
             <NumberFieldStepper slot="increment">
-                <ChevronUp aria-hidden className="size-4" />
+                <ChevronUp aria-hidden className="size-5" />
             </NumberFieldStepper>
             <div className="border-b" />
             <NumberFieldStepper slot="decrement">
-                <ChevronDown aria-hidden className="size-4" />
+                <ChevronDown aria-hidden className="size-5" />
             </NumberFieldStepper>
         </div>
     )
@@ -60,7 +60,7 @@ function NumberFieldStepper({ className, ...props }: AriaButtonProps) {
     return (
         <Button
             className={composeRenderProps(className, (className) =>
-                cn("w-auto grow rounded-none px-0.5 text-muted-foreground", className)
+                cn("w-auto grow rounded-none px-0 mx-0 my-0 text-muted-foreground", className)
             )}
             variant={"ghost"}
             size={"icon"}
