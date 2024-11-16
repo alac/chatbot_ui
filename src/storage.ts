@@ -197,6 +197,9 @@ interface StorageState {
 
     currentFormatSettingsId: string;
     formatSettingsById: Map<string, FormatSettings>;
+
+    currentSamplingSettingsId: string,
+    samplingSettingsById: Map<string, SamplingSettings>;
 }
 
 const isStorageState = (obj: unknown): obj is StorageState => {
@@ -360,6 +363,59 @@ function getDefaultFormatSettingsMap(): Map<string, FormatSettings> {
 }
 
 
+const DEFAULT_SAMPLING_SETTINGS_ID = "DEFAULT"
+export interface SamplingSettings {
+    name: string;
+    max_tokens: number;
+    max_context_length: number;
+    sampler_seed: number;
+    temperature: number;
+    min_p: number;
+    top_p: number;
+    top_k: number;
+    typical_p: number;
+
+    smoothing_factor: number;
+    smoothing_curve: number;
+
+    repetition_penalty: number;
+    repetition_penalty_range: number;
+
+    temperature_last: boolean;
+    early_stopping: boolean;
+    add_bos_token: boolean;
+    ban_eos_token: boolean;
+    skip_special_tokens: boolean;
+}
+function getDefaultSamplingSettingsMap(): Map<string, SamplingSettings> {
+    const settingsMap = new Map<string, SamplingSettings>()
+    const defaultSettings = getDefaultSamplingSettings()
+    settingsMap.set(defaultSettings.name, defaultSettings)
+    return settingsMap;
+}
+function getDefaultSamplingSettings(): SamplingSettings {
+    return {
+        name: "DEFAULT",
+        max_tokens: 400,
+        max_context_length: 8192,
+        temperature: 2.5,
+        min_p: 0.058,
+        smoothing_factor: 2,
+        smoothing_curve: 3.01,
+        sampler_seed: -1,
+        top_p: 1,
+        typical_p: 1,
+        repetition_penalty: 1,
+        top_k: 0,
+        repetition_penalty_range: 0,
+        temperature_last: true,
+        early_stopping: false,
+        add_bos_token: false,
+        ban_eos_token: false,
+        skip_special_tokens: false,
+    }
+}
+
 
 const STORAGE_STATE_KEY = "STORAGE_STATE"
 
@@ -384,6 +440,7 @@ class StorageManager {
         defaultConnections.set("DUMMY", getDummyConnectionSettings())
 
         const defaultFormats = getDefaultFormatSettingsMap()
+        const defaultSettings = getDefaultSamplingSettingsMap()
         this.storageState = {
             currentConversationId: "",
             conversationIds: [],
@@ -393,7 +450,9 @@ class StorageManager {
             currentConnectionSettingsId: "DUMMY",
             connectionSettingsById: defaultConnections,
             currentFormatSettingsId: DEFAULT_FORMAT_SETTINGS_ID,
-            formatSettingsById: defaultFormats
+            formatSettingsById: defaultFormats,
+            currentSamplingSettingsId: DEFAULT_SAMPLING_SETTINGS_ID,
+            samplingSettingsById: defaultSettings,
         }
         this.messagesCurrent = [];
         this.messagesPrevious = [];
@@ -557,6 +616,12 @@ class StorageManager {
         }
     }
 
+    newUUID(): string {
+        return uuidv4();
+    }
+
+
+    // Edit (History) Events
     createDeleteEditEvent(messageId: string): void {
         const prevMatches = this.messagesPrevious.filter((m: Message) => m.key === messageId)
         if (prevMatches.length === 0) {
@@ -652,6 +717,8 @@ class StorageManager {
         return true;
     }
 
+
+    // Lorebook
     createLorebook(lorebookName: string): LorebookId {
         const lorebookId: LorebookId = "LO_" + uuidv4();
         const lorebook: Lorebook = {
@@ -714,6 +781,8 @@ class StorageManager {
         this.lorebookUpdatedCallback?.()
     }
 
+
+    // (AI) Connection
     getCurrentConnectionSettingsId(): string {
         return this.storageState.currentConnectionSettingsId;
     }
@@ -761,6 +830,7 @@ class StorageManager {
     }
 
 
+    // (Instruction) Format
     getAllFormatSettings(): Map<string, FormatSettings> {
         return this.storageState.formatSettingsById;
     }
@@ -797,8 +867,39 @@ class StorageManager {
     }
 
 
-    newUUID(): string {
-        return uuidv4();
+    // Sampling Settings
+    getAllSamplingSettings(): Map<string, SamplingSettings> {
+        return this.storageState.samplingSettingsById;
+    }
+
+    getSamplingSettings(name: string): SamplingSettings {
+        const result = this.storageState.samplingSettingsById.get(name);
+        if (result !== undefined) {
+            return result;
+        }
+        return getDefaultSamplingSettings();
+    }
+
+    setSamplingSettings(config: SamplingSettings): void {
+        this.storageState.samplingSettingsById.set(config.name, config)
+    }
+
+    deleteSamplingSettings(name: string): void {
+        this.storageState.samplingSettingsById.delete(name)
+        this.persistStorageState();
+    }
+
+    getCurrentSamplingSettingsId(): string {
+        return this.storageState.currentSamplingSettingsId;
+    }
+
+    setCurrentSamplingSettingsId(id: string): void {
+        if (!this.storageState.samplingSettingsById.has(id)) {
+            console.error(`setCurrentSamplingSettingsId called for missing id: ${id}`)
+            return
+        }
+        this.storageState.currentSamplingSettingsId = id;
+        this.persistStorageState();
     }
 }
 
@@ -837,5 +938,5 @@ function decompressString(compressedStr: string): string {
 
 const storageManager = new StorageManager();
 
-export { storageManager, compressString, decompressString, isDummyConnectionSettings, isOpenAIConnectionSettings, ChatRole, getDefaultFormatSettingsMap }
+export { storageManager, compressString, decompressString, isDummyConnectionSettings, isOpenAIConnectionSettings, ChatRole, getDefaultFormatSettingsMap, getDefaultSamplingSettings }
 export type { Message, Conversation, Lorebook, LorebookEntry, AnyConnectionSettings, DummyConnectionSettings, OpenAIConnectionSettings, FormatSettings }

@@ -1,94 +1,18 @@
-import { storageManager, Message, Conversation, Lorebook, LorebookEntry, isLorebook, AnyConnectionSettings, isOpenAIConnectionSettings, isDummyConnectionSettings, FormatSettings, ChatRole } from './storage';
+import {
+    storageManager,
+    Message,
+    Conversation,
+    Lorebook,
+    LorebookEntry,
+    isLorebook,
+    AnyConnectionSettings,
+    isOpenAIConnectionSettings,
+    isDummyConnectionSettings,
+    FormatSettings,
+    ChatRole,
+    SamplingSettings
+} from './storage';
 
-interface GenerateParameters {
-    name: string
-    values: SamplingSettings
-}
-
-export interface SamplingSettings {
-    max_tokens: number;
-    max_context_length: number;
-    sampler_seed: number;
-    temperature: number;
-    min_p: number;
-    top_p: number;
-    top_k: number;
-    typical_p: number;
-
-    smoothing_factor: number;
-    smoothing_curve: number;
-
-    repetition_penalty: number;
-    repetition_penalty_range: number;
-
-    temperature_last: boolean;
-    early_stopping: boolean;
-    add_bos_token: boolean;
-    ban_eos_token: boolean;
-    skip_special_tokens: boolean;
-}
-
-interface GenerateSettingsManager {
-    currentGenerateSettings: GenerateParameters;
-    allSettings: Map<String, GenerateParameters>;
-    setCurrentGenerateParameterss(config: GenerateParameters): void;
-    updateGenerateParameters(config: GenerateParameters): void;
-    getGenerateParameters(name: string): GenerateParameters;
-    getDefaultGenerateParameters(): GenerateParameters;
-}
-
-class DefaultGenerateSettingsManager implements GenerateSettingsManager {
-    currentGenerateSettings: GenerateParameters;
-    allSettings: Map<string, GenerateParameters>;
-
-    constructor() {
-        this.currentGenerateSettings = this.getDefaultGenerateParameters();
-        this.allSettings = new Map<string, GenerateParameters>();
-    }
-
-    setCurrentGenerateParameterss(config: GenerateParameters): void {
-        this.currentGenerateSettings = config;
-    }
-
-    updateGenerateParameters(config: GenerateParameters): void {
-        this.allSettings.set(config.name, config)
-    }
-
-    getGenerateParameters(name: string): GenerateParameters {
-        const result = this.allSettings.get(name);
-        if (result !== undefined) {
-            return result;
-        }
-        return this.getDefaultGenerateParameters();
-    }
-
-    getDefaultGenerateParameters(): GenerateParameters {
-        return {
-            "name": "default",
-            "values": {
-                "max_tokens": 400,
-                "max_context_length": 8192,
-                "temperature": 2.5,
-                "min_p": 0.058,
-
-                "smoothing_factor": 2,
-                "smoothing_curve": 3.01,
-
-                "sampler_seed": -1,
-                "top_p": 1,
-                "typical_p": 1,
-                "repetition_penalty": 1,
-                "top_k": 0,
-                "repetition_penalty_range": 0,
-                "temperature_last": true,
-                "early_stopping": false,
-                "add_bos_token": false,
-                "ban_eos_token": false,
-                "skip_special_tokens": false,
-            }
-        }
-    }
-}
 
 type ResponseWriter = (token: string, done: boolean) => void;
 let _isInterrupted = false;
@@ -118,9 +42,11 @@ type TextCompletionChoice = {
     };
 };
 
-async function generate(prompt: string, terminationStrings: string[], connectionSettings: AnyConnectionSettings, generateParameters: GenerateParameters, writeStream: ResponseWriter) {
+async function generate(prompt: string, terminationStrings: string[], connectionSettings: AnyConnectionSettings, samplingSettings: SamplingSettings, writeStream: ResponseWriter) {
     // console.log("Prompt: ", prompt)
     if (connectionSettings.type === 'OPENAI' && isOpenAIConnectionSettings(connectionSettings)) {
+        const { name: _samplingPresetName, ...samplingSettingsFinal } = samplingSettings
+
         const url = connectionSettings.url + "/v1/completions"
         const response = await fetch(url, {
             method: "POST",
@@ -130,7 +56,7 @@ async function generate(prompt: string, terminationStrings: string[], connection
                 "Content-Type": "application/json",
                 "Accept": "text/event-stream",
             },
-            body: JSON.stringify({ ...generateParameters.values, prompt, 'stop': terminationStrings, stream: true }),
+            body: JSON.stringify({ ...samplingSettingsFinal, prompt, 'stop': terminationStrings, stream: true }),
         });
 
         const reader = response?.body?.getReader();
@@ -207,12 +133,12 @@ interface ChatCompletionsMessage {
 async function buildPrompt(
     allMessages: Message[],
     conversation: Conversation,
-    generateParameters: GenerateParameters,
+    samplingSettings: SamplingSettings,
     connectionSettings: AnyConnectionSettings,
     formatSettings: FormatSettings
 ): Promise<FinalizedPrompt> {
     try {
-        return buildPromptWrapped(allMessages, conversation, generateParameters, connectionSettings, formatSettings, true)
+        return buildPromptWrapped(allMessages, conversation, samplingSettings, connectionSettings, formatSettings, true)
     } catch (error) {
         console.error(error)
         throw error
@@ -222,7 +148,7 @@ async function buildPrompt(
 async function buildPromptWrapped(
     allMessages: Message[],
     conversation: Conversation,
-    generateParameters: GenerateParameters,
+    samplingSettings: SamplingSettings,
     connectionSettings: AnyConnectionSettings,
     formatSettings: FormatSettings,
     updateGenerateStats: boolean,
@@ -247,11 +173,11 @@ async function buildPromptWrapped(
 
     var maxTokens = 2048;
     var maxResponseLength = 256;
-    if ('max_tokens' in generateParameters.values && typeof generateParameters.values.max_tokens === 'number') {
-        maxTokens = generateParameters.values.max_tokens;
+    if ('max_tokens' in samplingSettings && typeof samplingSettings.max_tokens === 'number') {
+        maxTokens = samplingSettings.max_tokens;
     }
-    if ('truncation_length' in generateParameters.values && typeof generateParameters.values.truncation_length === 'number') {
-        maxResponseLength = generateParameters.values.truncation_length;
+    if ('truncation_length' in samplingSettings && typeof samplingSettings.truncation_length === 'number') {
+        maxResponseLength = samplingSettings.truncation_length;
     }
     const memoryEstimateString = partialFormat.replace("{{LOREBOOK}}", "").replace("{{CHAT_HISTORY}}", "")
     const memoryLength = await cachedTokenCount(memoryEstimateString, connectionSettings);
@@ -502,7 +428,7 @@ async function testConversation(): Promise<string> {
     const builtPrompt = await buildPrompt(
         messages,
         storageManager.currentConversation,
-        generateSettingsManager.currentGenerateSettings,
+        storageManager.getSamplingSettings(storageManager.getCurrentFormatSettingsId()),
         storageManager.getCurrentConnectionSettings(),
         storageManager.getCurrentFormatSettings()
     )
@@ -510,7 +436,6 @@ async function testConversation(): Promise<string> {
 }
 
 
-const generateSettingsManager = new DefaultGenerateSettingsManager();
 const tokenCountCache = new Map<string, number>();
 const generateStatsTracker = new GenerateStatsTracker();
-export { generate, buildPrompt, generateSettingsManager, generateStatsTracker, setInterruptFlag, testConversation }
+export { generate, buildPrompt, generateStatsTracker, setInterruptFlag, testConversation }

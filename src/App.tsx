@@ -7,7 +7,7 @@ import Redo from '@spectrum-icons/workflow/Redo';
 import Refresh from '@spectrum-icons/workflow/Refresh';
 
 import './App.css';
-import { generate, buildPrompt, generateSettingsManager, setInterruptFlag } from './generate';
+import { generate, buildPrompt, setInterruptFlag } from './generate';
 import { storageManager, compressString, Message } from './storage';
 
 import LorebookPanel from './components/LorebookPanel';
@@ -150,7 +150,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
       const prompt = await buildPrompt(
         storageManager.messagesCurrent,
         storageManager.currentConversation,
-        generateSettingsManager.currentGenerateSettings,
+        storageManager.getSamplingSettings(storageManager.getCurrentFormatSettingsId()),
         storageManager.getCurrentConnectionSettings(),
         storageManager.getCurrentFormatSettings()
       )
@@ -177,7 +177,7 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         prompt.completionsPrompt,
         [`\n${storageManager.currentConversation.username}:`],
         storageManager.getCurrentConnectionSettings(),
-        generateSettingsManager.currentGenerateSettings,
+        storageManager.getSamplingSettings(storageManager.getCurrentFormatSettingsId()),
         responseWriter
       )
     }, 100)
