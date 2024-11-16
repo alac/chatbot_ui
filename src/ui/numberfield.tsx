@@ -40,17 +40,17 @@ function NumberFieldSteppers({
     return (
         <div
             className={cn(
-                "absolute right-0 flex h-full flex-col border-l",
+                "absolute right-0 flex h-full flex-row border-l",
                 className
             )}
             {...props}
         >
             <NumberFieldStepper slot="increment">
-                <ChevronUp aria-hidden className="size-4" />
+                <ChevronUp aria-hidden className="size-5" />
             </NumberFieldStepper>
             <div className="border-b" />
             <NumberFieldStepper slot="decrement">
-                <ChevronDown aria-hidden className="size-4" />
+                <ChevronDown aria-hidden className="size-5" />
             </NumberFieldStepper>
         </div>
     )
