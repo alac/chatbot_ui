@@ -65,6 +65,7 @@ const EditConnectionsPanel = () => {
     const handleFormatIdChange = (key: Key) => {
         const formatSettingsById = storageManager.getAllFormatSettings();
         if (typeof key === "string" && formatSettingsById.has(key)) {
+            storageManager.setCurrentFormatSettingsId(key)
             setCurrentFormatId(key);
             const newFormatSettings = storageManager.getAllFormatSettings().get(key)
             if (newFormatSettings) {
