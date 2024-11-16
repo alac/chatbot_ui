@@ -40,7 +40,7 @@ function NumberFieldSteppers({
     return (
         <div
             className={cn(
-                "absolute right-0 flex h-full flex-row border-l",
+                "absolute right-0 flex h-full flex-col border-l",
                 className
             )}
             {...props}
@@ -60,7 +60,7 @@ function NumberFieldStepper({ className, ...props }: AriaButtonProps) {
     return (
         <Button
             className={composeRenderProps(className, (className) =>
-                cn("w-auto grow rounded-none px-0.5 text-muted-foreground", className)
+                cn("w-auto grow rounded-none px-0 mx-0 my-0 text-muted-foreground", className)
             )}
             variant={"ghost"}
             size={"icon"}
