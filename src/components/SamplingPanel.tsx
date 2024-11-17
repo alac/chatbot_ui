@@ -372,10 +372,13 @@ const EditSamplingDialog = (props: EditSamplingDialogProps) => {
             <DialogTitle>Panel Shortcuts</DialogTitle>
           </DialogHeader>
           <Separator />
-          <div>
-            Toggles here enable showing the related setting(s) on the sidebar
-            panel.
-          </div>
+          <Markdown>
+            {`Toggles here enable showing the related setting(s) on the sidebar panel.  
+\`Token Length\` refers to both max_tokens and max_context_length.  
+\`Quadratic Smoothing\` refers to both smoothing_factor and smoothing_curve.  
+\`Repetition Penalty\` refers to both repetition_penalty and repetition_penalty_range.  
+            `}
+          </Markdown>
 
           {Object.values(PanelTogglesEnum).map((s: PanelTogglesEnum) => {
             return (
