@@ -205,6 +205,7 @@ async function buildPromptWrapped(
     var isFirstUserMessage = true
     while ((allMessages.length - indexFromEnd - 1) >= 0) {
         const message = allMessages[allMessages.length - indexFromEnd - 1]
+        var textAddedThisLoop = ""
         if (!message.isDisabled) {
             if (message.tokenCount == null) {
                 message.tokenCount = await cachedTokenCount(message.text, connectionSettings)
@@ -233,6 +234,7 @@ async function buildPromptWrapped(
             if (messageCost < remainingTokens) {
                 remainingTokens -= messageCost;
                 reverseChatHistory.push(formattedMessageStr)
+                textAddedThisLoop = formattedMessageStr
             } else {
                 indexFromEnd -= 1;
                 break;
@@ -250,9 +252,10 @@ async function buildPromptWrapped(
             } else if (formatSettings.authorsNoteRole === ChatRole.User) {
                 authorsNoteRoleName = userName
             }
-            reverseChatCompletions.push({ role: authorsNoteRoleName, message: message.text })
+            reverseChatCompletions.push({ role: authorsNoteRoleName, message: finalAuthorsNote })
+            textAddedThisLoop = textAddedThisLoop + "\n" + finalAuthorsNote
         }
-        const newLorebookEntries = triggeredLorebookEntries(message.text, activeLorebooks);
+        const newLorebookEntries = triggeredLorebookEntries(textAddedThisLoop, activeLorebooks);
         for (const lbEntry of newLorebookEntries) {
             if (lbEntry.isEnabled === false) continue;
             if (addedEntries.has(lbEntry.entryId)) continue;
