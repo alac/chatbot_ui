@@ -673,24 +673,24 @@ body {
   margin-right: -0.25rem;
 }
 
-.mx-2 {
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
-}
-
-.my-1 {
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
-}
-
 .mx-0 {
   margin-left: 0px;
   margin-right: 0px;
 }
 
+.mx-2 {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
 .my-0 {
   margin-top: 0px;
   margin-bottom: 0px;
+}
+
+.my-1 {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
 }
 
 .mb-1 {
@@ -941,10 +941,6 @@ body {
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
-.flex-row {
-  flex-direction: row;
-}
-
 .flex-col {
   flex-direction: column;
 }
@@ -1105,10 +1101,6 @@ body {
   fill: currentColor;
 }
 
-.p-0 {
-  padding: 0px;
-}
-
 .p-1 {
   padding: 0.25rem;
 }
@@ -1119,6 +1111,15 @@ body {
 
 .p-6 {
   padding: 1.5rem;
+}
+
+.p-2 {
+  padding: 0.5rem;
+}
+
+.px-0 {
+  padding-left: 0px;
+  padding-right: 0px;
 }
 
 .px-2 {
@@ -1154,16 +1155,6 @@ body {
 .py-2 {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
-}
-
-.px-0 {
-  padding-left: 0px;
-  padding-right: 0px;
-}
-
-.px-0\.5 {
-  padding-left: 0.125rem;
-  padding-right: 0.125rem;
 }
 
 .pb-2 {
