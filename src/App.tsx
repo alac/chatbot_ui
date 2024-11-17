@@ -62,7 +62,7 @@ function App() {
                   className="sidebar-container"
                   style={{ overflow: "auto" }}
                 >
-                  <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
+                  {/* <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
                     <div className="flex items-center">
                       <span className="text-md font-medium">Summarize</span>
                       <div className="ml-auto corner-button"></div>
@@ -90,7 +90,7 @@ function App() {
                       </span>
                       <div className="ml-auto corner-button"></div>
                     </div>
-                  </div>
+                  </div> */}
                 </Panel>
                 <PanelResizeHandle />
               </>
