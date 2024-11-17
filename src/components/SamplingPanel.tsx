@@ -24,6 +24,8 @@ import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 
 import { storageManager, SamplingSettings, getDefaultSamplingSettings } from '../storage';
 import { Key } from 'react-aria-components';
+import Markdown from 'react-markdown';
+
 
 
 const SamplingPanel = () => {
@@ -195,8 +197,6 @@ const SamplingSettingsEditor = ({ samplingSettings, setSamplingSettings }: Sampl
         var nextSamplingSetings: SamplingSettings = samplingSettings;
         if (field === "temperature_last") {
             nextSamplingSetings = { ...nextSamplingSetings, ...{ temperature_last: key === 'true' } }
-        } else if (field === "early_stopping") {
-            nextSamplingSetings = { ...nextSamplingSetings, ...{ early_stopping: key === 'true' } }
         } else if (field === "add_bos_token") {
             nextSamplingSetings = { ...nextSamplingSetings, ...{ add_bos_token: key === 'true' } }
         } else if (field === "ban_eos_token") {
@@ -209,6 +209,19 @@ const SamplingSettingsEditor = ({ samplingSettings, setSamplingSettings }: Sampl
         setSamplingSettings(nextSamplingSetings)
         storageManager.setSamplingSettings(nextSamplingSetings)
     }
+    const onBooleanSelectorFocused = (s: keyof SamplingSettings) => {
+        if (s === 'temperature_last') {
+            setDescription(`\`temperature_last\` makes \`temperature\` the last sampler instead of the first. This allows samplers like \`min_p\` to cull unlikely tokens before skewing the remaining tokens with the \`temperature\` sampler.`)
+        } else if (s === 'add_bos_token') {
+            setDescription(`\`add_bos_token\` adds a special token that marks the beginning of a document. Set this to \`false\` to treat the prompt as the middle of a document.`)
+        } else if (s === 'ban_eos_token') {
+            setDescription(`\`ban_eos_token\` prevents the AI from ending it's response early. If the AI does not know how to continue, setting this to \`true\` may lead to less coherent text.`)
+        } else if (s === 'skip_special_tokens') {
+            setDescription(`\`skip_special_tokens\` prevents metadata from being treated as text. This is expected to be \`true\`.`)
+        } else {
+            setDescription("Select a field to see a description.")
+        }
+    }
     const booleanSelector = (field: keyof SamplingSettings) => {
         return <TextField className="flex items-center gap-1.5 mr-2 my-1">
             <Label className="text-md">{field}: </Label>
@@ -219,6 +232,7 @@ const SamplingSettingsEditor = ({ samplingSettings, setSamplingSettings }: Sampl
                     onSelectionChange={(key: Key) => { handleBooleanSelectorChange(key, field) }}
                     defaultSelectedKey={boolToString.get(samplingSettings[field] === true)}
                     className="flex w-[180px]"
+                    onFocus={() => { onBooleanSelectorFocused(field) }}
                 >
                     <SelectTrigger>
                         <SelectValue />
@@ -234,28 +248,66 @@ const SamplingSettingsEditor = ({ samplingSettings, setSamplingSettings }: Sampl
         </TextField>
     }
 
+    const [description, setDescription] = useState("Select a field to see a description.")
+    const onFieldFocused = (s: keyof SamplingSettings) => {
+        if (s === 'max_tokens') {
+            setDescription("`max_tokens` is the maximum length of the AI response. A token is a piece of text, often a word or part of a word, treated as a single unit by an LLM.")
+        } else if (s === 'max_context_length') {
+            setDescription("`max_context_length` is the maximum length of the text that the AI processes (e.g. the part provided to it and the response).")
+        } else if (s === 'temperature') {
+            setDescription("`temperature` acts as a randomness parameter in LLMs, determining the likelihood of selecting less probable words..")
+        } else if (s === 'min_p') {
+            setDescription(`\`min_p\` helps maintain the coherence of generated text by preventing the selection of highly unlikely and often out-of-place tokens.  
+            To disable it, set \`min_p=0\`.  
+            Recommended values are \`min_p=.05\`.  
+            **[Click for detailed write-up.](https://gist.github.com/kalomaze/4473f3f975ff5e5fade06e632498f73e#min-p)**  `)
+        } else if (s === 'top_p') {
+            setDescription("`top_p` controls the range of tokens considered by selecting those whose cumulative probability sums to less than the specified value. So, it's something like 'top %' of tokens.")
+        } else if (s === 'top_k') {
+            setDescription("`top_k` controls the range of tokens considered by selecting from the top k mostly likely tokens.")
+        } else if (s === 'typical_p') {
+            setDescription(`\`typical_p\` acts as a filter, ensuring the model prefers tokens that are significantly more probable than random, thus promoting more coherent and predictable text generation.  
+            **[Click for a reddit thread on it](https://www.reddit.com/r/LocalLLaMA/comments/153bnly/what_does_typical_p_actually_do/)**`)
+        } else if (s === 'smoothing_factor' || s === 'smoothing_curve') {
+            setDescription(`\`smoothing_factor\` and \`smoothing_curve\` make the topmost tokens more evenly probable while reducing the probability of extremely unlikely tokens.  
+            To disable it, set \`smoothing_factor=0\` and \`smoothing_curve=1\`.  
+            Recommended values are \`smoothing_factor=.2\` and \`smoothing_curve=1 to 3\`.  
+            **[Click for detailed write-up.](https://gist.github.com/kalomaze/4473f3f975ff5e5fade06e632498f73e#smooth-sampling--quadratic-sampling)**  `)
+        } else if (s === 'repetition_penalty' || s === 'repetition_penalty_range') {
+            setDescription(`\`repetition_penalty\` and \`repetition_penalty_range\` penalizes tokens that have already been seen in the most recent #repetition_penalty_range tokens. This is used as a kludge to reduce repetition, but may have unintended effects.  
+            **[Click for detailed write-up.](https://gist.github.com/kalomaze/4473f3f975ff5e5fade06e632498f73e#repetition-penalty)**  `)
+        } else {
+            setDescription("Select a field to see a description.")
+        }
+    }
+
     return (<>
         <PanelGroup direction="horizontal" key={samplingSettings.name}>
             <Panel>
-                <SamplingFieldSelector field='max_tokens' min={64} max={32768} step={64} value={samplingSettings.max_tokens} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} />
-                <SamplingFieldSelector field='max_context_length' min={128} max={32768} step={128} value={samplingSettings.max_context_length} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} />
-                <SamplingFieldSelector field='temperature' min={0.0} max={5.0} step={.05} value={samplingSettings.temperature} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} />
-                <SamplingFieldSelector field='min_p' min={0.0} max={1.0} step={.01} value={samplingSettings.min_p} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} />
-                <SamplingFieldSelector field='top_p' min={0.0} max={1.0} step={.01} value={samplingSettings.top_p} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} />
-                <SamplingFieldSelector field='top_k' min={-1} max={20} step={1} value={samplingSettings.top_k} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} />
-                <SamplingFieldSelector field='typical_p' min={0.0} max={1.0} step={.05} value={samplingSettings.typical_p} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} />
-                <SamplingFieldSelector field='smoothing_factor' min={0.0} max={5.0} step={.05} value={samplingSettings.smoothing_factor} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} />
-                <SamplingFieldSelector field='smoothing_curve' min={1.0} max={10.0} step={.1} value={samplingSettings.smoothing_curve} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} />
-                <SamplingFieldSelector field='repetition_penalty' min={1.0} max={3} step={.05} value={samplingSettings.repetition_penalty} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} />
-                <SamplingFieldSelector field='repetition_penalty_range' min={0} max={2048} step={128} value={samplingSettings.repetition_penalty_range} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} />
+                <SamplingFieldSelector field='max_tokens' min={64} max={32768} step={64} value={samplingSettings.max_tokens} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} onFieldFocused={onFieldFocused} />
+                <SamplingFieldSelector field='max_context_length' min={128} max={32768} step={128} value={samplingSettings.max_context_length} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} onFieldFocused={onFieldFocused} />
+                <SamplingFieldSelector field='temperature' min={0.0} max={5.0} step={.05} value={samplingSettings.temperature} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} onFieldFocused={onFieldFocused} />
+                <SamplingFieldSelector field='min_p' min={0.0} max={1.0} step={.01} value={samplingSettings.min_p} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} onFieldFocused={onFieldFocused} />
+                <SamplingFieldSelector field='top_p' min={0.0} max={1.0} step={.01} value={samplingSettings.top_p} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} onFieldFocused={onFieldFocused} />
+                <SamplingFieldSelector field='top_k' min={-1} max={20} step={1} value={samplingSettings.top_k} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} onFieldFocused={onFieldFocused} />
+                <SamplingFieldSelector field='typical_p' min={0.0} max={1.0} step={.05} value={samplingSettings.typical_p} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} onFieldFocused={onFieldFocused} />
+                <SamplingFieldSelector field='smoothing_factor' min={0.0} max={5.0} step={.05} value={samplingSettings.smoothing_factor} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} onFieldFocused={onFieldFocused} />
+                <SamplingFieldSelector field='smoothing_curve' min={1.0} max={10.0} step={.1} value={samplingSettings.smoothing_curve} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} onFieldFocused={onFieldFocused} />
+                <SamplingFieldSelector field='repetition_penalty' min={1.0} max={3} step={.05} value={samplingSettings.repetition_penalty} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} onFieldFocused={onFieldFocused} />
+                <SamplingFieldSelector field='repetition_penalty_range' min={0} max={2048} step={128} value={samplingSettings.repetition_penalty_range} samplingSettings={samplingSettings} setSamplingSettings={setSamplingSettings} onFieldFocused={onFieldFocused} />
             </Panel>
             <PanelResizeHandle />
             <Panel>
                 {booleanSelector('temperature_last')}
-                {booleanSelector('early_stopping')}
                 {booleanSelector('add_bos_token')}
                 {booleanSelector('ban_eos_token')}
                 {booleanSelector('skip_special_tokens')}
+                <div className='border p-1 mr-2'>
+                    <span>
+                        <Label className="text-md">Description: </Label>
+                        <Markdown>{description}</Markdown>
+                    </span>
+                </div>
             </Panel>
         </PanelGroup>
     </>)
@@ -269,9 +321,10 @@ interface SamplingFieldSelectorProps {
     step: number
     samplingSettings: SamplingSettings
     setSamplingSettings: React.Dispatch<React.SetStateAction<SamplingSettings>>
+    onFieldFocused?: (s: keyof SamplingSettings) => void
 }
 
-const SamplingFieldSelector = ({ field, min, max, value, step, samplingSettings, setSamplingSettings }: SamplingFieldSelectorProps) => {
+const SamplingFieldSelector = ({ field, min, max, value, step, samplingSettings, setSamplingSettings, onFieldFocused }: SamplingFieldSelectorProps) => {
     const handleNumericSelectorUpdate = (value: number, field: keyof SamplingSettings) => {
         var nextSamplingSettings: SamplingSettings = { ...samplingSettings }
         if (field === "max_tokens") {
@@ -304,7 +357,14 @@ const SamplingFieldSelector = ({ field, min, max, value, step, samplingSettings,
         setSamplingSettings(nextSamplingSettings)
         storageManager.setSamplingSettings(nextSamplingSettings)
     };
-    return <NumberField minValue={min} maxValue={max} defaultValue={value} step={step} onChange={(v: number) => { handleNumericSelectorUpdate(v, field) }}
+    var setFocusedField = (e: React.FocusEvent<Element, Element>) => {
+        if (onFieldFocused) {
+            onFieldFocused(field)
+        }
+    }
+    return <NumberField minValue={min} maxValue={max} defaultValue={value} step={step}
+        onChange={(v: number) => { handleNumericSelectorUpdate(v, field) }}
+        onFocus={setFocusedField}
         className="flex items-center gap-1.5 mr-2 my-1">
         <Label className="text-md">{field}</Label>
         <div className='ml-auto'>

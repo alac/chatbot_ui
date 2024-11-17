@@ -382,7 +382,6 @@ export interface SamplingSettings {
     repetition_penalty_range: number;
 
     temperature_last: boolean;
-    early_stopping: boolean;
     add_bos_token: boolean;
     ban_eos_token: boolean;
     skip_special_tokens: boolean;
@@ -409,7 +408,6 @@ function getDefaultSamplingSettings(): SamplingSettings {
         repetition_penalty: 1,
         repetition_penalty_range: 0,
         temperature_last: true,
-        early_stopping: false,
         add_bos_token: false,
         ban_eos_token: false,
         skip_special_tokens: false,
