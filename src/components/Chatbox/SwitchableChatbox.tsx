@@ -1,24 +1,28 @@
-import { forwardRef } from 'react';
-import NaiveConversationChatbox from './NaiveConversationChatbox';
-import { ConversationChatboxMethods, ConversationChatboxProps } from './ConversationChatbox';
-
+import { forwardRef } from "react";
+import NaiveConversationChatbox from "./NaiveConversationChatbox";
+import {
+  ConversationChatboxMethods,
+  ConversationChatboxProps,
+} from "./ConversationChatbox";
 
 const implementations = {
-    naive: NaiveConversationChatbox,
+  naive: NaiveConversationChatbox,
 };
 
 type ImplementationKey = keyof typeof implementations;
 
 interface SwitchableChatboxProps extends ConversationChatboxProps {
-    implementation?: ImplementationKey;
+  implementation?: ImplementationKey;
 }
 
-const SwitchableChatbox = forwardRef<ConversationChatboxMethods, SwitchableChatboxProps>(
-    ({ implementation = 'naive', ...props }, ref) => {
-        const SelectedImplementation = implementations[implementation] || NaiveConversationChatbox;
+const SwitchableChatbox = forwardRef<
+  ConversationChatboxMethods,
+  SwitchableChatboxProps
+>(({ implementation = "naive", ...props }, ref) => {
+  const SelectedImplementation =
+    implementations[implementation] || NaiveConversationChatbox;
 
-        return <SelectedImplementation ref={ref} {...props} />;
-    }
-);
+  return <SelectedImplementation ref={ref} {...props} />;
+});
 
 export default SwitchableChatbox;

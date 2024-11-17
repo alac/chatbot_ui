@@ -1,24 +1,23 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
-import { Button } from "./ui/button"
-import { Tooltip, TooltipTrigger } from "./ui/tooltip"
-import Undo from '@spectrum-icons/workflow/Undo';
-import Redo from '@spectrum-icons/workflow/Redo';
-import Refresh from '@spectrum-icons/workflow/Refresh';
+import React, { useState, useRef, useEffect } from "react";
+import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
+import { Button } from "./ui/button";
+import { Tooltip, TooltipTrigger } from "./ui/tooltip";
+import Undo from "@spectrum-icons/workflow/Undo";
+import Redo from "@spectrum-icons/workflow/Redo";
+import Refresh from "@spectrum-icons/workflow/Refresh";
 
-import './App.css';
-import { generate, buildPrompt, setInterruptFlag } from './generate';
-import { storageManager, compressString, Message } from './storage';
+import "./App.css";
+import { generate, buildPrompt, setInterruptFlag } from "./generate";
+import { storageManager, compressString, Message } from "./storage";
 
-import LorebookPanel from './components/LorebookPanel';
-import MenuPanel from './components/MenuPanel';
-import ConnectionPanel from './components/ConnectionPanel';
-import ContextPanel from './components/ContextPanel';
-import SamplingPanel from './components/SamplingPanel';
+import LorebookPanel from "./components/LorebookPanel";
+import MenuPanel from "./components/MenuPanel";
+import ConnectionPanel from "./components/ConnectionPanel";
+import ContextPanel from "./components/ContextPanel";
+import SamplingPanel from "./components/SamplingPanel";
 
-import SwitchableChatbox from './components/Chatbox/SwitchableChatbox';
-import { ConversationChatboxMethods } from './components/Chatbox/ConversationChatbox';
-
+import SwitchableChatbox from "./components/Chatbox/SwitchableChatbox";
+import { ConversationChatboxMethods } from "./components/Chatbox/ConversationChatbox";
 
 function App() {
   const chatboxRef = useRef<ConversationChatboxMethods>(null);
@@ -27,26 +26,26 @@ function App() {
   useEffect(() => {
     storageManager.conversationLoadedCallback = () => {
       if (storageManager.storageState.currentConversationId) {
-        setConversationId(storageManager.storageState.currentConversationId)
+        setConversationId(storageManager.storageState.currentConversationId);
       }
-    }
+    };
     storageManager.rerenderConversationCallback = () => {
       chatboxRef.current?.updateMessages((message: Message) => {
-        const updatedMessage = storageManager.getMessage(message.key)
+        const updatedMessage = storageManager.getMessage(message.key);
         if (updatedMessage != null) {
           return updatedMessage;
         }
-        return message; // unreachable 
+        return message; // unreachable
       });
-    }
+    };
     storageManager.deletedMessageCallback = (deleteKey: string) => {
       chatboxRef.current?.deleteMessage(deleteKey);
-    }
+    };
     return () => {
       storageManager.conversationLoadedCallback = null;
       storageManager.rerenderConversationCallback = null;
       storageManager.deletedMessageCallback = null;
-    }
+    };
   }, [conversationId]);
 
   const [showToolsBar, setShowToolsBar] = useState(false);
@@ -55,50 +54,63 @@ function App() {
       <PanelGroup direction="vertical">
         <Panel>
           <PanelGroup direction="horizontal">
-            {showToolsBar ? <>
-              <Panel defaultSize={20} minSize={1} className="sidebar-container" style={{ overflow: 'auto' }}>
-
-                <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
-                  <div className="flex items-center">
-                    <span className="text-md font-medium">Summarize</span>
-                    <div className="ml-auto corner-button">
+            {showToolsBar ? (
+              <>
+                <Panel
+                  defaultSize={20}
+                  minSize={1}
+                  className="sidebar-container"
+                  style={{ overflow: "auto" }}
+                >
+                  <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
+                    <div className="flex items-center">
+                      <span className="text-md font-medium">Summarize</span>
+                      <div className="ml-auto corner-button"></div>
                     </div>
                   </div>
-                </div>
 
-                <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
-                  <div className="flex items-center">
-                    <span className="text-md font-medium">Objectives</span>
-                    <div className="ml-auto corner-button">
+                  <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
+                    <div className="flex items-center">
+                      <span className="text-md font-medium">Objectives</span>
+                      <div className="ml-auto corner-button"></div>
                     </div>
                   </div>
-                </div>
 
-                <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
-                  <div className="flex items-center">
-                    <span className="text-md font-medium">Quick Reply</span>
-                    <div className="ml-auto corner-button">
+                  <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
+                    <div className="flex items-center">
+                      <span className="text-md font-medium">Quick Reply</span>
+                      <div className="ml-auto corner-button"></div>
                     </div>
                   </div>
-                </div>
 
-                <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
-                  <div className="flex items-center">
-                    <span className="text-md font-medium">Chain Of Thought</span>
-                    <div className="ml-auto corner-button">
+                  <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
+                    <div className="flex items-center">
+                      <span className="text-md font-medium">
+                        Chain Of Thought
+                      </span>
+                      <div className="ml-auto corner-button"></div>
                     </div>
                   </div>
-                </div>
-
-
-              </Panel>
-              <PanelResizeHandle />
-            </> : <></>}
+                </Panel>
+                <PanelResizeHandle />
+              </>
+            ) : (
+              <></>
+            )}
             <Panel className="messages-container">
-              <SwitchableChatbox ref={chatboxRef} implementation="naive" key={conversationId} />
+              <SwitchableChatbox
+                ref={chatboxRef}
+                implementation="naive"
+                key={conversationId}
+              />
             </Panel>
             <PanelResizeHandle />
-            <Panel defaultSize={20} minSize={1} className="sidebar-container" style={{ overflow: 'auto' }}>
+            <Panel
+              defaultSize={20}
+              minSize={1}
+              className="sidebar-container"
+              style={{ overflow: "auto" }}
+            >
               <MenuPanel setShowToolsBar={setShowToolsBar} />
               <ConnectionPanel />
               <SamplingPanel />
@@ -116,127 +128,126 @@ function App() {
   );
 }
 
-
-
-
-
 interface BottomContainerProps {
   chatboxRef: React.RefObject<ConversationChatboxMethods>;
 }
 
-
 const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(event.target.value);
   };
 
-  const [isStreamingResponse, setIsStreamingResponse] = useState(false)
+  const [isStreamingResponse, setIsStreamingResponse] = useState(false);
 
   const streamBotResponse = (botMessageId: string) => {
     setTimeout(async () => {
       const botMessage: Message = {
-        userId: 'bot',
+        userId: "bot",
         username: storageManager.currentConversation.botName,
         key: `${botMessageId}`,
-        text: '',
+        text: "",
         tokenCount: null,
         compressedPrompt: "",
         isDisabled: false,
-      }
-      storageManager.updateMessage(botMessage)
-      chatboxRef.current?.appendMessage(botMessage)
+      };
+      storageManager.updateMessage(botMessage);
+      chatboxRef.current?.appendMessage(botMessage);
 
       const prompt = await buildPrompt(
         storageManager.messagesCurrent,
         storageManager.currentConversation,
-        storageManager.getSamplingSettings(storageManager.getCurrentFormatSettingsId()),
+        storageManager.getSamplingSettings(
+          storageManager.getCurrentFormatSettingsId()
+        ),
         storageManager.getCurrentConnectionSettings(),
         storageManager.getCurrentFormatSettings()
-      )
-      const compressedPrompt = compressString(prompt.completionsPrompt)
-      botMessage.compressedPrompt = compressedPrompt
-      storageManager.updateMessage(botMessage)
+      );
+      const compressedPrompt = compressString(prompt.completionsPrompt);
+      botMessage.compressedPrompt = compressedPrompt;
+      storageManager.updateMessage(botMessage);
 
       const responseWriter = (token: string, done: boolean) => {
-        const oldMessage = storageManager.getMessage(botMessageId)
+        const oldMessage = storageManager.getMessage(botMessageId);
         if (oldMessage == null) {
-          return
+          return;
         }
-        const newMessage = { ...oldMessage, text: oldMessage?.text + token }
-        storageManager.updateMessage(newMessage)
+        const newMessage = { ...oldMessage, text: oldMessage?.text + token };
+        storageManager.updateMessage(newMessage);
         if (done) {
-          setIsStreamingResponse(false)
-          storageManager.createAddOrUpdateEditEvent(newMessage)
-          storageManager.persistConversation()
+          setIsStreamingResponse(false);
+          storageManager.createAddOrUpdateEditEvent(newMessage);
+          storageManager.persistConversation();
         }
-      }
+      };
 
-      setIsStreamingResponse(true)
+      setIsStreamingResponse(true);
       generate(
         prompt.completionsPrompt,
         [`\n${storageManager.currentConversation.username}:`],
         storageManager.getCurrentConnectionSettings(),
-        storageManager.getSamplingSettings(storageManager.getCurrentFormatSettingsId()),
+        storageManager.getSamplingSettings(
+          storageManager.getCurrentFormatSettingsId()
+        ),
         responseWriter
-      )
-    }, 100)
-  }
+      );
+    }, 100);
+  };
 
   const sendChatMessage = () => {
     if (storageManager.storageState.currentConversationId === "") {
-      storageManager.newConversation("Default Conversation")
+      storageManager.newConversation("Default Conversation");
     }
 
-    if (inputValue !== '') {
-      const userMessageId = `${storageManager.consumeMessageId()}`
+    if (inputValue !== "") {
+      const userMessageId = `${storageManager.consumeMessageId()}`;
       const userMessage: Message = {
-        userId: 'user',
+        userId: "user",
         username: storageManager.currentConversation.username,
         key: `${userMessageId}`,
         text: inputValue,
         tokenCount: null,
-        compressedPrompt: '',
+        compressedPrompt: "",
         isDisabled: false,
-      }
-      storageManager.updateMessage(userMessage)
-      storageManager.createAddOrUpdateEditEvent(userMessage)
+      };
+      storageManager.updateMessage(userMessage);
+      storageManager.createAddOrUpdateEditEvent(userMessage);
 
-      chatboxRef.current?.appendMessage(userMessage)
-      setInputValue("")
+      chatboxRef.current?.appendMessage(userMessage);
+      setInputValue("");
     }
 
-    var botMessageId = `${storageManager.consumeMessageId()}`
-    streamBotResponse(botMessageId)
-  }
+    var botMessageId = `${storageManager.consumeMessageId()}`;
+    streamBotResponse(botMessageId);
+  };
 
   const undoEdit = () => {
-    const success = storageManager.undoEditEvent()
+    const success = storageManager.undoEditEvent();
     if (success) {
-      storageManager.rerenderConversationCallback?.()
-      storageManager.persistConversation()
+      storageManager.rerenderConversationCallback?.();
+      storageManager.persistConversation();
     }
-  }
+  };
 
   const redoEdit = () => {
-    const success = storageManager.redoEditEvent()
+    const success = storageManager.redoEditEvent();
     if (success) {
-      storageManager.rerenderConversationCallback?.()
-      storageManager.persistConversation()
+      storageManager.rerenderConversationCallback?.();
+      storageManager.persistConversation();
     }
-  }
+  };
 
   const retryBotResponse = () => {
-    const lastMessage = storageManager.messagesCurrent.at(-1)
-    if (lastMessage?.userId !== 'bot') {
-      return
+    const lastMessage = storageManager.messagesCurrent.at(-1);
+    if (lastMessage?.userId !== "bot") {
+      return;
     }
-    streamBotResponse(lastMessage.key)
-  }
+    streamBotResponse(lastMessage.key);
+  };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.shiftKey && event.key === 'Enter') {
-      sendChatMessage()
+    if (event.shiftKey && event.key === "Enter") {
+      sendChatMessage();
     }
   };
 
@@ -264,15 +275,21 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
           )}
           <div className="flex">
             <TooltipTrigger>
-              <Button size="icon-md" onPress={() => undoEdit()}><Undo /></Button>
+              <Button size="icon-md" onPress={() => undoEdit()}>
+                <Undo />
+              </Button>
               <Tooltip>Undo the previous edit.</Tooltip>
             </TooltipTrigger>
             <TooltipTrigger>
-              <Button size="icon-md" onPress={() => redoEdit()}><Redo /></Button>
+              <Button size="icon-md" onPress={() => redoEdit()}>
+                <Redo />
+              </Button>
               <Tooltip>Reverse the last undo.</Tooltip>
             </TooltipTrigger>
             <TooltipTrigger>
-              <Button size="icon-md" onPress={() => retryBotResponse()}><Refresh /></Button>
+              <Button size="icon-md" onPress={() => retryBotResponse()}>
+                <Refresh />
+              </Button>
               <Tooltip>Regenerate the last message.</Tooltip>
             </TooltipTrigger>
           </div>
@@ -281,6 +298,5 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
     </div>
   );
 };
-
 
 export default App;
