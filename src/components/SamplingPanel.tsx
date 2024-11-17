@@ -9,6 +9,7 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
 import { FieldGroup, Label } from "../ui/field";
 import { Input } from "../ui/input";
 import {
@@ -37,33 +38,19 @@ import {
 import { Key } from "react-aria-components";
 import Markdown from "react-markdown";
 
+enum PanelTogglesEnum {
+  TokenLength = "Token Length",
+  Seed = "Seed",
+  Temperature = "Temperature",
+  MinP = "Min-P",
+  TopP = "Top-P",
+  TopK = "Top-K",
+  TypicalP = "Typical P",
+  QuadraticSmoothing = "Quadratic Smoothing",
+  RepetitionPenalty = "Repetition Penalty",
+}
+
 const SamplingPanel = () => {
-  // TODO:
-  // -- implement selecting panel toggles
-  // -- implement showing panel toggles
-  // -- persist panel toggles
-  // -- add a help text toggle that changes when focusing on a particular field
-
-  /*
-    toggle groups:
-    prediction and context length -> max_tokens, truncation_length
-    sampler_seed
-    temperature
-    min_p
-    top_p
-    top_k
-    typical_p
-    smoothing => smoothing_factor, smotthing_curve
-    repetition_penalty => repeat_penalty, repeat_last_n
-
-    # no toggle
-    "temperature_last": true,
-    "early_stopping": false,
-    "add_bos_token": false,
-    "ban_eos_token": false,
-    "skip_special_tokens": false,
-    */
-
   const [samplingUpdateCounter, setSamplingUpdateCounter] = useState(0);
   useEffect(() => {
     // storageManager.updateConnectionsPanelCallback = () => {
@@ -80,7 +67,7 @@ const SamplingPanel = () => {
     )
   );
 
-  const [panelToggles, setPanelToggles] = useState<string[]>([]);
+  const [panelToggles, setPanelToggles] = useState<PanelTogglesEnum[]>([]);
 
   return (
     <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
@@ -99,6 +86,153 @@ const SamplingPanel = () => {
           </span>
         </div>
       </div>
+      {panelToggles.includes(PanelTogglesEnum.TokenLength) ? (
+        <>
+          <SamplingFieldSelector
+            field="max_tokens"
+            min={64}
+            max={32768}
+            step={64}
+            value={samplingSettings.max_tokens}
+            samplingSettings={samplingSettings}
+            setSamplingSettings={setSamplingSettings}
+          />
+          <SamplingFieldSelector
+            field="max_context_length"
+            min={128}
+            max={32768}
+            step={128}
+            value={samplingSettings.max_context_length}
+            samplingSettings={samplingSettings}
+            setSamplingSettings={setSamplingSettings}
+          />
+        </>
+      ) : (
+        <></>
+      )}
+      {panelToggles.includes(PanelTogglesEnum.Temperature) ? (
+        <>
+          <SamplingFieldSelector
+            field="temperature"
+            min={0.0}
+            max={5.0}
+            step={0.05}
+            value={samplingSettings.temperature}
+            samplingSettings={samplingSettings}
+            setSamplingSettings={setSamplingSettings}
+          />
+        </>
+      ) : (
+        <></>
+      )}
+      {panelToggles.includes(PanelTogglesEnum.MinP) ? (
+        <>
+          <SamplingFieldSelector
+            field="min_p"
+            min={0.0}
+            max={1.0}
+            step={0.01}
+            value={samplingSettings.min_p}
+            samplingSettings={samplingSettings}
+            setSamplingSettings={setSamplingSettings}
+          />
+        </>
+      ) : (
+        <></>
+      )}
+      {panelToggles.includes(PanelTogglesEnum.TopP) ? (
+        <>
+          <SamplingFieldSelector
+            field="top_p"
+            min={0.0}
+            max={1.0}
+            step={0.01}
+            value={samplingSettings.top_p}
+            samplingSettings={samplingSettings}
+            setSamplingSettings={setSamplingSettings}
+          />
+        </>
+      ) : (
+        <></>
+      )}
+      {panelToggles.includes(PanelTogglesEnum.TopK) ? (
+        <>
+          <SamplingFieldSelector
+            field="top_k"
+            min={-1}
+            max={20}
+            step={1}
+            value={samplingSettings.top_k}
+            samplingSettings={samplingSettings}
+            setSamplingSettings={setSamplingSettings}
+          />
+        </>
+      ) : (
+        <></>
+      )}
+      {panelToggles.includes(PanelTogglesEnum.TypicalP) ? (
+        <>
+          <SamplingFieldSelector
+            field="typical_p"
+            min={0.0}
+            max={1.0}
+            step={0.05}
+            value={samplingSettings.typical_p}
+            samplingSettings={samplingSettings}
+            setSamplingSettings={setSamplingSettings}
+          />
+        </>
+      ) : (
+        <></>
+      )}
+      {panelToggles.includes(PanelTogglesEnum.QuadraticSmoothing) ? (
+        <>
+          <SamplingFieldSelector
+            field="smoothing_factor"
+            min={0.0}
+            max={5.0}
+            step={0.05}
+            value={samplingSettings.smoothing_factor}
+            samplingSettings={samplingSettings}
+            setSamplingSettings={setSamplingSettings}
+          />
+          <SamplingFieldSelector
+            field="smoothing_curve"
+            min={1.0}
+            max={10.0}
+            step={0.1}
+            value={samplingSettings.smoothing_curve}
+            samplingSettings={samplingSettings}
+            setSamplingSettings={setSamplingSettings}
+          />
+        </>
+      ) : (
+        <></>
+      )}
+      {panelToggles.includes(PanelTogglesEnum.RepetitionPenalty) ? (
+        <>
+          <SamplingFieldSelector
+            field="repetition_penalty"
+            min={1.0}
+            max={3}
+            step={0.05}
+            value={samplingSettings.repetition_penalty}
+            samplingSettings={samplingSettings}
+            setSamplingSettings={setSamplingSettings}
+          />
+          <SamplingFieldSelector
+            field="repetition_penalty_range"
+            min={0}
+            max={2048}
+            step={128}
+            value={samplingSettings.repetition_penalty_range}
+            samplingSettings={samplingSettings}
+            setSamplingSettings={setSamplingSettings}
+          />
+        </>
+      ) : (
+        <></>
+      )}
     </div>
   );
 };
@@ -106,8 +240,10 @@ const SamplingPanel = () => {
 interface EditSamplingDialogProps {
   samplingUpdateCounter: number;
   setSamplingUpdateCounter: React.Dispatch<React.SetStateAction<number>>;
-  samplingPanelToggles: string[];
-  setSamplingPanelToggles: React.Dispatch<React.SetStateAction<string[]>>;
+  samplingPanelToggles: PanelTogglesEnum[];
+  setSamplingPanelToggles: React.Dispatch<
+    React.SetStateAction<PanelTogglesEnum[]>
+  >;
   samplingSettings: SamplingSettings;
   setSamplingSettings: React.Dispatch<React.SetStateAction<SamplingSettings>>;
 }
@@ -231,6 +367,42 @@ const EditSamplingDialog = (props: EditSamplingDialogProps) => {
             setSamplingSettings={props.setSamplingSettings}
             key={`SamplingEditor_${props.samplingUpdateCounter}`}
           />
+
+          <DialogHeader className="mt-2">
+            <DialogTitle>Panel Shortcuts</DialogTitle>
+          </DialogHeader>
+          <Separator />
+          <Markdown>
+            {`Toggles here enable showing the related setting(s) on the sidebar panel.  
+\`Token Length\` refers to both max_tokens and max_context_length.  
+\`Quadratic Smoothing\` refers to both smoothing_factor and smoothing_curve.  
+\`Repetition Penalty\` refers to both repetition_penalty and repetition_penalty_range.  
+            `}
+          </Markdown>
+
+          {Object.values(PanelTogglesEnum).map((s: PanelTogglesEnum) => {
+            return (
+              <>
+                <Checkbox
+                  defaultSelected={props.samplingPanelToggles.includes(s)}
+                  onChange={(isSelected: boolean) => {
+                    if (isSelected) {
+                      props.setSamplingPanelToggles([
+                        ...props.samplingPanelToggles,
+                        s,
+                      ]);
+                    } else {
+                      props.setSamplingPanelToggles(
+                        props.samplingPanelToggles.filter((t) => t !== s)
+                      );
+                    }
+                  }}
+                >
+                  {s}
+                </Checkbox>
+              </>
+            );
+          })}
         </DialogContent>
       </DialogOverlay>
     </DialogTrigger>
@@ -394,7 +566,7 @@ const SamplingSettingsEditor = ({
   return (
     <>
       <PanelGroup direction="horizontal" key={samplingSettings.name}>
-        <Panel>
+        <Panel defaultSize={40}>
           <SamplingFieldSelector
             field="max_tokens"
             min={64}
@@ -599,10 +771,10 @@ const SamplingFieldSelector = ({
       onFocus={setFocusedField}
       className="flex items-center gap-1.5 mr-2 my-1"
     >
-      <Label className="text-md">{field}</Label>
+      <Label className="text-sm">{field}</Label>
       <div className="ml-auto">
-        <FieldGroup className="w-[180px]">
-          <NumberFieldInput />
+        <FieldGroup className="w-[90px]">
+          <NumberFieldInput style={{ color: "#0f172a" }} />
           <NumberFieldSteppers />
         </FieldGroup>
       </div>
