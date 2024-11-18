@@ -931,7 +931,8 @@ class StorageManager {
     }
     return {
       type: "DUMMY",
-      response: "This is a dummy bot response.",
+      response: `Use the \`Connection\` menu to setup **AI** connection or a *dummy* response.  
+      Otherwise, you'll only see this message.`,
     };
   }
 

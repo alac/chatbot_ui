@@ -110,8 +110,8 @@ async function generate(
     let i = 0;
     var inputString = connectionSettings.response;
     if (inputString === "") {
-      inputString =
-        "Use the GENERATE menu to setup AI connection or a dummy response.";
+      inputString = `Use the \`Connection\` menu to setup **AI** connection or a *dummy* response.  
+  Otherwise, you'll only see this message.`;
     }
     const dummyResponse = breakStringIntoSubstrings(inputString);
     const intervalId = setInterval(() => {
