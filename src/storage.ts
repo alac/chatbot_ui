@@ -1039,6 +1039,7 @@ class StorageManager {
 
   setSamplingSettings(config: SamplingSettings): void {
     this.storageState.samplingSettingsById.set(config.name, config);
+    this.persistStorageState();
   }
 
   deleteSamplingSettings(name: string): void {
