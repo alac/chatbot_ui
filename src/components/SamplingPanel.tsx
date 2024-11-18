@@ -396,25 +396,24 @@ const EditSamplingDialog = (props: EditSamplingDialogProps) => {
           {Object.values(SamplingPanelTogglesEnum).map(
             (s: SamplingPanelTogglesEnum) => {
               return (
-                <>
-                  <Checkbox
-                    defaultSelected={props.samplingPanelToggles.includes(s)}
-                    onChange={(isSelected: boolean) => {
-                      if (isSelected) {
-                        props.setSamplingPanelToggles([
-                          ...props.samplingPanelToggles,
-                          s,
-                        ]);
-                      } else {
-                        props.setSamplingPanelToggles(
-                          props.samplingPanelToggles.filter((t) => t !== s)
-                        );
-                      }
-                    }}
-                  >
-                    {s}
-                  </Checkbox>
-                </>
+                <Checkbox
+                  defaultSelected={props.samplingPanelToggles.includes(s)}
+                  onChange={(isSelected: boolean) => {
+                    if (isSelected) {
+                      props.setSamplingPanelToggles([
+                        ...props.samplingPanelToggles,
+                        s,
+                      ]);
+                    } else {
+                      props.setSamplingPanelToggles(
+                        props.samplingPanelToggles.filter((t) => t !== s)
+                      );
+                    }
+                  }}
+                  key={s}
+                >
+                  {s}
+                </Checkbox>
               );
             }
           )}
