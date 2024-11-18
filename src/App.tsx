@@ -61,6 +61,8 @@ function App() {
                   minSize={1}
                   className="sidebar-container"
                   style={{ overflow: "auto" }}
+                  id="ToolsBar"
+                  order={1}
                 >
                   {/* <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
                     <div className="flex items-center">
@@ -97,7 +99,7 @@ function App() {
             ) : (
               <></>
             )}
-            <Panel className="messages-container">
+            <Panel className="messages-container" id="MessagesPanel" order={2}>
               <SwitchableChatbox
                 ref={chatboxRef}
                 implementation="naive"
@@ -110,6 +112,8 @@ function App() {
               minSize={1}
               className="sidebar-container"
               style={{ overflow: "auto" }}
+              id="MenuBar"
+              order={3}
             >
               <MenuPanel setShowToolsBar={setShowToolsBar} />
               <ConnectionPanel />
