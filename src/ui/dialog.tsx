@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { X } from "lucide-react"
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { X } from "lucide-react";
 import {
   Button as AriaButton,
   Dialog as AriaDialog,
@@ -14,11 +14,11 @@ import {
   ModalOverlay as AriaModalOverlay,
   ModalOverlayProps as AriaModalOverlayProps,
   composeRenderProps,
-} from "react-aria-components"
+} from "react-aria-components";
 
-import { cn } from "../lib/utils"
+import { cn } from "../lib/utils";
 
-const Dialog = AriaDialog
+const Dialog = AriaDialog;
 
 const sheetVariants = cva(
   [
@@ -40,9 +40,9 @@ const sheetVariants = cva(
       },
     },
   }
-)
+);
 
-const DialogTrigger = AriaDialogTrigger
+const DialogTrigger = AriaDialogTrigger;
 
 const DialogOverlay = ({
   className,
@@ -63,14 +63,14 @@ const DialogOverlay = ({
     )}
     {...props}
   />
-)
+);
 
 interface DialogContentProps
   extends Omit<React.ComponentProps<typeof AriaModal>, "children">,
-  VariantProps<typeof sheetVariants> {
-  children?: AriaDialogProps["children"]
-  role?: AriaDialogProps["role"]
-  closeButton?: boolean
+    VariantProps<typeof sheetVariants> {
+  children?: AriaDialogProps["children"];
+  role?: AriaDialogProps["role"];
+  closeButton?: boolean;
 }
 
 const DialogContent = ({
@@ -112,7 +112,7 @@ const DialogContent = ({
       ))}
     </AriaDialog>
   </AriaModal>
-)
+);
 
 const DialogHeader = ({
   className,
@@ -125,7 +125,7 @@ const DialogHeader = ({
     )}
     {...props}
   />
-)
+);
 
 const DialogFooter = ({
   className,
@@ -138,7 +138,7 @@ const DialogFooter = ({
     )}
     {...props}
   />
-)
+);
 
 const DialogTitle = ({ className, ...props }: AriaHeadingProps) => (
   <AriaHeading
@@ -149,7 +149,7 @@ const DialogTitle = ({ className, ...props }: AriaHeadingProps) => (
     )}
     {...props}
   />
-)
+);
 
 const DialogDescription = ({
   className,
@@ -162,7 +162,7 @@ const DialogDescription = ({
     )}
     {...props}
   />
-)
+);
 
 export {
   Dialog,
@@ -173,5 +173,5 @@ export {
   DialogHeader,
   DialogFooter,
   DialogTitle,
-}
-export type { DialogContentProps }
+};
+export type { DialogContentProps };
