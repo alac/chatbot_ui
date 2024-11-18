@@ -34,40 +34,34 @@ import {
   storageManager,
   SamplingSettings,
   getDefaultSamplingSettings,
+  SamplingPanelTogglesEnum,
 } from "../storage";
 import { Key } from "react-aria-components";
 import Markdown from "react-markdown";
 
-enum PanelTogglesEnum {
-  TokenLength = "Token Length",
-  Seed = "Seed",
-  Temperature = "Temperature",
-  MinP = "Min-P",
-  TopP = "Top-P",
-  TopK = "Top-K",
-  TypicalP = "Typical P",
-  QuadraticSmoothing = "Quadratic Smoothing",
-  RepetitionPenalty = "Repetition Penalty",
-}
-
 const SamplingPanel = () => {
   const [samplingUpdateCounter, setSamplingUpdateCounter] = useState(0);
-  useEffect(() => {
-    // storageManager.updateConnectionsPanelCallback = () => {
-    //     setConnectionsUpdateCounter(x => x + 1)
-    // }
-    // return () => {
-    //     storageManager.updateConnectionsPanelCallback = null;
-    // }
-  });
-
   const [samplingSettings, setSamplingSettings] = useState<SamplingSettings>(
     storageManager.getSamplingSettings(
       storageManager.getCurrentFormatSettingsId()
     )
   );
 
-  const [panelToggles, setPanelToggles] = useState<PanelTogglesEnum[]>([]);
+  const [panelToggles, setPanelToggles] = useState<SamplingPanelTogglesEnum[]>(
+    []
+  );
+  useEffect(() => {
+    storageManager.loadedSamplersEnabledForShortcutPanelCallback = () => {
+      setPanelToggles(storageManager.getSamplersEnabledForShortcutPanel());
+    };
+    return () => {
+      storageManager.loadedSamplersEnabledForShortcutPanelCallback = null;
+    };
+  }, []);
+  const setPanelTogglesAndPersist = (toggles: SamplingPanelTogglesEnum[]) => {
+    setPanelToggles(toggles);
+    storageManager.setSamplersEnabledForShortcutPanel(toggles);
+  };
 
   return (
     <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
@@ -77,7 +71,7 @@ const SamplingPanel = () => {
           <span className="corner-button">
             <EditSamplingDialog
               samplingPanelToggles={panelToggles}
-              setSamplingPanelToggles={setPanelToggles}
+              setSamplingPanelToggles={setPanelTogglesAndPersist}
               samplingSettings={samplingSettings}
               setSamplingSettings={setSamplingSettings}
               samplingUpdateCounter={samplingUpdateCounter}
@@ -86,7 +80,7 @@ const SamplingPanel = () => {
           </span>
         </div>
       </div>
-      {panelToggles.includes(PanelTogglesEnum.TokenLength) ? (
+      {panelToggles.includes(SamplingPanelTogglesEnum.MaxTokens) ? (
         <>
           <SamplingFieldSelector
             field="max_tokens"
@@ -97,6 +91,12 @@ const SamplingPanel = () => {
             samplingSettings={samplingSettings}
             setSamplingSettings={setSamplingSettings}
           />
+        </>
+      ) : (
+        <></>
+      )}
+      {panelToggles.includes(SamplingPanelTogglesEnum.MaxContextLength) ? (
+        <>
           <SamplingFieldSelector
             field="max_context_length"
             min={128}
@@ -110,7 +110,7 @@ const SamplingPanel = () => {
       ) : (
         <></>
       )}
-      {panelToggles.includes(PanelTogglesEnum.Temperature) ? (
+      {panelToggles.includes(SamplingPanelTogglesEnum.Temperature) ? (
         <>
           <SamplingFieldSelector
             field="temperature"
@@ -125,7 +125,7 @@ const SamplingPanel = () => {
       ) : (
         <></>
       )}
-      {panelToggles.includes(PanelTogglesEnum.MinP) ? (
+      {panelToggles.includes(SamplingPanelTogglesEnum.MinP) ? (
         <>
           <SamplingFieldSelector
             field="min_p"
@@ -140,7 +140,7 @@ const SamplingPanel = () => {
       ) : (
         <></>
       )}
-      {panelToggles.includes(PanelTogglesEnum.TopP) ? (
+      {panelToggles.includes(SamplingPanelTogglesEnum.TopP) ? (
         <>
           <SamplingFieldSelector
             field="top_p"
@@ -155,7 +155,7 @@ const SamplingPanel = () => {
       ) : (
         <></>
       )}
-      {panelToggles.includes(PanelTogglesEnum.TopK) ? (
+      {panelToggles.includes(SamplingPanelTogglesEnum.TopK) ? (
         <>
           <SamplingFieldSelector
             field="top_k"
@@ -170,7 +170,7 @@ const SamplingPanel = () => {
       ) : (
         <></>
       )}
-      {panelToggles.includes(PanelTogglesEnum.TypicalP) ? (
+      {panelToggles.includes(SamplingPanelTogglesEnum.TypicalP) ? (
         <>
           <SamplingFieldSelector
             field="typical_p"
@@ -185,7 +185,7 @@ const SamplingPanel = () => {
       ) : (
         <></>
       )}
-      {panelToggles.includes(PanelTogglesEnum.QuadraticSmoothing) ? (
+      {panelToggles.includes(SamplingPanelTogglesEnum.QuadraticSmoothing) ? (
         <>
           <SamplingFieldSelector
             field="smoothing_factor"
@@ -209,7 +209,7 @@ const SamplingPanel = () => {
       ) : (
         <></>
       )}
-      {panelToggles.includes(PanelTogglesEnum.RepetitionPenalty) ? (
+      {panelToggles.includes(SamplingPanelTogglesEnum.RepetitionPenalty) ? (
         <>
           <SamplingFieldSelector
             field="repetition_penalty"
@@ -240,10 +240,8 @@ const SamplingPanel = () => {
 interface EditSamplingDialogProps {
   samplingUpdateCounter: number;
   setSamplingUpdateCounter: React.Dispatch<React.SetStateAction<number>>;
-  samplingPanelToggles: PanelTogglesEnum[];
-  setSamplingPanelToggles: React.Dispatch<
-    React.SetStateAction<PanelTogglesEnum[]>
-  >;
+  samplingPanelToggles: SamplingPanelTogglesEnum[];
+  setSamplingPanelToggles: (s: SamplingPanelTogglesEnum[]) => void;
   samplingSettings: SamplingSettings;
   setSamplingSettings: React.Dispatch<React.SetStateAction<SamplingSettings>>;
 }
@@ -380,29 +378,31 @@ const EditSamplingDialog = (props: EditSamplingDialogProps) => {
             `}
           </Markdown>
 
-          {Object.values(PanelTogglesEnum).map((s: PanelTogglesEnum) => {
-            return (
-              <>
-                <Checkbox
-                  defaultSelected={props.samplingPanelToggles.includes(s)}
-                  onChange={(isSelected: boolean) => {
-                    if (isSelected) {
-                      props.setSamplingPanelToggles([
-                        ...props.samplingPanelToggles,
-                        s,
-                      ]);
-                    } else {
-                      props.setSamplingPanelToggles(
-                        props.samplingPanelToggles.filter((t) => t !== s)
-                      );
-                    }
-                  }}
-                >
-                  {s}
-                </Checkbox>
-              </>
-            );
-          })}
+          {Object.values(SamplingPanelTogglesEnum).map(
+            (s: SamplingPanelTogglesEnum) => {
+              return (
+                <>
+                  <Checkbox
+                    defaultSelected={props.samplingPanelToggles.includes(s)}
+                    onChange={(isSelected: boolean) => {
+                      if (isSelected) {
+                        props.setSamplingPanelToggles([
+                          ...props.samplingPanelToggles,
+                          s,
+                        ]);
+                      } else {
+                        props.setSamplingPanelToggles(
+                          props.samplingPanelToggles.filter((t) => t !== s)
+                        );
+                      }
+                    }}
+                  >
+                    {s}
+                  </Checkbox>
+                </>
+              );
+            }
+          )}
         </DialogContent>
       </DialogOverlay>
     </DialogTrigger>

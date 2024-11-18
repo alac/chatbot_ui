@@ -235,6 +235,8 @@ interface StorageState {
 
   currentSamplingSettingsId: string;
   samplingSettingsById: Map<string, SamplingSettings>;
+
+  samplersEnabledForShortcutPanel: SamplingPanelTogglesEnum[];
 }
 
 const isStorageState = (obj: unknown): obj is StorageState => {
@@ -327,6 +329,19 @@ function isOpenAIConnectionSettings(obj: any): obj is OpenAIConnectionSettings {
 }
 
 type AnyConnectionSettings = DummyConnectionSettings | OpenAIConnectionSettings;
+
+export enum SamplingPanelTogglesEnum {
+  MaxTokens = "Max Tokens",
+  MaxContextLength = "Max Token Length",
+  Seed = "Seed",
+  Temperature = "Temperature",
+  MinP = "Min-P",
+  TopP = "Top-P",
+  TopK = "Top-K",
+  TypicalP = "Typical P",
+  QuadraticSmoothing = "Quadratic Smoothing",
+  RepetitionPenalty = "Repetition Penalty",
+}
 
 interface FormatSettings {
   id: string;
@@ -482,6 +497,7 @@ class StorageManager {
   contextUpdatedCallback: (() => void) | null;
   deletedMessageCallback: ((deleteKey: string) => void) | null;
   updateConnectionsPanelCallback: (() => void) | null;
+  loadedSamplersEnabledForShortcutPanelCallback: (() => void) | null;
   conversations: Map<string, Conversation>;
   lorebooks: Map<string, Lorebook>;
 
@@ -506,6 +522,7 @@ class StorageManager {
       formatSettingsById: defaultFormats,
       currentSamplingSettingsId: DEFAULT_SAMPLING_SETTINGS_ID,
       samplingSettingsById: defaultSettings,
+      samplersEnabledForShortcutPanel: [],
     };
     this.messagesCurrent = [];
     this.messagesPrevious = [];
@@ -519,6 +536,7 @@ class StorageManager {
     this.rerenderConversationCallback = null;
     this.deletedMessageCallback = null;
     this.updateConnectionsPanelCallback = null;
+    this.loadedSamplersEnabledForShortcutPanelCallback = null;
   }
 
   startup(): void {
@@ -534,6 +552,7 @@ class StorageManager {
             if (isStorageState(readValue)) {
               this.storageState = readValue;
               this.updateConnectionsPanelCallback?.();
+              this.loadedSamplersEnabledForShortcutPanelCallback?.();
             } else {
               console.log(
                 "isStorageState typeguard failed; value: ",
@@ -708,6 +727,16 @@ class StorageManager {
 
   newUUID(): string {
     return uuidv4();
+  }
+
+  // Update Samplers
+  getSamplersEnabledForShortcutPanel(): SamplingPanelTogglesEnum[] {
+    return this.storageState.samplersEnabledForShortcutPanel;
+  }
+
+  setSamplersEnabledForShortcutPanel(samplers: SamplingPanelTogglesEnum[]) {
+    this.storageState.samplersEnabledForShortcutPanel = samplers;
+    this.persistStorageState();
   }
 
   // Edit (History) Events
