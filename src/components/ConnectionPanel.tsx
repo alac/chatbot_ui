@@ -491,7 +491,7 @@ const FormatSettingsEditor = ({
               {[ChatRole.Bot, ChatRole.System, ChatRole.User].map(
                 (role: ChatRole) => {
                   return (
-                    <SelectItem textValue={role} id={role}>
+                    <SelectItem textValue={role} id={role} key={role}>
                       {role}
                     </SelectItem>
                   );
