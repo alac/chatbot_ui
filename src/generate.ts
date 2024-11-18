@@ -207,20 +207,6 @@ async function buildPromptWrapped(
     .replace(/{{user}}/g, userName)
     .replace(/{{char}}/g, botName);
 
-  var maxTokens = 2048;
-  var maxResponseLength = 256;
-  if (
-    "max_tokens" in samplingSettings &&
-    typeof samplingSettings.max_tokens === "number"
-  ) {
-    maxTokens = samplingSettings.max_tokens;
-  }
-  if (
-    "truncation_length" in samplingSettings &&
-    typeof samplingSettings.truncation_length === "number"
-  ) {
-    maxResponseLength = samplingSettings.truncation_length;
-  }
   const memoryEstimateString = partialFormat
     .replace("{{LOREBOOK}}", "")
     .replace("{{CHAT_HISTORY}}", "");
@@ -230,7 +216,10 @@ async function buildPromptWrapped(
   );
   const newlineCost = 1;
   var remainingTokens =
-    maxResponseLength - maxTokens - memoryLength - newlineCost;
+    samplingSettings.max_context_length -
+    samplingSettings.max_tokens -
+    memoryLength -
+    newlineCost;
 
   const activeLorebooks: Lorebook[] = conversation.lorebookIds
     .map((lorebookId) => storageManager.lorebooks.get(lorebookId))
