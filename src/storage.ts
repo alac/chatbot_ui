@@ -497,7 +497,7 @@ class StorageManager {
   contextUpdatedCallback: (() => void) | null;
   deletedMessageCallback: ((deleteKey: string) => void) | null;
   updateConnectionsPanelCallback: (() => void) | null;
-  loadedSamplersEnabledForShortcutPanelCallback: (() => void) | null;
+  loadedSamplersSettingsCallback: (() => void) | null;
   conversations: Map<string, Conversation>;
   lorebooks: Map<string, Lorebook>;
 
@@ -536,7 +536,7 @@ class StorageManager {
     this.rerenderConversationCallback = null;
     this.deletedMessageCallback = null;
     this.updateConnectionsPanelCallback = null;
-    this.loadedSamplersEnabledForShortcutPanelCallback = null;
+    this.loadedSamplersSettingsCallback = null;
   }
 
   startup(): void {
@@ -552,7 +552,7 @@ class StorageManager {
             if (isStorageState(readValue)) {
               this.storageState = readValue;
               this.updateConnectionsPanelCallback?.();
-              this.loadedSamplersEnabledForShortcutPanelCallback?.();
+              this.loadedSamplersSettingsCallback?.();
             } else {
               console.log(
                 "isStorageState typeguard failed; value: ",

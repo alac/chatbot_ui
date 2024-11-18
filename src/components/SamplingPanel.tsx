@@ -51,7 +51,7 @@ const SamplingPanel = () => {
     []
   );
   useEffect(() => {
-    storageManager.loadedSamplersEnabledForShortcutPanelCallback = () => {
+    storageManager.loadedSamplersSettingsCallback = () => {
       setPanelToggles(storageManager.getSamplersEnabledForShortcutPanel());
       setSamplingSettings(
         storageManager.getSamplingSettings(
@@ -60,7 +60,7 @@ const SamplingPanel = () => {
       );
     };
     return () => {
-      storageManager.loadedSamplersEnabledForShortcutPanelCallback = null;
+      storageManager.loadedSamplersSettingsCallback = null;
     };
   }, []);
   const setPanelTogglesAndPersist = (toggles: SamplingPanelTogglesEnum[]) => {
