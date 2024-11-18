@@ -110,6 +110,21 @@ const SamplingPanel = () => {
       ) : (
         <></>
       )}
+      {panelToggles.includes(SamplingPanelTogglesEnum.Seed) ? (
+        <>
+          <SamplingFieldSelector
+            field="sampler_seed"
+            min={-1}
+            max={4294967295}
+            step={1}
+            value={samplingSettings.sampler_seed}
+            samplingSettings={samplingSettings}
+            setSamplingSettings={setSamplingSettings}
+          />
+        </>
+      ) : (
+        <></>
+      )}
       {panelToggles.includes(SamplingPanelTogglesEnum.Temperature) ? (
         <>
           <SamplingFieldSelector
@@ -530,6 +545,10 @@ const SamplingSettingsEditor = ({
       setDescription(
         "`max_context_length` is the maximum length of the text that the AI processes (e.g. the part provided to it and the response)."
       );
+    } else if (s === "sampler_seed") {
+      setDescription(
+        "`sampler_seed` sets the input to the random number generator that the AI uses. This can be used to make the output more deterministic. In most cases this should be -1, so that the output is varies across retries."
+      );
     } else if (s === "temperature") {
       setDescription(
         "`temperature` acts as a randomness parameter in LLMs, determining the likelihood of selecting less probable words.."
@@ -583,6 +602,16 @@ const SamplingSettingsEditor = ({
             max={32768}
             step={128}
             value={samplingSettings.max_context_length}
+            samplingSettings={samplingSettings}
+            setSamplingSettings={setSamplingSettings}
+            onFieldFocused={onFieldFocused}
+          />
+          <SamplingFieldSelector
+            field="sampler_seed"
+            min={-1}
+            max={4294967295}
+            step={1}
+            value={samplingSettings.sampler_seed}
             samplingSettings={samplingSettings}
             setSamplingSettings={setSamplingSettings}
             onFieldFocused={onFieldFocused}
