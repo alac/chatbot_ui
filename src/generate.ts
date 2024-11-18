@@ -153,7 +153,8 @@ async function buildPrompt(
   conversation: Conversation,
   samplingSettings: SamplingSettings,
   connectionSettings: AnyConnectionSettings,
-  formatSettings: FormatSettings
+  formatSettings: FormatSettings,
+  updateGenerateStats: boolean
 ): Promise<FinalizedPrompt> {
   try {
     return buildPromptWrapped(
@@ -162,7 +163,7 @@ async function buildPrompt(
       samplingSettings,
       connectionSettings,
       formatSettings,
-      true
+      updateGenerateStats
     );
   } catch (error) {
     console.error(error);
@@ -559,10 +560,11 @@ async function testConversation(): Promise<string> {
     messages,
     storageManager.currentConversation,
     storageManager.getSamplingSettings(
-      storageManager.getCurrentFormatSettingsId()
+      storageManager.getCurrentSamplingSettingsId()
     ),
     storageManager.getCurrentConnectionSettings(),
-    storageManager.getCurrentFormatSettings()
+    storageManager.getCurrentFormatSettings(),
+    false
   );
   return builtPrompt.completionsPrompt;
 }
