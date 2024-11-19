@@ -162,7 +162,7 @@ const ContextDialogButton = (props: ContextDialogProps) => {
                 />
                 <span className="text-md">
                   The <i>description</i> is inserted at the top of the
-                  conversation. Use it to provide an arbitray amount of
+                  conversation. Use it to provide an arbitrary amount of
                   background information for the conversation.
                 </span>
               </div>
