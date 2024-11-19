@@ -68,9 +68,10 @@ const SamplingPanel = () => {
     storageManager.setSamplersEnabledForShortcutPanel(toggles);
   };
 
+  const titleStyle = panelToggles.length === 0 ? "" : "border-b-2 mb-2";
   return (
     <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
-      <div className="flex items-center">
+      <div className={`flex items-center ${titleStyle}`}>
         <span className="text-md font-medium">Sampling</span>
         <div className="ml-auto">
           <span className="corner-button">

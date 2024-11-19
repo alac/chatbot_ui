@@ -56,7 +56,7 @@ const ContextPanel = () => {
 
   return (
     <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
-      <div className="flex items-center">
+      <div className="flex items-center border-b-2 mb-2">
         <span className="text-md font-medium">Context</span>
         <div className="ml-auto">
           <span className="corner-button">
