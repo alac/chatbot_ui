@@ -10,6 +10,7 @@ import "./App.css";
 import { generate, buildPrompt, setInterruptFlag } from "./generate";
 import { storageManager, compressString, Message } from "./storage";
 
+import SummarizePanel from "./components/SummarizePanel";
 import LorebookPanel from "./components/LorebookPanel";
 import MenuPanel from "./components/MenuPanel";
 import ConnectionPanel from "./components/ConnectionPanel";
@@ -64,12 +65,7 @@ function App() {
                   id="ToolsBar"
                   order={1}
                 >
-                  <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
-                    <div className="flex items-center">
-                      <span className="text-md font-medium">Summarize</span>
-                      <div className="ml-auto corner-button"></div>
-                    </div>
-                  </div>
+                  <SummarizePanel />
 
                   <div className="panel m-1 px-2 py-2 rounded-md bg-primary text-primary-foreground">
                     <div className="flex items-center">
