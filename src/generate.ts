@@ -262,15 +262,10 @@ async function buildPromptWrapped(
     const message = allMessages[allMessages.length - indexFromEnd - 1];
     var textAddedThisLoop = "";
     if (!message.isDisabled) {
-      if (message.tokenCount == null) {
-        message.tokenCount = await cachedTokenCount(
-          message.text,
-          connectionSettings
-        );
-        storageManager.updateMessage(message, false);
-      }
-
-      var messageCost = message.tokenCount;
+      var messageCost = await cachedTokenCount(
+        message.text,
+        connectionSettings
+      );
       var formattedMessageStr = "";
       if (message.userId === "bot") {
         if (isFirstBotMessage) {
@@ -524,7 +519,6 @@ async function testConversation(): Promise<string> {
     username: storageManager.currentConversation.botName,
     key: `0`,
     text: "Hello, I'm a bot.",
-    tokenCount: null,
     compressedPrompt: "",
     isDisabled: false,
   });
@@ -533,7 +527,6 @@ async function testConversation(): Promise<string> {
     username: storageManager.currentConversation.username,
     key: `1`,
     text: "Hello, I'm a user.",
-    tokenCount: null,
     compressedPrompt: "",
     isDisabled: false,
   });
@@ -542,7 +535,6 @@ async function testConversation(): Promise<string> {
     username: storageManager.currentConversation.botName,
     key: `2`,
     text: "I'm still a bot.",
-    tokenCount: null,
     compressedPrompt: "",
     isDisabled: false,
   });
@@ -551,7 +543,6 @@ async function testConversation(): Promise<string> {
     username: storageManager.currentConversation.username,
     key: `3`,
     text: "And I'm still a user.",
-    tokenCount: null,
     compressedPrompt: "",
     isDisabled: false,
   });

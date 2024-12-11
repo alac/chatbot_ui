@@ -20,7 +20,7 @@ const ChatBubble = ({ data }: { data: Message }) => {
     if (data.text === updatedText) {
       return;
     }
-    const message = { ...data, text: updatedText, tokenCount: null };
+    const message = { ...data, text: updatedText };
     storageManager.updateMessage(message, true);
     storageManager.createAddOrUpdateEditEvent(message);
     storageManager.persistConversation();

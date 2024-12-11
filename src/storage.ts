@@ -73,7 +73,6 @@ interface Message {
   username: string;
   key: string;
   text: string;
-  tokenCount: number | null;
   compressedPrompt: string;
   isDisabled: boolean;
 }
@@ -90,8 +89,6 @@ const isMessage = (obj: any): obj is Message => {
     typeof obj.key === "string" &&
     "text" in obj &&
     typeof obj.text === "string" &&
-    "tokenCount" in obj &&
-    (obj.tokenCount === null || typeof obj.tokenCount === "number") &&
     "compressedPrompt" in obj &&
     typeof obj.compressedPrompt === "string" &&
     "isDisabled" in obj &&

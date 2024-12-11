@@ -154,7 +154,6 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         username: storageManager.currentConversation.botName,
         key: `${botMessageId}`,
         text: "",
-        tokenCount: null,
         compressedPrompt: "",
         isDisabled: false,
       };
@@ -214,7 +213,6 @@ const BottomContainer = ({ chatboxRef }: BottomContainerProps) => {
         username: storageManager.currentConversation.username,
         key: `${userMessageId}`,
         text: inputValue,
-        tokenCount: null,
         compressedPrompt: "",
         isDisabled: false,
       };
